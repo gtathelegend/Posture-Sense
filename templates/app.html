@@ -266,7 +266,7 @@
         async function checkServer() {
           try {
             const response = await fetch(baseUrl + "/get_status", {
-              timeout: 5000, // 5 second timeout
+              timeout: 5000,
               headers: {
                 'Accept': 'application/json'
               }
@@ -282,15 +282,6 @@
           }
         }
 
-        // Initialize status dots based on initial status
-        const initialStatus = poseStatus.textContent.trim();
-        const initialLastStatus = lastPoseStatus.textContent.trim();
-        updateStatusDots(initialStatus);
-        updateFeedbackMessage(initialStatus);
-
-        // Check server on page load
-        checkServer();
-
         async function startCamera() {
           if (!serverAvailable) {
             feedbackText.textContent = "Cannot start camera: Server is not available. Please check if the server is running.";
@@ -301,6 +292,11 @@
             // Show loading state
             feedbackText.textContent = "Initializing camera...";
             
+            // Show the video feed container first
+            videoFeed.style.display = 'block';
+            videoFeed.src = baseUrl + "/video_feed?" + new Date().getTime();
+            
+            // Request camera access
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
               mediaStream = await navigator.mediaDevices.getUserMedia({ 
                 video: {
@@ -309,22 +305,16 @@
                   facingMode: "user"
                 } 
               });
-              
-              // Show the video feed container
-              videoFeed.style.display = 'block';
-              videoFeed.src = baseUrl + "/video_feed?" + new Date().getTime();
-              
-              startButton.style.display = 'none';
-              stopButton.style.display = 'inline-block';
-              closeButton.style.display = 'inline-block';
-              
-              // Start polling for status updates
-              startStatusUpdates();
-              
-              feedbackText.textContent = "Camera initialized successfully. You can now start your exercises.";
-            } else {
-              throw new Error("getUserMedia not supported in this browser.");
             }
+            
+            startButton.style.display = 'none';
+            stopButton.style.display = 'inline-block';
+            closeButton.style.display = 'inline-block';
+            
+            // Start polling for status updates
+            startStatusUpdates();
+            
+            feedbackText.textContent = "Camera initialized successfully. You can now start your exercises.";
           } catch (err) {
             console.error("Error accessing camera:", err);
             feedbackText.textContent = "Error: Could not access camera. Please check your camera connection and permissions.";
@@ -414,7 +404,10 @@
 
           try {
             const response = await fetch(baseUrl + "/get_status", {
-              timeout: 5000 // 5 second timeout
+              timeout: 5000,
+              headers: {
+                'Accept': 'application/json'
+              }
             });
             
             if (!response.ok) throw new Error('Failed to get status');
@@ -422,19 +415,15 @@
             const data = await response.json();
             console.log('Status update:', data); // Debug log
             
-            if (data.current_status && data.current_status !== poseStatus.textContent) {
-              // Update current status
-              poseStatus.textContent = data.current_status;
-              
-              // Update last status
-              lastPoseStatus.textContent = data.last_status;
-              
-              // Update status indicators
-              updateStatusDots(data.current_status);
-              
-              // Update feedback message based on status
-              updateFeedbackMessage(data.current_status);
-            }
+            // Always update the status display
+            poseStatus.textContent = data.current_status;
+            lastPoseStatus.textContent = data.last_status;
+            
+            // Update status indicators
+            updateStatusDots(data.current_status);
+            
+            // Update feedback message based on status
+            updateFeedbackMessage(data.current_status);
           } catch (err) {
             console.error("Error updating status:", err);
             serverAvailable = false;

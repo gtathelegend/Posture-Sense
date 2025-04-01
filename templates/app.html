@@ -266,25 +266,47 @@
         async function checkServer() {
           try {
             const response = await fetch(baseUrl + "/get_status", {
-              timeout: 5000,
+              method: 'GET',
               headers: {
-                'Accept': 'application/json'
-              }
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache'
+              },
+              timeout: 5000
             });
+            
             if (response.ok) {
               serverAvailable = true;
               feedbackText.textContent = "Server connected. Click 'Start Camera' to begin.";
+              console.log("Server is available");
+            } else {
+              throw new Error('Server response not OK');
             }
           } catch (err) {
             console.error("Server not available:", err);
-            feedbackText.textContent = "Error: Cannot connect to server. Please make sure the server is running.";
+            feedbackText.textContent = "Error: Cannot connect to server. Please make sure the server is running on " + baseUrl;
             serverAvailable = false;
+          }
+        }
+
+        // Check server on page load
+        checkServer();
+
+        // Add retry button if server is not available
+        function addRetryButton() {
+          if (!document.getElementById('retryServerButton')) {
+            const retryButton = document.createElement('button');
+            retryButton.id = 'retryServerButton';
+            retryButton.className = 'btn btn-secondary mt-2';
+            retryButton.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Retry Connection';
+            retryButton.onclick = checkServer;
+            feedbackText.parentNode.appendChild(retryButton);
           }
         }
 
         async function startCamera() {
           if (!serverAvailable) {
             feedbackText.textContent = "Cannot start camera: Server is not available. Please check if the server is running.";
+            addRetryButton();
             return;
           }
 

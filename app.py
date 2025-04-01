@@ -29,7 +29,7 @@ camera_active = False
 camera = None
 
 def gen_frames():
-    global camera_active, current_status, last_status
+    global camera_active, current_status, last_status, pose_status
     try:
         video = cv2.VideoCapture(0)
         if not video.isOpened():
@@ -49,11 +49,12 @@ def gen_frames():
                 # Detect pose and classify
                 frame, landmarks = detectPose(frame, pose, display=False)
                 if landmarks:
-                    _, _, pose_status = classifyPose(landmarks, frame, display=False)
+                    _, _, new_status = classifyPose(landmarks, frame, display=False)
                     # Update last status before changing current status
-                    if pose_status != current_status:
+                    if new_status != current_status:
                         last_status = current_status
-                        current_status = pose_status
+                        current_status = new_status
+                        pose_status = new_status
                         print(f"Current Status: {current_status}, Last Status: {last_status}")  # Debug print
 
                 # Encode frame to JPEG
@@ -263,6 +264,7 @@ def classifyPose(landmarks, output_image, display=False):
 @app.route('/status')
 def pose_status_updates():
     def generate():
+        global pose_status
         while True:
             # Send the current pose status as a server-sent event
             yield f"data: {pose_status}\n\n"
@@ -311,14 +313,16 @@ def get_status():
 
 @app.route('/stop_camera')
 def stop_camera():
-    global camera_active
+    global camera_active, pose_status
     camera_active = False
+    pose_status = "Scanning"
     return jsonify({'status': 'success'})
 
 @app.route('/video_feed')
 def video_feed():
-    global camera_active
+    global camera_active, pose_status
     camera_active = True
+    pose_status = "Initializing..."
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':

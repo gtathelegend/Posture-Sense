@@ -31,9 +31,24 @@ camera = None
 def gen_frames():
     global camera_active, current_status, last_status, pose_status
     try:
-        video = cv2.VideoCapture(0)
-        if not video.isOpened():
-            print("Error: Could not open camera")
+        # Try different camera indices
+        camera_indices = [0, 1, -1]  # Try default camera, second camera, and auto-detect
+        video = None
+        
+        for idx in camera_indices:
+            try:
+                video = cv2.VideoCapture(idx)
+                if video.isOpened():
+                    print(f"Successfully opened camera at index {idx}")
+                    break
+            except Exception as e:
+                print(f"Failed to open camera at index {idx}: {str(e)}")
+                if video:
+                    video.release()
+        
+        if not video or not video.isOpened():
+            print("Error: Could not open any camera")
+            pose_status = "Camera Error"
             return
             
         while camera_active:
@@ -67,9 +82,10 @@ def gen_frames():
         video.release()
     except Exception as e:
         print(f"Error in gen_frames: {str(e)}")
-        if 'video' in locals():
+        if 'video' in locals() and video:
             video.release()
         camera_active = False
+        pose_status = "Camera Error"
 
 def detectPose(image, pose, display=True):
 
@@ -322,7 +338,7 @@ def stop_camera():
 def video_feed():
     global camera_active, pose_status
     camera_active = True
-    pose_status = "Initializing..."
+    pose_status = "Initializing camera..."
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':

@@ -400,6 +400,9 @@
           if (!status) return;
           
           switch(status.toLowerCase()) {
+            case 'camera error':
+              feedbackText.textContent = "Error: Could not access camera. Please check if your camera is properly connected and you have granted camera permissions.";
+              break;
             case 'warrior ii pose':
               feedbackText.textContent = "Great job! You're in the Warrior II pose.";
               break;
@@ -433,7 +436,9 @@
         function getStatusClass(status) {
           if (!status) return '';
           status = status.toLowerCase();
-          if (status.includes('pose') && status !== 'unknown pose') {
+          if (status === 'camera error') {
+            return 'danger';
+          } else if (status.includes('pose') && status !== 'unknown pose') {
             return 'active';
           } else if (status === 'unknown') {
             return 'warning';
@@ -441,6 +446,17 @@
             return '';
           }
         }
+
+        // Add error handling for video feed
+        videoFeed.onerror = function(err) {
+          console.error("Error loading video feed:", err);
+          feedbackText.textContent = "Error: Could not load camera feed. Please check your camera connection.";
+          videoFeed.style.display = 'none';
+          startButton.style.display = 'inline-block';
+          stopButton.style.display = 'none';
+          closeButton.style.display = 'none';
+          stopStatusUpdates();
+        };
 
         startButton.addEventListener('click', startCamera);
         stopButton.addEventListener('click', stopCamera);

@@ -247,7 +247,7 @@
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         // Get the base URL from the current window location
-        const baseUrl = window.location.protocol + '//' + window.location.hostname + ':5000';
+        const baseUrl = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
         let serverAvailable = false;
         
         const startButton = document.getElementById('startCameraButton');
@@ -266,7 +266,10 @@
         async function checkServer() {
           try {
             const response = await fetch(baseUrl + "/get_status", {
-              timeout: 5000 // 5 second timeout
+              timeout: 5000, // 5 second timeout
+              headers: {
+                'Accept': 'application/json'
+              }
             });
             if (response.ok) {
               serverAvailable = true;

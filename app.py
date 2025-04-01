@@ -3,6 +3,7 @@ import cv2
 from time import time
 import mediapipe as mp
 import math
+import os
 
 app = Flask(__name__)
 
@@ -322,4 +323,6 @@ def video_feed():
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port, debug=True)
+

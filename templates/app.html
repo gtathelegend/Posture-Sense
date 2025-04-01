@@ -246,9 +246,9 @@
 
     <script>
       document.addEventListener('DOMContentLoaded', function() {
+        // Get the base URL from the current window location
         const baseUrl = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
         let serverAvailable = false;
-        let eventSource = null;
         
         const startButton = document.getElementById('startCameraButton');
         const stopButton = document.getElementById('stopCameraButton');
@@ -260,6 +260,7 @@
         const poseStatus = document.getElementById('pose_status');
         const lastPoseStatus = document.getElementById('last_pose_status');
         let statusInterval = null;
+        let mediaStream = null;
 
         // Check server availability
         async function checkServer() {
@@ -269,7 +270,8 @@
               headers: {
                 'Accept': 'application/json',
                 'Cache-Control': 'no-cache'
-              }
+              },
+              timeout: 5000
             });
             
             if (response.ok) {
@@ -289,9 +291,22 @@
         // Check server on page load
         checkServer();
 
+        // Add retry button if server is not available
+        function addRetryButton() {
+          if (!document.getElementById('retryServerButton')) {
+            const retryButton = document.createElement('button');
+            retryButton.id = 'retryServerButton';
+            retryButton.className = 'btn btn-secondary mt-2';
+            retryButton.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Retry Connection';
+            retryButton.onclick = checkServer;
+            feedbackText.parentNode.appendChild(retryButton);
+          }
+        }
+
         async function startCamera() {
           if (!serverAvailable) {
             feedbackText.textContent = "Cannot start camera: Server is not available. Please check if the server is running.";
+            addRetryButton();
             return;
           }
 
@@ -303,17 +318,28 @@
             videoFeed.style.display = 'block';
             videoFeed.src = baseUrl + "/video_feed?" + new Date().getTime();
             
+            // Request camera access
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+              mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                video: {
+                  width: { ideal: 1280 },
+                  height: { ideal: 720 },
+                  facingMode: "user"
+                } 
+              });
+            }
+            
             startButton.style.display = 'none';
             stopButton.style.display = 'inline-block';
             closeButton.style.display = 'inline-block';
             
-            // Start status updates
+            // Start polling for status updates
             startStatusUpdates();
             
             feedbackText.textContent = "Camera initialized successfully. You can now start your exercises.";
           } catch (err) {
-            console.error("Error starting camera:", err);
-            feedbackText.textContent = "Error: Could not start camera. Please try again.";
+            console.error("Error accessing camera:", err);
+            feedbackText.textContent = "Error: Could not access camera. Please check your camera connection and permissions.";
             videoFeed.style.display = 'none';
             startButton.style.display = 'inline-block';
             stopButton.style.display = 'none';
@@ -323,6 +349,12 @@
 
         async function stopCamera() {
           try {
+            // Stop the media stream
+            if (mediaStream) {
+              mediaStream.getTracks().forEach(track => track.stop());
+              mediaStream = null;
+            }
+            
             // Call the stop_camera endpoint
             const response = await fetch(baseUrl + "/stop_camera");
             if (!response.ok) throw new Error('Failed to stop camera');
@@ -335,7 +367,7 @@
             startButton.style.display = 'inline-block';
             feedbackText.textContent = "Camera is paused. Click 'Start Camera' to resume.";
             
-            // Stop status updates
+            // Stop polling for status updates
             stopStatusUpdates();
           } catch (err) {
             console.error("Error stopping camera:", err);
@@ -345,6 +377,12 @@
 
         async function closeCamera() {
           try {
+            // Stop the media stream
+            if (mediaStream) {
+              mediaStream.getTracks().forEach(track => track.stop());
+              mediaStream = null;
+            }
+            
             // Call the stop_camera endpoint
             const response = await fetch(baseUrl + "/stop_camera");
             if (!response.ok) throw new Error('Failed to close camera');
@@ -358,7 +396,7 @@
             closeButton.style.display = 'none';
             feedbackText.textContent = "Start the camera to begin posture detection and receive real-time feedback on your form.";
             
-            // Stop status updates
+            // Stop polling for status updates
             stopStatusUpdates();
           } catch (err) {
             console.error("Error closing camera:", err);
@@ -367,32 +405,52 @@
         }
 
         function startStatusUpdates() {
-          // Close existing EventSource if any
-          if (eventSource) {
-            eventSource.close();
+          // Poll for status updates every 500ms
+          if (!statusInterval) {
+            statusInterval = setInterval(updateStatus, 500);
           }
-          
-          // Create new EventSource for status updates
-          eventSource = new EventSource(baseUrl + "/status");
-          
-          eventSource.onmessage = function(event) {
-            const status = event.data;
-            poseStatus.textContent = status;
-            updateStatusDots(status);
-            updateFeedbackMessage(status);
-          };
-          
-          eventSource.onerror = function(err) {
-            console.error("EventSource failed:", err);
-            eventSource.close();
-            stopStatusUpdates();
-          };
         }
 
         function stopStatusUpdates() {
-          if (eventSource) {
-            eventSource.close();
-            eventSource = null;
+          if (statusInterval) {
+            clearInterval(statusInterval);
+            statusInterval = null;
+          }
+        }
+
+        async function updateStatus() {
+          if (!serverAvailable) {
+            stopStatusUpdates();
+            return;
+          }
+
+          try {
+            const response = await fetch(baseUrl + "/get_status", {
+              timeout: 5000,
+              headers: {
+                'Accept': 'application/json'
+              }
+            });
+            
+            if (!response.ok) throw new Error('Failed to get status');
+            
+            const data = await response.json();
+            console.log('Status update:', data); // Debug log
+            
+            // Always update the status display
+            poseStatus.textContent = data.current_status;
+            lastPoseStatus.textContent = data.last_status;
+            
+            // Update status indicators
+            updateStatusDots(data.current_status);
+            
+            // Update feedback message based on status
+            updateFeedbackMessage(data.current_status);
+          } catch (err) {
+            console.error("Error updating status:", err);
+            serverAvailable = false;
+            stopStatusUpdates();
+            feedbackText.textContent = "Lost connection to server. Please check if the server is running.";
           }
         }
 
@@ -400,9 +458,6 @@
           if (!status) return;
           
           switch(status.toLowerCase()) {
-            case 'camera error':
-              feedbackText.textContent = "Error: Could not access camera. Please check if your camera is properly connected and you have granted camera permissions.";
-              break;
             case 'warrior ii pose':
               feedbackText.textContent = "Great job! You're in the Warrior II pose.";
               break;
@@ -425,6 +480,7 @@
           }
         }
 
+        // Function to update status dots based on status
         function updateStatusDots(status) {
           if (!status) return;
           
@@ -436,9 +492,7 @@
         function getStatusClass(status) {
           if (!status) return '';
           status = status.toLowerCase();
-          if (status === 'camera error') {
-            return 'danger';
-          } else if (status.includes('pose') && status !== 'unknown pose') {
+          if (status.includes('pose') && status !== 'unknown pose') {
             return 'active';
           } else if (status === 'unknown') {
             return 'warning';
@@ -446,17 +500,6 @@
             return '';
           }
         }
-
-        // Add error handling for video feed
-        videoFeed.onerror = function(err) {
-          console.error("Error loading video feed:", err);
-          feedbackText.textContent = "Error: Could not load camera feed. Please check your camera connection.";
-          videoFeed.style.display = 'none';
-          startButton.style.display = 'inline-block';
-          stopButton.style.display = 'none';
-          closeButton.style.display = 'none';
-          stopStatusUpdates();
-        };
 
         startButton.addEventListener('click', startCamera);
         stopButton.addEventListener('click', stopCamera);

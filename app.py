@@ -29,26 +29,11 @@ camera_active = False
 camera = None
 
 def gen_frames():
-    global camera_active, current_status, last_status, pose_status
+    global camera_active, current_status, last_status
     try:
-        # Try different camera indices
-        camera_indices = [0, 1, -1]  # Try default camera, second camera, and auto-detect
-        video = None
-        
-        for idx in camera_indices:
-            try:
-                video = cv2.VideoCapture(idx)
-                if video.isOpened():
-                    print(f"Successfully opened camera at index {idx}")
-                    break
-            except Exception as e:
-                print(f"Failed to open camera at index {idx}: {str(e)}")
-                if video:
-                    video.release()
-        
-        if not video or not video.isOpened():
-            print("Error: Could not open any camera")
-            pose_status = "Camera Error"
+        video = cv2.VideoCapture(0)
+        if not video.isOpened():
+            print("Error: Could not open camera")
             return
             
         while camera_active:
@@ -64,12 +49,11 @@ def gen_frames():
                 # Detect pose and classify
                 frame, landmarks = detectPose(frame, pose, display=False)
                 if landmarks:
-                    _, _, new_status = classifyPose(landmarks, frame, display=False)
+                    _, _, pose_status = classifyPose(landmarks, frame, display=False)
                     # Update last status before changing current status
-                    if new_status != current_status:
+                    if pose_status != current_status:
                         last_status = current_status
-                        current_status = new_status
-                        pose_status = new_status
+                        current_status = pose_status
                         print(f"Current Status: {current_status}, Last Status: {last_status}")  # Debug print
 
                 # Encode frame to JPEG
@@ -82,10 +66,9 @@ def gen_frames():
         video.release()
     except Exception as e:
         print(f"Error in gen_frames: {str(e)}")
-        if 'video' in locals() and video:
+        if 'video' in locals():
             video.release()
         camera_active = False
-        pose_status = "Camera Error"
 
 def detectPose(image, pose, display=True):
 
@@ -280,7 +263,6 @@ def classifyPose(landmarks, output_image, display=False):
 @app.route('/status')
 def pose_status_updates():
     def generate():
-        global pose_status
         while True:
             # Send the current pose status as a server-sent event
             yield f"data: {pose_status}\n\n"
@@ -329,16 +311,14 @@ def get_status():
 
 @app.route('/stop_camera')
 def stop_camera():
-    global camera_active, pose_status
+    global camera_active
     camera_active = False
-    pose_status = "Scanning"
     return jsonify({'status': 'success'})
 
 @app.route('/video_feed')
 def video_feed():
-    global camera_active, pose_status
+    global camera_active
     camera_active = True
-    pose_status = "Initializing camera..."
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':

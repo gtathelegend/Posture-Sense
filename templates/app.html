@@ -259,6 +259,7 @@
         const poseStatus = document.getElementById('pose_status');
         const lastPoseStatus = document.getElementById('last_pose_status');
         let statusInterval = null;
+        let mediaStream = null;
 
         // Initialize status dots based on initial status
         const initialStatus = poseStatus.textContent.trim();
@@ -270,17 +271,31 @@
           try {
             // Show loading state
             feedbackText.textContent = "Initializing camera...";
-            videoFeed.style.display = 'block';
             
-            // Set the video feed source with a timestamp to prevent caching
-            videoFeed.src = baseUrl + "/video_feed?" + new Date().getTime();
-            
-            startButton.style.display = 'none';
-            stopButton.style.display = 'inline-block';
-            closeButton.style.display = 'inline-block';
-            
-            // Start polling for status updates
-            startStatusUpdates();
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+              mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                video: {
+                  width: { ideal: 1280 },
+                  height: { ideal: 720 },
+                  facingMode: "user"
+                } 
+              });
+              
+              // Show the video feed container
+              videoFeed.style.display = 'block';
+              videoFeed.src = baseUrl + "/video_feed?" + new Date().getTime();
+              
+              startButton.style.display = 'none';
+              stopButton.style.display = 'inline-block';
+              closeButton.style.display = 'inline-block';
+              
+              // Start polling for status updates
+              startStatusUpdates();
+              
+              feedbackText.textContent = "Camera initialized successfully. You can now start your exercises.";
+            } else {
+              throw new Error("getUserMedia not supported in this browser.");
+            }
           } catch (err) {
             console.error("Error accessing camera:", err);
             feedbackText.textContent = "Error: Could not access camera. Please check your camera connection and permissions.";
@@ -293,6 +308,12 @@
 
         async function stopCamera() {
           try {
+            // Stop the media stream
+            if (mediaStream) {
+              mediaStream.getTracks().forEach(track => track.stop());
+              mediaStream = null;
+            }
+            
             // Call the stop_camera endpoint
             const response = await fetch(baseUrl + "/stop_camera");
             if (!response.ok) throw new Error('Failed to stop camera');
@@ -315,6 +336,12 @@
 
         async function closeCamera() {
           try {
+            // Stop the media stream
+            if (mediaStream) {
+              mediaStream.getTracks().forEach(track => track.stop());
+              mediaStream = null;
+            }
+            
             // Call the stop_camera endpoint
             const response = await fetch(baseUrl + "/stop_camera");
             if (!response.ok) throw new Error('Failed to close camera');

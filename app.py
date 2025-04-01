@@ -4,8 +4,10 @@ from time import time
 import mediapipe as mp
 import math
 import os
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 # ---------------------------------------------Pose Detection and Classification---------------------------------------------
 # Initializing mediapipe pose class.

@@ -248,6 +248,7 @@
       document.addEventListener('DOMContentLoaded', function() {
         // Get the base URL from the current window location
         const baseUrl = window.location.protocol + '//' + window.location.hostname + ':5000';
+        let serverAvailable = false;
         
         const startButton = document.getElementById('startCameraButton');
         const stopButton = document.getElementById('stopCameraButton');
@@ -261,13 +262,38 @@
         let statusInterval = null;
         let mediaStream = null;
 
+        // Check server availability
+        async function checkServer() {
+          try {
+            const response = await fetch(baseUrl + "/get_status", {
+              timeout: 5000 // 5 second timeout
+            });
+            if (response.ok) {
+              serverAvailable = true;
+              feedbackText.textContent = "Server connected. Click 'Start Camera' to begin.";
+            }
+          } catch (err) {
+            console.error("Server not available:", err);
+            feedbackText.textContent = "Error: Cannot connect to server. Please make sure the server is running.";
+            serverAvailable = false;
+          }
+        }
+
         // Initialize status dots based on initial status
         const initialStatus = poseStatus.textContent.trim();
         const initialLastStatus = lastPoseStatus.textContent.trim();
         updateStatusDots(initialStatus);
         updateFeedbackMessage(initialStatus);
 
+        // Check server on page load
+        checkServer();
+
         async function startCamera() {
+          if (!serverAvailable) {
+            feedbackText.textContent = "Cannot start camera: Server is not available. Please check if the server is running.";
+            return;
+          }
+
           try {
             // Show loading state
             feedbackText.textContent = "Initializing camera...";
@@ -378,8 +404,16 @@
         }
 
         async function updateStatus() {
+          if (!serverAvailable) {
+            stopStatusUpdates();
+            return;
+          }
+
           try {
-            const response = await fetch(baseUrl + "/get_status");
+            const response = await fetch(baseUrl + "/get_status", {
+              timeout: 5000 // 5 second timeout
+            });
+            
             if (!response.ok) throw new Error('Failed to get status');
             
             const data = await response.json();
@@ -400,7 +434,9 @@
             }
           } catch (err) {
             console.error("Error updating status:", err);
-            // Don't update the feedback text on error to avoid flickering
+            serverAvailable = false;
+            stopStatusUpdates();
+            feedbackText.textContent = "Lost connection to server. Please check if the server is running.";
           }
         }
 

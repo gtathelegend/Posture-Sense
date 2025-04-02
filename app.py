@@ -3,11 +3,8 @@ import cv2
 from time import time
 import mediapipe as mp
 import math
-import os
-from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
 
 # ---------------------------------------------Pose Detection and Classification---------------------------------------------
 # Initializing mediapipe pose class.
@@ -325,6 +322,4 @@ def video_feed():
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port, debug=True)
-
+    app.run(debug=True)

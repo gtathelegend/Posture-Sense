@@ -464,31 +464,81 @@
           </div>
 
           <div class="col-lg-8">
-            <form action="{{ url_for('contact') }}" method="post" class="php-email-form" data-aos="fade-up" data-aos-delay="200">
-              <div class="row gy-4">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
 
+            <!-- Contact Form -->
+            <form id="contactForm" method="POST" class="php-email-form" data-aos="fade-up" data-aos-delay="200">
+              <div class="row gy-4">
                 <div class="col-md-6">
-                  <input type="text" name="name" class="form-control" placeholder="Your Name" required="">
+                  <input type="text" name="name" class="form-control" placeholder="Your Name" required>
                 </div>
 
-                <div class="col-md-6 ">
-                  <input type="email" class="form-control" name="email" placeholder="Your Email" required="">
+                <div class="col-md-6">
+                  <input type="email" class="form-control" name="email" placeholder="Your Email" required>
                 </div>
 
                 <div class="col-md-12">
-                  <textarea class="form-control" name="message" rows="6" placeholder="Message" required=""></textarea>
+                  <textarea class="form-control" name="message" rows="6" placeholder="Message" required></textarea>
                 </div>
 
                 <div class="col-md-12 text-center">
-                  <div class="loading">Loading</div>
-                  <div class="error-message"></div>
-                  <div class="sent-message">Your message has been sent. Thank you!</div>
-
+                  <div id="messageResponse"></div>
                   <button type="submit">Send Message</button>
                 </div>
-
               </div>
             </form>
+
+            <script>
+              document.getElementById("contactForm").addEventListener("submit", function(event) {
+                event.preventDefault(); // Prevent default form submission
+
+                const form = this;
+                const messageResponse = document.getElementById("messageResponse");
+                
+                // Show loading state
+                messageResponse.innerHTML = "<div class='alert alert-info'>Sending message...</div>";
+
+                let formData = new FormData(form);
+
+                fetch("/contact", {
+                  method: "POST",
+                  body: formData
+                })
+                .then(response => {
+                  if (response.ok) {
+                    messageResponse.innerHTML = "<div class='alert alert-success'>Message sent successfully!</div>";
+                    form.reset();
+                    
+                    // Hide success message after 5 seconds
+                    setTimeout(() => {
+                      messageResponse.innerHTML = "";
+                    }, 5000);
+                  } else {
+                    throw new Error('Network response was not ok');
+                  }
+                })
+                .catch(error => {
+                  messageResponse.innerHTML = "<div class='alert alert-danger'>Failed to send message. Please try again.</div>";
+                  console.error('Error:', error);
+                  
+                  // Hide error message after 5 seconds
+                  setTimeout(() => {
+                    messageResponse.innerHTML = "";
+                  }, 5000);
+                });
+              });
+            </script>
+
           </div>
 
         </div>

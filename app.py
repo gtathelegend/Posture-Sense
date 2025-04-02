@@ -1,10 +1,19 @@
-from flask import Flask, render_template, Response, jsonify
+from flask import Flask, render_template, Response, jsonify, request, flash, redirect, url_for
 import cv2
 from time import time
 import mediapipe as mp
 import math
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)  # Required for flash messages
 
 # ---------------------------------------------Pose Detection and Classification---------------------------------------------
 # Initializing mediapipe pose class.
@@ -284,9 +293,51 @@ def pose_detection():
 def about():
     return render_template('#about')
 
-@app.route('/contact')
+@app.route('/contact', methods=['GET', 'POST'])
 def contact():
-    return render_template('#contact')
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        message = request.form.get('message')
+        
+        try:
+            # Email configuration
+            sender_email = os.getenv('EMAIL_USER')
+            sender_password = os.getenv('EMAIL_PASSWORD')
+            receiver_email = os.getenv('ADMIN_EMAIL')
+            
+            # Create message
+            msg = MIMEMultipart()
+            msg['From'] = sender_email
+            msg['To'] = receiver_email
+            msg['Subject'] = f"Posture Sense New Contact Form Submission from {name}"
+            
+            # Email body
+            body = f"""
+            New contact form submission:
+            
+            Name: {name}
+            Email: {email}
+            Message: {message}
+            """
+            
+            msg.attach(MIMEText(body, 'plain'))
+            
+            # Send email
+            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+            
+            flash('Your message has been sent successfully!', 'success')
+            return redirect(url_for('index'))
+            
+        except Exception as e:
+            print(f"Error sending email: {str(e)}")  # Add this line for debugging
+            flash('An error occurred while sending your message. Please try again later.', 'error')
+            return redirect(url_for('index'))
+    
+    return render_template('index.html')
 
 @app.route('/pricing')
 def join_now():

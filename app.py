@@ -54,7 +54,7 @@ def gen_frames():
                     if pose_status != current_status:
                         last_status = current_status
                         current_status = pose_status
-                        print(f"Current Status: {current_status}, Last Status: {last_status}")  # Debug print
+                    print(f"Current Status: {current_status}, Last Status: {last_status}")  # Debug print
 
                 # Encode frame to JPEG
                 ret, buffer = cv2.imencode('.jpg', frame)
@@ -305,14 +305,17 @@ def submit():
 def get_status():
     global current_status, last_status
     return jsonify({
-        'current_status': current_status if current_status else 'Unknown',
-        'last_status': last_status if last_status else 'Unknown'
+        'current_status': current_status,
+        'last_status': last_status
     })
 
 @app.route('/stop_camera')
 def stop_camera():
-    global camera_active
+    global camera, camera_active
     camera_active = False
+    if camera is not None:
+        camera.release()
+        camera = None
     return jsonify({'status': 'success'})
 
 @app.route('/video_feed')

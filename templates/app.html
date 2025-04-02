@@ -247,8 +247,7 @@
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         // Get the base URL from the current window location
-        const baseUrl = window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
-        let serverAvailable = false;
+        const baseUrl = window.location.protocol + '//' + window.location.hostname + ':5000';
         
         const startButton = document.getElementById('startCameraButton');
         const stopButton = document.getElementById('stopCameraButton');
@@ -260,74 +259,21 @@
         const poseStatus = document.getElementById('pose_status');
         const lastPoseStatus = document.getElementById('last_pose_status');
         let statusInterval = null;
-        let mediaStream = null;
 
-        // Check server availability
-        async function checkServer() {
-          try {
-            const response = await fetch(baseUrl + "/get_status", {
-              method: 'GET',
-              headers: {
-                'Accept': 'application/json',
-                'Cache-Control': 'no-cache'
-              },
-              timeout: 5000
-            });
-            
-            if (response.ok) {
-              serverAvailable = true;
-              feedbackText.textContent = "Server connected. Click 'Start Camera' to begin.";
-              console.log("Server is available");
-            } else {
-              throw new Error('Server response not OK');
-            }
-          } catch (err) {
-            console.error("Server not available:", err);
-            feedbackText.textContent = "Error: Cannot connect to server. Please make sure the server is running on " + baseUrl;
-            serverAvailable = false;
-          }
-        }
-
-        // Check server on page load
-        checkServer();
-
-        // Add retry button if server is not available
-        function addRetryButton() {
-          if (!document.getElementById('retryServerButton')) {
-            const retryButton = document.createElement('button');
-            retryButton.id = 'retryServerButton';
-            retryButton.className = 'btn btn-secondary mt-2';
-            retryButton.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Retry Connection';
-            retryButton.onclick = checkServer;
-            feedbackText.parentNode.appendChild(retryButton);
-          }
-        }
+        // Initialize status dots based on initial status
+        const initialStatus = poseStatus.textContent.trim();
+        const initialLastStatus = lastPoseStatus.textContent.trim();
+        updateStatusDots(initialStatus);
+        updateFeedbackMessage(initialStatus);
 
         async function startCamera() {
-          if (!serverAvailable) {
-            feedbackText.textContent = "Cannot start camera: Server is not available. Please check if the server is running.";
-            addRetryButton();
-            return;
-          }
-
           try {
             // Show loading state
             feedbackText.textContent = "Initializing camera...";
-            
-            // Show the video feed container first
             videoFeed.style.display = 'block';
-            videoFeed.src = baseUrl + "/video_feed?" + new Date().getTime();
             
-            // Request camera access
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-              mediaStream = await navigator.mediaDevices.getUserMedia({ 
-                video: {
-                  width: { ideal: 1280 },
-                  height: { ideal: 720 },
-                  facingMode: "user"
-                } 
-              });
-            }
+            // Set the video feed source with a timestamp to prevent caching
+            videoFeed.src = baseUrl + "/video_feed?" + new Date().getTime();
             
             startButton.style.display = 'none';
             stopButton.style.display = 'inline-block';
@@ -335,8 +281,6 @@
             
             // Start polling for status updates
             startStatusUpdates();
-            
-            feedbackText.textContent = "Camera initialized successfully. You can now start your exercises.";
           } catch (err) {
             console.error("Error accessing camera:", err);
             feedbackText.textContent = "Error: Could not access camera. Please check your camera connection and permissions.";
@@ -349,12 +293,6 @@
 
         async function stopCamera() {
           try {
-            // Stop the media stream
-            if (mediaStream) {
-              mediaStream.getTracks().forEach(track => track.stop());
-              mediaStream = null;
-            }
-            
             // Call the stop_camera endpoint
             const response = await fetch(baseUrl + "/stop_camera");
             if (!response.ok) throw new Error('Failed to stop camera');
@@ -377,12 +315,6 @@
 
         async function closeCamera() {
           try {
-            // Stop the media stream
-            if (mediaStream) {
-              mediaStream.getTracks().forEach(track => track.stop());
-              mediaStream = null;
-            }
-            
             // Call the stop_camera endpoint
             const response = await fetch(baseUrl + "/stop_camera");
             if (!response.ok) throw new Error('Failed to close camera');
@@ -419,38 +351,29 @@
         }
 
         async function updateStatus() {
-          if (!serverAvailable) {
-            stopStatusUpdates();
-            return;
-          }
-
           try {
-            const response = await fetch(baseUrl + "/get_status", {
-              timeout: 5000,
-              headers: {
-                'Accept': 'application/json'
-              }
-            });
-            
+            const response = await fetch(baseUrl + "/get_status");
             if (!response.ok) throw new Error('Failed to get status');
             
             const data = await response.json();
             console.log('Status update:', data); // Debug log
             
-            // Always update the status display
-            poseStatus.textContent = data.current_status;
-            lastPoseStatus.textContent = data.last_status;
-            
-            // Update status indicators
-            updateStatusDots(data.current_status);
-            
-            // Update feedback message based on status
-            updateFeedbackMessage(data.current_status);
+            if (data.current_status && data.current_status !== poseStatus.textContent) {
+              // Update current status
+              poseStatus.textContent = data.current_status;
+              
+              // Update last status
+              lastPoseStatus.textContent = data.last_status;
+              
+              // Update status indicators
+              updateStatusDots(data.current_status);
+              
+              // Update feedback message based on status
+              updateFeedbackMessage(data.current_status);
+            }
           } catch (err) {
             console.error("Error updating status:", err);
-            serverAvailable = false;
-            stopStatusUpdates();
-            feedbackText.textContent = "Lost connection to server. Please check if the server is running.";
+            // Don't update the feedback text on error to avoid flickering
           }
         }
 

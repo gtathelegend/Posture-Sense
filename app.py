@@ -306,14 +306,14 @@ def contact():
             sender_password = os.getenv('EMAIL_PASSWORD')
             receiver_email = os.getenv('ADMIN_EMAIL')
             
-            # Create message
-            msg = MIMEMultipart()
-            msg['From'] = sender_email
-            msg['To'] = receiver_email
-            msg['Subject'] = f"Posture Sense New Contact Form Submission from {name}"
+            # Create message for admin
+            admin_msg = MIMEMultipart()
+            admin_msg['From'] = sender_email
+            admin_msg['To'] = receiver_email
+            admin_msg['Subject'] = f"Posture Sense New Contact Form Submission from {name}"
             
-            # Email body
-            body = f"""
+            # Admin email body
+            admin_body = f"""
             New contact form submission:
             
             Name: {name}
@@ -321,13 +321,39 @@ def contact():
             Message: {message}
             """
             
-            msg.attach(MIMEText(body, 'plain'))
+            admin_msg.attach(MIMEText(admin_body, 'plain'))
             
-            # Send email
+            # Create confirmation message for sender
+            sender_msg = MIMEMultipart()
+            sender_msg['From'] = sender_email
+            sender_msg['To'] = email
+            sender_msg['Subject'] = "Thank you for contacting Posture Sense"
+            
+            # Sender confirmation email body
+            sender_body = f"""
+            Dear {name},
+
+            Thank you for contacting Posture Sense. We have received your message and will get back to you as soon as possible.
+
+            Here's a copy of your message:
+            {message}
+
+            Best regards,
+            Posture Sense Team
+            """
+            
+            sender_msg.attach(MIMEText(sender_body, 'plain'))
+            
+            # Send emails
             with smtplib.SMTP('smtp.gmail.com', 587) as server:
                 server.starttls()
                 server.login(sender_email, sender_password)
-                server.send_message(msg)
+                
+                # Send to admin
+                server.send_message(admin_msg)
+                
+                # Send confirmation to sender
+                server.send_message(sender_msg)
             
             flash('Your message has been sent successfully!', 'success')
             return redirect(url_for('index'))
@@ -371,6 +397,44 @@ def video_feed():
     global camera_active
     camera_active = True
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/subscribe', methods=['POST'])
+def subscribe():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        
+        try:
+            # Email configuration
+            sender_email = os.getenv('EMAIL_USER')
+            sender_password = os.getenv('EMAIL_PASSWORD')
+            receiver_email = os.getenv('ADMIN_EMAIL')
+            
+            # Create message
+            msg = MIMEMultipart()
+            msg['From'] = sender_email
+            msg['To'] = receiver_email
+            msg['Subject'] = "New Newsletter Subscription"
+            
+            # Email body
+            body = f"""
+            New newsletter subscription:
+            
+            Email: {email}
+            """
+            
+            msg.attach(MIMEText(body, 'plain'))
+            
+            # Send email
+            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+            
+            return jsonify({'status': 'success', 'message': 'Thank you for subscribing to our newsletter!'})
+            
+        except Exception as e:
+            print(f"Error sending subscription email: {str(e)}")
+            return jsonify({'status': 'error', 'message': 'An error occurred while processing your subscription. Please try again later.'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

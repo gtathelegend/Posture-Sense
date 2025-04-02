@@ -452,7 +452,7 @@
             <li><a href="{{ url_for('index')}}">Home</a></li>
             <li><a href="{{ url_for('index')}}#about">About us</a></li>
             <li><a href="{{ url_for('index')}}#features">Features</a></li>
-            <li><a href="{{ url_for('pose_detection')}}">Start Learning</a></li>
+            <li><a href="{{ url_for('pose_detection')}}">Demo APP</a></li>
             <li><a href="{{ url_for('index')}}#contact">Contact</a></li>
           </ul>
         </div>
@@ -460,12 +460,106 @@
         <div class="col-lg-4 col-md-12 footer-newsletter">
           <h4>Our Newsletter</h4>
           <p>Subscribe to our newsletter and receive the latest news about our products and services!</p>
-          <form action="{{ url_for('submit') }}" method="post" class="php-email-form">
-            <div class="newsletter-form"><input type="email" name="email"><input type="submit" value="Subscribe"></div>
+          <form id="newsletterForm">
+            <div class="newsletter-form">
+              <input type="email" name="email" placeholder="Enter your email" required>
+              <input type="submit" value="Subscribe">
+            </div>
             <div class="loading">Loading</div>
             <div class="error-message"></div>
             <div class="sent-message">Your subscription request has been sent. Thank you!</div>
           </form>
+
+          <style>
+            .newsletter-form {
+              position: relative;
+              display: flex;
+              gap: 10px;
+            }
+            .newsletter-form input[type="email"] {
+              flex: 1;
+              padding: 12px 15px;
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              background: rgba(255, 255, 255, 0.05);
+              color: #fff;
+              border-radius: 4px;
+              transition: all 0.3s ease;
+            }
+            .newsletter-form input[type="email"]:focus {
+              background: rgba(255, 255, 255, 0.1);
+              border-color: rgba(255, 255, 255, 0.2);
+              outline: none;
+            }
+            .newsletter-form input[type="submit"] {
+              padding: 12px 25px;
+              background: #4154f1;
+              color: #fff;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              transition: all 0.3s ease;
+            }
+            .newsletter-form input[type="submit"]:hover {
+              background: #2b3db8;
+            }
+            .loading, .error-message, .sent-message {
+              display: none;
+              margin-top: 10px;
+              padding: 10px 15px;
+              border-radius: 4px;
+            }
+            .loading {
+              background: rgba(255, 255, 255, 0.1);
+              color: #fff;
+            }
+            .error-message {
+              background: rgba(220, 53, 69, 0.1);
+              color: #dc3545;
+            }
+            .sent-message {
+              background: rgba(40, 167, 69, 0.1);
+              color: #28a745;
+            }
+          </style>
+
+          <script>
+            document.getElementById("newsletterForm").addEventListener("submit", function(event) {
+              event.preventDefault();
+              
+              const form = this;
+              const loading = form.querySelector('.loading');
+              const sentMessage = form.querySelector('.sent-message');
+              
+              // Show loading state
+              loading.style.display = 'block';
+              sentMessage.style.display = 'none';
+              
+              let formData = new FormData(form);
+              
+              fetch("/subscribe", {
+                method: "POST",
+                body: formData
+              })
+              .then(response => response.json())
+              .then(data => {
+                loading.style.display = 'none';
+                if (data.status === 'success') {
+                  sentMessage.textContent = data.message;
+                  sentMessage.style.display = 'block';
+                  form.reset();
+                  
+                  // Hide success message after 5 seconds
+                  setTimeout(() => {
+                    sentMessage.style.display = 'none';
+                  }, 5000);
+                }
+              })
+              .catch(error => {
+                loading.style.display = 'none';
+                console.error('Error:', error);
+              });
+            });
+          </script>
         </div>
 
       </div>

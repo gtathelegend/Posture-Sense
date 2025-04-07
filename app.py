@@ -1,4 +1,5 @@
 from flask import Flask, render_template, Response, jsonify, request, flash, redirect, url_for
+from flask_cors import CORS
 import cv2
 from time import time
 import mediapipe as mp
@@ -13,6 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 app.secret_key = os.urandom(24)  # Required for flash messages
 
 # ---------------------------------------------Pose Detection and Classification---------------------------------------------
@@ -34,50 +36,47 @@ last_status = "Unknown"
 camera_active = False
 camera = None
 
-def init_camera():
-    global camera
-    if camera is None:
-        # Try to find an available camera
-        available_cameras = []
-        for i in range(4):  # Try up to 4 camera indices
-            cap = cv2.VideoCapture(i)
-            if cap.isOpened():
-                available_cameras.append(i)
-                cap.release()
-        
-        if not available_cameras:
-            raise Exception("No camera devices found. Please make sure a camera is connected and accessible.")
-        
-        # Use the first available camera
-        camera = cv2.VideoCapture(available_cameras[0])
-        if not camera.isOpened():
-            raise Exception(f"Failed to open camera at index {available_cameras[0]}")
-        
-        # Set camera properties for better performance
-        camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        camera.set(cv2.CAP_PROP_FPS, 30)
-    
-    return camera
-
 def gen_frames():
-    camera = init_camera()
-    while True:
-        success, frame = camera.read()
-        if not success:
-            break
-        else:
-            # Flip the frame horizontally for a mirror effect
-            frame = cv2.flip(frame, 1)
+    global camera_active, current_status, last_status
+    try:
+        video = cv2.VideoCapture(0)
+        if not video.isOpened():
+            print("Error: Could not open camera")
+            return
             
-            # Resize frame for better performance
-            frame = cv2.resize(frame, (640, 480))
-            
-            # Encode frame to JPEG
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        while camera_active:
+            success, frame = video.read()  # read the camera frame
+            if not success:
+                print("Failed to grab frame")
+                break
+            else:
+                frame = cv2.flip(frame, 1)  # flip the frame horizontally
+                frame_height, frame_width, _ = frame.shape
+                frame = cv2.resize(frame, (int(frame_width * (640 / frame_height)), 640))
+                
+                # Detect pose and classify
+                frame, landmarks = detectPose(frame, pose, display=False)
+                if landmarks:
+                    _, _, pose_status = classifyPose(landmarks, frame, display=False)
+                    # Update last status before changing current status
+                    if pose_status != current_status:
+                        last_status = current_status
+                        current_status = pose_status
+                    print(f"Current Status: {current_status}, Last Status: {last_status}")  # Debug print
+
+                # Encode frame to JPEG
+                ret, buffer = cv2.imencode('.jpg', frame)
+                frame = buffer.tobytes()
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                
+        # Clean up
+        video.release()
+    except Exception as e:
+        print(f"Error in gen_frames: {str(e)}")
+        if 'video' in locals():
+            video.release()
+        camera_active = False
 
 def detectPose(image, pose, display=True):
 
@@ -299,74 +298,18 @@ def about():
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
     if request.method == 'POST':
+        # Handle contact form submission
         name = request.form.get('name')
         email = request.form.get('email')
         message = request.form.get('message')
-        
-        try:
-            # Email configuration
-            sender_email = os.getenv('EMAIL_USER')
-            sender_password = os.getenv('EMAIL_PASSWORD')
-            receiver_email = os.getenv('ADMIN_EMAIL')
-            
-            # Create message for admin
-            admin_msg = MIMEMultipart()
-            admin_msg['From'] = sender_email
-            admin_msg['To'] = receiver_email
-            admin_msg['Subject'] = f"Posture Sense New Contact Form Submission from {name}"
-            
-            # Admin email body
-            admin_body = f"""
-            New contact form submission:
-            
-            Name: {name}
-            Email: {email}
-            Message: {message}
-            """
-            
-            admin_msg.attach(MIMEText(admin_body, 'plain'))
-            
-            # Create confirmation message for sender
-            sender_msg = MIMEMultipart()
-            sender_msg['From'] = sender_email
-            sender_msg['To'] = email
-            sender_msg['Subject'] = "Thank you for contacting Posture Sense"
-            
-            # Sender confirmation email body
-            sender_body = f"""
-            Dear {name},
+        # Add your contact form handling logic here
+        flash('Thank you for your message! We will get back to you soon.', 'success')
+        return redirect(url_for('contact'))
+    return render_template('contact.html')
 
-            Thank you for contacting Posture Sense. We have received your message and will get back to you as soon as possible.
-
-            Here's a copy of your message:
-            {message}
-
-            Best regards,
-            Posture Sense Team
-            """
-            
-            sender_msg.attach(MIMEText(sender_body, 'plain'))
-            
-            # Send emails
-            with smtplib.SMTP('smtp.gmail.com', 587) as server:
-                server.starttls()
-                server.login(sender_email, sender_password)
-                
-                # Send to admin
-                server.send_message(admin_msg)
-                
-                # Send confirmation to sender
-                server.send_message(sender_msg)
-            
-            flash('Your message has been sent successfully!', 'success')
-            return redirect(url_for('index'))
-            
-        except Exception as e:
-            print(f"Error sending email: {str(e)}")  # Add this line for debugging
-            flash('An error occurred while sending your message. Please try again later.', 'error')
-            return redirect(url_for('index'))
-    
-    return render_template('index.html')
+@app.route('/yoga-poses')
+def yoga_poses():
+    return render_template('yoga-poses.html')
 
 @app.route('/pricing')
 def join_now():
@@ -386,53 +329,20 @@ def get_status():
         'last_status': last_status
     })
 
-@app.route('/start_camera')
-def start_camera():
-    try:
-        camera = init_camera()
-        if camera.isOpened():
-            return jsonify({
-                'status': 'success', 
-                'message': 'Camera started successfully',
-                'camera_index': camera.get(cv2.CAP_PROP_BACKEND)
-            })
-        else:
-            return jsonify({
-                'status': 'error', 
-                'message': 'Failed to start camera. Please check if a camera is connected and accessible.'
-            }), 500
-    except Exception as e:
-        return jsonify({
-            'status': 'error', 
-            'message': str(e)
-        }), 500
-
 @app.route('/stop_camera')
 def stop_camera():
-    try:
-        global camera
-        if camera is not None:
-            camera.release()
-            camera = None
-        return jsonify({
-            'status': 'success', 
-            'message': 'Camera stopped successfully'
-        })
-    except Exception as e:
-        return jsonify({
-            'status': 'error', 
-            'message': str(e)
-        }), 500
+    global camera, camera_active
+    camera_active = False
+    if camera is not None:
+        camera.release()
+        camera = None
+    return jsonify({'status': 'success'})
 
 @app.route('/video_feed')
 def video_feed():
-    return Response(gen_frames(), 
-                   mimetype='multipart/x-mixed-replace; boundary=frame',
-                   headers={
-                       'Cache-Control': 'no-cache, no-store, must-revalidate',
-                       'Pragma': 'no-cache',
-                       'Expires': '0'
-                   })
+    global camera_active
+    camera_active = True
+    return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/subscribe', methods=['POST'])
 def subscribe():
@@ -472,11 +382,5 @@ def subscribe():
             print(f"Error sending subscription email: {str(e)}")
             return jsonify({'status': 'error', 'message': 'An error occurred while processing your subscription. Please try again later.'}), 500
 
-<<<<<<< HEAD
-if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
-
-=======
 if __name__ == '__main__':
-    app.run(debug=True)
->>>>>>> parent of c4bc870 (yoga-pose page add)
+    app.run(host='0.0.0.0', port=8080, debug=True)

@@ -392,5 +392,6 @@ def subscribe():
             print(f"Error sending subscription email: {str(e)}")
             return jsonify({'status': 'error', 'message': 'An error occurred while processing your subscription. Please try again later.'}), 500
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+if __name__ == "__main__":
+    app.run(debug=False, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+

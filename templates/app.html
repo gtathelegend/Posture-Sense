@@ -271,7 +271,17 @@
           try {
             // Show loading state
             feedbackText.textContent = "Initializing camera...";
-            videoFeed.style.display = 'block';
+            
+            // Check if browser supports getUserMedia
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+              throw new Error('Your browser does not support camera access');
+            }
+            
+            // Try to access camera
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            if (!stream) {
+              throw new Error('Could not access camera');
+            }
             
             // Set the video feed source with a timestamp to prevent caching
             videoFeed.src = baseUrl + "/video_feed?" + new Date().getTime();
@@ -282,9 +292,16 @@
             
             // Start polling for status updates
             startStatusUpdates();
+            
+            // Add error event listener to video feed
+            videoFeed.onerror = function() {
+              feedbackText.textContent = "Error: Could not display video feed. Please check your camera connection.";
+              stopCamera();
+            };
+            
           } catch (err) {
             console.error("Error accessing camera:", err);
-            feedbackText.textContent = "Error: Could not access camera. Please check your camera connection and permissions.";
+            feedbackText.textContent = "Error: " + err.message + ". Please check your camera permissions and try again.";
             videoFeed.style.display = 'none';
             startButton.style.display = 'inline-block';
             stopButton.style.display = 'none';

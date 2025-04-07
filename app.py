@@ -39,10 +39,22 @@ camera = None
 def gen_frames():
     global camera_active, current_status, last_status
     try:
-        video = cv2.VideoCapture(0)
+        # Try different camera indices for Replit compatibility
+        for i in range(3):  # Try first 3 camera indices
+            video = cv2.VideoCapture(i)
+            if video.isOpened():
+                print(f"Successfully opened camera {i}")
+                break
+            video.release()
+        
         if not video.isOpened():
-            print("Error: Could not open camera")
+            print("Error: Could not open any camera")
             return
+            
+        # Set camera properties for better performance
+        video.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        video.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        video.set(cv2.CAP_PROP_FPS, 30)
             
         while camera_active:
             success, frame = video.read()  # read the camera frame
@@ -51,8 +63,6 @@ def gen_frames():
                 break
             else:
                 frame = cv2.flip(frame, 1)  # flip the frame horizontally
-                frame_height, frame_width, _ = frame.shape
-                frame = cv2.resize(frame, (int(frame_width * (640 / frame_height)), 640))
                 
                 # Detect pose and classify
                 frame, landmarks = detectPose(frame, pose, display=False)
@@ -64,8 +74,8 @@ def gen_frames():
                         current_status = pose_status
                     print(f"Current Status: {current_status}, Last Status: {last_status}")  # Debug print
 
-                # Encode frame to JPEG
-                ret, buffer = cv2.imencode('.jpg', frame)
+                # Encode frame to JPEG with lower quality for better performance
+                ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
                 frame = buffer.tobytes()
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')

@@ -267,6 +267,7 @@
         const poseStatus = document.getElementById('pose_status');
         const lastPoseStatus = document.getElementById('last_pose_status');
         let statusInterval = null;
+        let isCameraActive = false;
 
         // Initialize status dots based on initial status
         const initialStatus = poseStatus.textContent.trim();
@@ -276,6 +277,8 @@
 
         async function startCamera() {
           try {
+            if (isCameraActive) return;
+            
             // Show loading state
             feedbackText.textContent = "Initializing camera...";
             
@@ -309,6 +312,9 @@
             stopButton.style.display = 'inline-block';
             closeButton.style.display = 'inline-block';
             
+            // Set camera as active
+            isCameraActive = true;
+            
             // Start polling for status updates
             startStatusUpdates();
             
@@ -316,6 +322,11 @@
             videoFeed.onerror = function() {
               feedbackText.textContent = "Error: Could not display video feed. Please check your camera connection.";
               stopCamera();
+            };
+            
+            // Add load event listener to video feed
+            videoFeed.onload = function() {
+              feedbackText.textContent = "Camera is active. You can now start your exercises.";
             };
             
           } catch (err) {
@@ -326,11 +337,14 @@
             startButton.style.display = 'inline-block';
             stopButton.style.display = 'none';
             closeButton.style.display = 'none';
+            isCameraActive = false;
           }
         }
 
         async function stopCamera() {
           try {
+            if (!isCameraActive) return;
+            
             // Call the stop_camera endpoint
             const response = await fetch(baseUrl + "/stop_camera", {
               method: 'GET',
@@ -353,6 +367,9 @@
             startButton.style.display = 'inline-block';
             feedbackText.textContent = "Camera is paused. Click 'Start Camera' to resume.";
             
+            // Set camera as inactive
+            isCameraActive = false;
+            
             // Stop polling for status updates
             stopStatusUpdates();
           } catch (err) {
@@ -363,6 +380,8 @@
 
         async function closeCamera() {
           try {
+            if (!isCameraActive) return;
+            
             // Call the stop_camera endpoint
             const response = await fetch(baseUrl + "/stop_camera", {
               method: 'GET',
@@ -385,6 +404,9 @@
             stopButton.style.display = 'none';
             closeButton.style.display = 'none';
             feedbackText.textContent = "Start the camera to begin posture detection and receive real-time feedback on your form.";
+            
+            // Set camera as inactive
+            isCameraActive = false;
             
             // Stop polling for status updates
             stopStatusUpdates();
@@ -416,10 +438,13 @@
                 'Accept': 'application/json'
               }
             });
-            if (!response.ok) throw new Error('Failed to get status');
+            
+            if (!response.ok) {
+              throw new Error('Failed to get status');
+            }
             
             const data = await response.json();
-            console.log('Status update:', data); // Debug log
+            console.log('Status update:', data);
             
             if (data.current_status && data.current_status !== poseStatus.textContent) {
               // Update current status
@@ -466,7 +491,6 @@
           }
         }
 
-        // Function to update status dots based on status
         function updateStatusDots(status) {
           if (!status) return;
           

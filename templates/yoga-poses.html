@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Yoga Poses - TDP</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <!-- Favicons -->
+  <link href="{{ url_for('static', filename='assets/img/favicon.png') }}" rel="icon">
+  <link href="{{ url_for('static', filename='assets/img/apple-touch-icon.png') }}" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="{{ url_for('static', filename='assets/vendor/aos/aos.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='assets/vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='assets/vendor/boxicons/css/boxicons.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='assets/vendor/glightbox/css/glightbox.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='assets/vendor/swiper/swiper-bundle.min.css') }}" rel="stylesheet">
+
+  <!-- Main CSS File -->
+  <link href="{{ url_for('static', filename='assets/css/main.css') }}" rel="stylesheet">
+
+  <style>
+    .pose-image {
+      width: 100%;
+      height: auto;
+      max-height: 600px;
+      object-fit: cover;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease;
+    }
+    .pose-image:hover {
+      transform: scale(1.02);
+    }
+    .pose-item {
+      margin-bottom: 4rem;
+      padding: 2.5rem;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .pose-item h3 {
+      color: #1a1a1a;
+      margin-bottom: 1.5rem;
+      font-size: 2rem;
+    }
+    .pose-item p {
+      color: #4a4a4a;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+    .pose-item ul {
+      padding-left: 1.5rem;
+    }
+    .pose-item li {
+      margin-bottom: 0.5rem;
+      color: #4a4a4a;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ======= Header ======= -->
+  <header id="header" class="fixed-top d-flex align-items-center">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div class="logo">
+        <h1><a href="{{ url_for('index') }}">TDP</a></h1>
+      </div>
+      <nav id="navbar" class="navbar">
+        <ul>
+          <li><a href="{{ url_for('index') }}">Home</a></li>
+          <li><a href="{{ url_for('app') }}">Demo APP</a></li>
+          <li><a class="active" href="{{ url_for('yoga_poses') }}">Yoga Poses</a></li>
+          <li><a href="{{ url_for('index') }}#about">About</a></li>
+          <li><a href="{{ url_for('index') }}#contact">Contact</a></li>
+        </ul>
+        <i class="bi bi-list mobile-nav-toggle"></i>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ======= Hero Section ======= -->
+  <section id="hero" class="d-flex align-items-center">
+    <div class="container" data-aos="zoom-out" data-aos-delay="100">
+      <h1>Yoga Poses</h1>
+      <h2>Learn and practice essential yoga poses for better health and well-being</h2>
+      <div class="d-flex">
+        <a href="#poses" class="btn-get-started scrollto">View Poses</a>
+      </div>
+    </div>
+  </section>
+
+  <main id="main">
+    <!-- ======= Poses Section ======= -->
+    <section id="poses" class="poses section">
+      <div class="container">
+        <div class="row gy-4">
+          <!-- Warrior II Pose -->
+          <div class="col-lg-12" data-aos="fade-up" data-aos-delay="100">
+            <div class="pose-item">
+              <div class="row">
+                <div class="col-md-8">
+                  <img src="{{ url_for('static', filename='assets/img/yoga-poses/warrior-ii.jpg') }}" alt="Warrior II Pose" class="img-fluid pose-image mb-4">
+                </div>
+                <div class="col-md-4">
+                  <h3>Warrior II Pose (Virabhadrasana II)</h3>
+                  <p><strong>Benefits:</strong> Strengthens legs, arms, and shoulders. Improves balance and concentration.</p>
+                  <p><strong>How to do it:</strong></p>
+                  <ul>
+                    <li>Stand with feet wide apart</li>
+                    <li>Turn right foot out 90 degrees, left foot slightly in</li>
+                    <li>Extend arms parallel to floor</li>
+                    <li>Bend right knee to 90 degrees</li>
+                    <li>Keep torso centered between legs</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- T Pose -->
+          <div class="col-lg-12" data-aos="fade-up" data-aos-delay="200">
+            <div class="pose-item">
+              <div class="row">
+                <div class="col-md-8">
+                  <img src="{{ url_for('static', filename='assets/img/yoga-poses/t-pose.jpg') }}" alt="T Pose" class="img-fluid pose-image mb-4">
+                </div>
+                <div class="col-md-4">
+                  <h3>T Pose</h3>
+                  <p><strong>Benefits:</strong> Improves posture, strengthens shoulders and back muscles.</p>
+                  <p><strong>How to do it:</strong></p>
+                  <ul>
+                    <li>Stand with feet hip-width apart</li>
+                    <li>Extend arms straight out to sides</li>
+                    <li>Keep shoulders down and back</li>
+                    <li>Maintain straight spine</li>
+                    <li>Engage core muscles</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tree Pose -->
+          <div class="col-lg-12" data-aos="fade-up" data-aos-delay="300">
+            <div class="pose-item">
+              <div class="row">
+                <div class="col-md-8">
+                  <img src="{{ url_for('static', filename='assets/img/yoga-poses/tree-pose.jpg') }}" alt="Tree Pose" class="img-fluid pose-image mb-4">
+                </div>
+                <div class="col-md-4">
+                  <h3>Tree Pose (Vrikshasana)</h3>
+                  <p><strong>Benefits:</strong> Improves balance, strengthens legs and core, enhances focus.</p>
+                  <p><strong>How to do it:</strong></p>
+                  <ul>
+                    <li>Stand on one leg</li>
+                    <li>Place opposite foot on inner thigh or calf</li>
+                    <li>Bring hands to prayer position</li>
+                    <li>Keep hips squared forward</li>
+                    <li>Focus on a fixed point for balance</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cobra Pose -->
+          <div class="col-lg-12" data-aos="fade-up" data-aos-delay="400">
+            <div class="pose-item">
+              <div class="row">
+                <div class="col-md-8">
+                  <img src="{{ url_for('static', filename='assets/img/yoga-poses/cobra-pose.jpg') }}" alt="Cobra Pose" class="img-fluid pose-image mb-4">
+                </div>
+                <div class="col-md-4">
+                  <h3>Cobra Pose (Bhujangasana)</h3>
+                  <p><strong>Benefits:</strong> Strengthens spine, opens chest, improves flexibility.</p>
+                  <p><strong>How to do it:</strong></p>
+                  <ul>
+                    <li>Lie on stomach with hands under shoulders</li>
+                    <li>Press into hands to lift chest</li>
+                    <li>Keep elbows close to body</li>
+                    <li>Engage back muscles</li>
+                    <li>Look slightly upward</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ======= Footer ======= -->
+  <footer id="footer" class="footer">
+    <div class="footer-top">
+      <div class="container">
+        <div class="row gy-4">
+          <div class="col-lg-5 col-md-12 footer-info">
+            <a href="{{ url_for('index') }}" class="logo d-flex align-items-center">
+              <span>TDP</span>
+            </a>
+            <p>Empowering individuals through technology and wellness.</p>
+            <div class="social-links mt-3">
+              <a href="#" class="twitter"><i class="bi bi-twitter"></i></a>
+              <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
+              <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
+              <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>
+            </div>
+          </div>
+
+          <div class="col-lg-2 col-6 footer-links">
+            <h4>Quick Links</h4>
+            <ul>
+              <li><i class="bi bi-chevron-right"></i> <a href="{{ url_for('index') }}">Home</a></li>
+              <li><i class="bi bi-chevron-right"></i> <a href="{{ url_for('app') }}">Demo APP</a></li>
+              <li><i class="bi bi-chevron-right"></i> <a href="{{ url_for('yoga_poses') }}">Yoga Poses</a></li>
+              <li><i class="bi bi-chevron-right"></i> <a href="{{ url_for('index') }}#about">About</a></li>
+              <li><i class="bi bi-chevron-right"></i> <a href="{{ url_for('index') }}#contact">Contact</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-12 footer-contact text-center text-md-start">
+            <h4>Contact Us</h4>
+            <p>
+              A108 Adam Street <br>
+              New York, NY 535022<br>
+              United States <br><br>
+              <strong>Phone:</strong> +1 5589 55488 55<br>
+              <strong>Email:</strong> info@example.com<br>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="copyright">
+        &copy; Copyright <strong><span>TDP</span></strong>. All Rights Reserved
+      </div>
+      <div class="credits">
+        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+      </div>
+    </div>
+  </footer>
+
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Vendor JS Files -->
+  <script src="{{ url_for('static', filename='assets/vendor/purecounter/purecounter_vanilla.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/aos/aos.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/glightbox/js/glightbox.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/isotope-layout/isotope.pkgd.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/waypoints/noframework.waypoints.js') }}"></script>
+  <script src="{{ url_for('static', filename='assets/vendor/php-email-form/validate.js') }}"></script>
+
+  <!-- Main JS File -->
+  <script src="{{ url_for('static', filename='assets/js/main.js') }}"></script>
+</body>
+</html> 

@@ -68,12 +68,8 @@
           <li><a href="{{ url_for('index')}}">Home</a></li>
           <li><a href="{{ url_for('index')}}#about">About</a></li>
           <li><a href="{{ url_for('index')}}#features">Features</a></li>
-<<<<<<< HEAD
           <li><a href="{{ url_for('pose_detection')}}">Demo APP</a></li>
           <li><a href="{{ url_for('yoga_poses')}}">Yoga Poses</a></li>
-=======
-          <li><a href="{{ url_for('pose_detection')}}">Start Learning</a></li>
->>>>>>> parent of c4bc870 (yoga-pose page add)
           <li><a href="{{ url_for('index')}}#contact">Contact</a></li>
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
@@ -112,16 +108,18 @@
           <div class="col-lg-8 mb-4 mb-lg-0">
             <div class="camera-frame">
               <div id="cameraFeedContainer" class="ratio ratio-16x9 rounded-3 overflow-hidden shadow-lg">
-                <img src="{{ url_for('video_feed') }}" id="video_feed" class="w-100 h-100 object-fit-cover" alt="Live Camera Feed">
+                <img id="video_feed" class="w-100 h-100 object-fit-cover" alt="Live Camera Feed" style="display: none;">
               </div>
-              <div class="camera-controls mt-3">
+              <div class="camera-controls">
                 <button id="startCameraButton" class="btn btn-primary">
                   <i class="bi bi-camera-video"></i> Start Camera
                 </button>
-                <button id="stopCameraButton" class="btn btn-danger" style="display: none;">
-                  <i class="bi bi-x-circle"></i> Stop Camera
+                <button id="stopCameraButton" class="btn btn-warning" style="display: none;">
+                  <i class="bi bi-pause-circle"></i> Stop Camera
                 </button>
-                <div id="cameraError" class="alert alert-danger mt-2" style="display: none;"></div>
+                <button id="closeCameraButton" class="btn btn-danger" style="display: none;">
+                  <i class="bi bi-x-circle"></i> Close Camera
+                </button>
               </div>
             </div>
           </div>
@@ -249,69 +247,60 @@
 
     <script>
       document.addEventListener('DOMContentLoaded', function() {
-<<<<<<< HEAD
-=======
-        // Get the base URL from the current window location
-        const baseUrl = window.location.protocol + '//' + window.location.hostname + ':5000';
+        // Get the current hostname and port from the window location
+        const baseUrl = window.location.protocol + '//' + window.location.host;
         
->>>>>>> parent of c4bc870 (yoga-pose page add)
         const startButton = document.getElementById('startCameraButton');
         const stopButton = document.getElementById('stopCameraButton');
+        const closeButton = document.getElementById('closeCameraButton');
         const videoFeed = document.getElementById('video_feed');
+        const statusDot = document.getElementById('statusDot');
+        const lastStatusDot = document.getElementById('lastStatusDot');
         const feedbackText = document.getElementById('feedbackText');
-        const cameraError = document.getElementById('cameraError');
+        const poseStatus = document.getElementById('pose_status');
+        const lastPoseStatus = document.getElementById('last_pose_status');
+        let statusInterval = null;
+
+        // Initialize status dots based on initial status
+        const initialStatus = poseStatus.textContent.trim();
+        const initialLastStatus = lastPoseStatus.textContent.trim();
+        updateStatusDots(initialStatus);
+        updateFeedbackMessage(initialStatus);
 
         async function startCamera() {
           try {
             // Show loading state
             feedbackText.textContent = "Initializing camera...";
-            cameraError.style.display = 'none';
+            videoFeed.style.display = 'block';
             
-            const response = await fetch('/start_camera', {
-              method: 'GET',
-              headers: {
-                'Accept': 'application/json'
-              }
-            });
+            // Set the video feed source with a timestamp to prevent caching
+            videoFeed.src = baseUrl + "/video_feed?" + new Date().getTime();
             
-            const data = await response.json();
+            startButton.style.display = 'none';
+            stopButton.style.display = 'inline-block';
+            closeButton.style.display = 'inline-block';
             
-            if (data.status === 'success') {
-              // Update button states
-              startButton.style.display = 'none';
-              stopButton.style.display = 'inline-block';
-              
-              // Set the video feed source with a timestamp to prevent caching
-              videoFeed.src = "{{ url_for('video_feed') }}?" + new Date().getTime();
-              videoFeed.style.display = 'block';
-              
-              feedbackText.textContent = "Camera is active. You can now start your exercises.";
-            } else {
-              throw new Error(data.message || 'Failed to start camera');
-            }
+            // Start polling for status updates
+            startStatusUpdates();
           } catch (err) {
-            console.error("Error starting camera:", err);
-            cameraError.textContent = "Error: " + err.message;
-            cameraError.style.display = 'block';
-            feedbackText.textContent = "Please check your camera connection and try again.";
+            console.error("Error accessing camera:", err);
+            feedbackText.textContent = "Error: Could not access camera. Please check your camera connection and permissions.";
             videoFeed.style.display = 'none';
             startButton.style.display = 'inline-block';
             stopButton.style.display = 'none';
+            closeButton.style.display = 'none';
           }
         }
 
         async function stopCamera() {
           try {
-<<<<<<< HEAD
-            const response = await fetch('/stop_camera', {
+            // Call the stop_camera endpoint
+            const response = await fetch(baseUrl + "/stop_camera", {
               method: 'GET',
               headers: {
                 'Accept': 'application/json'
               }
             });
-=======
-            // Call the stop_camera endpoint
-            const response = await fetch(baseUrl + "/stop_camera");
             if (!response.ok) throw new Error('Failed to stop camera');
             
             // Hide the video feed
@@ -333,7 +322,12 @@
         async function closeCamera() {
           try {
             // Call the stop_camera endpoint
-            const response = await fetch(baseUrl + "/stop_camera");
+            const response = await fetch(baseUrl + "/stop_camera", {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json'
+              }
+            });
             if (!response.ok) throw new Error('Failed to close camera');
             
             // Hide the video feed
@@ -369,44 +363,86 @@
 
         async function updateStatus() {
           try {
-            const response = await fetch(baseUrl + "/get_status");
+            const response = await fetch(baseUrl + "/get_status", {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json'
+              }
+            });
             if (!response.ok) throw new Error('Failed to get status');
->>>>>>> parent of c4bc870 (yoga-pose page add)
             
             const data = await response.json();
+            console.log('Status update:', data); // Debug log
             
-            if (data.status === 'success') {
-              // Hide the video feed
-              videoFeed.style.display = 'none';
-              videoFeed.src = "";
+            if (data.current_status && data.current_status !== poseStatus.textContent) {
+              // Update current status
+              poseStatus.textContent = data.current_status;
               
-              // Update button states
-              stopButton.style.display = 'none';
-              startButton.style.display = 'inline-block';
+              // Update last status
+              lastPoseStatus.textContent = data.last_status;
               
-              feedbackText.textContent = "Camera has been stopped. Click 'Start Camera' to restart.";
-            } else {
-              throw new Error(data.message || 'Failed to stop camera');
+              // Update status indicators
+              updateStatusDots(data.current_status);
+              
+              // Update feedback message based on status
+              updateFeedbackMessage(data.current_status);
             }
           } catch (err) {
-            console.error("Error stopping camera:", err);
-            cameraError.textContent = "Error: " + err.message;
-            cameraError.style.display = 'block';
+            console.error("Error updating status:", err);
+            // Don't update the feedback text on error to avoid flickering
           }
         }
 
-        // Add event listeners
+        function updateFeedbackMessage(status) {
+          if (!status) return;
+          
+          switch(status.toLowerCase()) {
+            case 'warrior ii pose':
+              feedbackText.textContent = "Great job! You're in the Warrior II pose.";
+              break;
+            case 't pose':
+              feedbackText.textContent = "Perfect! You're in the T pose.";
+              break;
+            case 'tree pose':
+              feedbackText.textContent = "Excellent! You're in the Tree pose.";
+              break;
+            case 'cobra pose':
+              feedbackText.textContent = "Well done! You're in the Cobra pose.";
+              break;
+            case 'unknown':
+              feedbackText.textContent = "Please try to match one of the target poses.";
+              break;
+            default:
+              if (videoFeed.style.display === 'block') {
+                feedbackText.textContent = "Camera is active. You can now start your exercises.";
+              }
+          }
+        }
+
+        // Function to update status dots based on status
+        function updateStatusDots(status) {
+          if (!status) return;
+          
+          const dotClass = getStatusClass(status);
+          statusDot.className = 'status-dot ' + dotClass;
+          lastStatusDot.className = 'status-dot ' + getStatusClass(lastPoseStatus.textContent);
+        }
+
+        function getStatusClass(status) {
+          if (!status) return '';
+          status = status.toLowerCase();
+          if (status.includes('pose') && status !== 'unknown pose') {
+            return 'active';
+          } else if (status === 'unknown') {
+            return 'warning';
+          } else {
+            return '';
+          }
+        }
+
         startButton.addEventListener('click', startCamera);
         stopButton.addEventListener('click', stopCamera);
-
-        // Add error handling for video feed
-        videoFeed.onerror = function() {
-          cameraError.textContent = "Error: Could not display video feed. Please check your camera connection.";
-          cameraError.style.display = 'block';
-          videoFeed.style.display = 'none';
-          startButton.style.display = 'inline-block';
-          stopButton.style.display = 'none';
-        };
+        closeButton.addEventListener('click', closeCamera);
       });
     </script>
 
@@ -433,6 +469,7 @@
             <li><a href="{{ url_for('index')}}#about">About us</a></li>
             <li><a href="{{ url_for('index')}}#features">Features</a></li>
             <li><a href="{{ url_for('pose_detection')}}">Demo APP</a></li>
+            <li><a href="{{ url_for('yoga_poses')}}">Yoga Poses</a></li>
             <li><a href="{{ url_for('index')}}#contact">Contact</a></li>
           </ul>
         </div>

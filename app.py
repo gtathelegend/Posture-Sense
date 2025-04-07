@@ -39,13 +39,27 @@ camera = None
 def init_camera():
     global camera
     if camera is None:
-        camera = cv2.VideoCapture(0)
+        # Try to find an available camera
+        available_cameras = []
+        for i in range(4):  # Try up to 4 camera indices
+            cap = cv2.VideoCapture(i)
+            if cap.isOpened():
+                available_cameras.append(i)
+                cap.release()
+        
+        if not available_cameras:
+            raise Exception("No camera devices found. Please make sure a camera is connected and accessible.")
+        
+        # Use the first available camera
+        camera = cv2.VideoCapture(available_cameras[0])
         if not camera.isOpened():
-            # Try different camera indices
-            for i in range(1, 4):
-                camera = cv2.VideoCapture(i)
-                if camera.isOpened():
-                    break
+            raise Exception(f"Failed to open camera at index {available_cameras[0]}")
+        
+        # Set camera properties for better performance
+        camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        camera.set(cv2.CAP_PROP_FPS, 30)
+    
     return camera
 
 def gen_frames():
@@ -323,11 +337,21 @@ def start_camera():
     try:
         camera = init_camera()
         if camera.isOpened():
-            return jsonify({'status': 'success', 'message': 'Camera started successfully'})
+            return jsonify({
+                'status': 'success', 
+                'message': 'Camera started successfully',
+                'camera_index': camera.get(cv2.CAP_PROP_BACKEND)
+            })
         else:
-            return jsonify({'status': 'error', 'message': 'Failed to start camera'}), 500
+            return jsonify({
+                'status': 'error', 
+                'message': 'Failed to start camera. Please check if a camera is connected and accessible.'
+            }), 500
     except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({
+            'status': 'error', 
+            'message': str(e)
+        }), 500
 
 @app.route('/stop_camera')
 def stop_camera():
@@ -336,9 +360,15 @@ def stop_camera():
         if camera is not None:
             camera.release()
             camera = None
-        return jsonify({'status': 'success', 'message': 'Camera stopped successfully'})
+        return jsonify({
+            'status': 'success', 
+            'message': 'Camera stopped successfully'
+        })
     except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({
+            'status': 'error', 
+            'message': str(e)
+        }), 500
 
 @app.route('/video_feed')
 def video_feed():

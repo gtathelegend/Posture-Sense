@@ -117,6 +117,7 @@
                 <button id="stopCameraButton" class="btn btn-danger" style="display: none;">
                   <i class="bi bi-x-circle"></i> Stop Camera
                 </button>
+                <div id="cameraError" class="alert alert-danger mt-2" style="display: none;"></div>
               </div>
             </div>
           </div>
@@ -248,11 +249,13 @@
         const stopButton = document.getElementById('stopCameraButton');
         const videoFeed = document.getElementById('video_feed');
         const feedbackText = document.getElementById('feedbackText');
+        const cameraError = document.getElementById('cameraError');
 
         async function startCamera() {
           try {
             // Show loading state
             feedbackText.textContent = "Initializing camera...";
+            cameraError.style.display = 'none';
             
             const response = await fetch('/start_camera', {
               method: 'GET',
@@ -260,10 +263,6 @@
                 'Accept': 'application/json'
               }
             });
-            
-            if (!response.ok) {
-              throw new Error('Failed to start camera');
-            }
             
             const data = await response.json();
             
@@ -282,7 +281,9 @@
             }
           } catch (err) {
             console.error("Error starting camera:", err);
-            feedbackText.textContent = "Error: " + err.message + ". Please check your camera permissions and try again.";
+            cameraError.textContent = "Error: " + err.message;
+            cameraError.style.display = 'block';
+            feedbackText.textContent = "Please check your camera connection and try again.";
             videoFeed.style.display = 'none';
             startButton.style.display = 'inline-block';
             stopButton.style.display = 'none';
@@ -298,29 +299,40 @@
               }
             });
             
-            if (!response.ok) {
-              throw new Error('Failed to stop camera');
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+              // Hide the video feed
+              videoFeed.style.display = 'none';
+              videoFeed.src = "";
+              
+              // Update button states
+              stopButton.style.display = 'none';
+              startButton.style.display = 'inline-block';
+              
+              feedbackText.textContent = "Camera has been stopped. Click 'Start Camera' to restart.";
+            } else {
+              throw new Error(data.message || 'Failed to stop camera');
             }
-            
-            // Hide the video feed
-            videoFeed.style.display = 'none';
-            videoFeed.src = "";
-            
-            // Update button states
-            stopButton.style.display = 'none';
-            startButton.style.display = 'inline-block';
-            
-            feedbackText.textContent = "Camera has been stopped. Click 'Start Camera' to restart.";
-            
           } catch (err) {
             console.error("Error stopping camera:", err);
-            feedbackText.textContent = "Error stopping camera. Please try again.";
+            cameraError.textContent = "Error: " + err.message;
+            cameraError.style.display = 'block';
           }
         }
 
         // Add event listeners
         startButton.addEventListener('click', startCamera);
         stopButton.addEventListener('click', stopCamera);
+
+        // Add error handling for video feed
+        videoFeed.onerror = function() {
+          cameraError.textContent = "Error: Could not display video feed. Please check your camera connection.";
+          cameraError.style.display = 'block';
+          videoFeed.style.display = 'none';
+          startButton.style.display = 'inline-block';
+          stopButton.style.display = 'none';
+        };
       });
     </script>
 

@@ -34,9 +34,22 @@ pose_status = "Scanning"
 current_status = "Unknown"
 last_status = "Unknown"
 camera_active = False
-camera = cv2.VideoCapture(0)
+camera = None
+
+def init_camera():
+    global camera
+    if camera is None:
+        camera = cv2.VideoCapture(0)
+        if not camera.isOpened():
+            # Try different camera indices
+            for i in range(1, 4):
+                camera = cv2.VideoCapture(i)
+                if camera.isOpened():
+                    break
+    return camera
 
 def gen_frames():
+    camera = init_camera()
     while True:
         success, frame = camera.read()
         if not success:
@@ -305,11 +318,25 @@ def get_status():
         'last_status': last_status
     })
 
+@app.route('/start_camera')
+def start_camera():
+    try:
+        camera = init_camera()
+        if camera.isOpened():
+            return jsonify({'status': 'success', 'message': 'Camera started successfully'})
+        else:
+            return jsonify({'status': 'error', 'message': 'Failed to start camera'}), 500
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @app.route('/stop_camera')
 def stop_camera():
     try:
-        camera.release()
-        return jsonify({'status': 'success'})
+        global camera
+        if camera is not None:
+            camera.release()
+            camera = None
+        return jsonify({'status': 'success', 'message': 'Camera stopped successfully'})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 

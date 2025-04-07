@@ -68,8 +68,12 @@
           <li><a href="{{ url_for('index')}}">Home</a></li>
           <li><a href="{{ url_for('index')}}#about">About</a></li>
           <li><a href="{{ url_for('index')}}#features">Features</a></li>
+<<<<<<< HEAD
           <li><a href="{{ url_for('pose_detection')}}">Demo APP</a></li>
           <li><a href="{{ url_for('yoga_poses')}}">Yoga Poses</a></li>
+=======
+          <li><a href="{{ url_for('pose_detection')}}">Start Learning</a></li>
+>>>>>>> parent of c4bc870 (yoga-pose page add)
           <li><a href="{{ url_for('index')}}#contact">Contact</a></li>
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
@@ -245,6 +249,12 @@
 
     <script>
       document.addEventListener('DOMContentLoaded', function() {
+<<<<<<< HEAD
+=======
+        // Get the base URL from the current window location
+        const baseUrl = window.location.protocol + '//' + window.location.hostname + ':5000';
+        
+>>>>>>> parent of c4bc870 (yoga-pose page add)
         const startButton = document.getElementById('startCameraButton');
         const stopButton = document.getElementById('stopCameraButton');
         const videoFeed = document.getElementById('video_feed');
@@ -292,12 +302,76 @@
 
         async function stopCamera() {
           try {
+<<<<<<< HEAD
             const response = await fetch('/stop_camera', {
               method: 'GET',
               headers: {
                 'Accept': 'application/json'
               }
             });
+=======
+            // Call the stop_camera endpoint
+            const response = await fetch(baseUrl + "/stop_camera");
+            if (!response.ok) throw new Error('Failed to stop camera');
+            
+            // Hide the video feed
+            videoFeed.style.display = 'none';
+            videoFeed.src = "";
+            
+            stopButton.style.display = 'none';
+            startButton.style.display = 'inline-block';
+            feedbackText.textContent = "Camera is paused. Click 'Start Camera' to resume.";
+            
+            // Stop polling for status updates
+            stopStatusUpdates();
+          } catch (err) {
+            console.error("Error stopping camera:", err);
+            feedbackText.textContent = "Error stopping camera. Please try again.";
+          }
+        }
+
+        async function closeCamera() {
+          try {
+            // Call the stop_camera endpoint
+            const response = await fetch(baseUrl + "/stop_camera");
+            if (!response.ok) throw new Error('Failed to close camera');
+            
+            // Hide the video feed
+            videoFeed.style.display = 'none';
+            videoFeed.src = "";
+            
+            startButton.style.display = 'inline-block';
+            stopButton.style.display = 'none';
+            closeButton.style.display = 'none';
+            feedbackText.textContent = "Start the camera to begin posture detection and receive real-time feedback on your form.";
+            
+            // Stop polling for status updates
+            stopStatusUpdates();
+          } catch (err) {
+            console.error("Error closing camera:", err);
+            feedbackText.textContent = "Error closing camera. Please try again.";
+          }
+        }
+
+        function startStatusUpdates() {
+          // Poll for status updates every 500ms
+          if (!statusInterval) {
+            statusInterval = setInterval(updateStatus, 500);
+          }
+        }
+
+        function stopStatusUpdates() {
+          if (statusInterval) {
+            clearInterval(statusInterval);
+            statusInterval = null;
+          }
+        }
+
+        async function updateStatus() {
+          try {
+            const response = await fetch(baseUrl + "/get_status");
+            if (!response.ok) throw new Error('Failed to get status');
+>>>>>>> parent of c4bc870 (yoga-pose page add)
             
             const data = await response.json();
             
@@ -359,7 +433,6 @@
             <li><a href="{{ url_for('index')}}#about">About us</a></li>
             <li><a href="{{ url_for('index')}}#features">Features</a></li>
             <li><a href="{{ url_for('pose_detection')}}">Demo APP</a></li>
-            <li><a href="{{ url_for('yoga_poses')}}">Yoga Poses</a></li>
             <li><a href="{{ url_for('index')}}#contact">Contact</a></li>
           </ul>
         </div>

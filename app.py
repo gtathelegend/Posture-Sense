@@ -34,60 +34,25 @@ pose_status = "Scanning"
 current_status = "Unknown"
 last_status = "Unknown"
 camera_active = False
-camera = None
+camera = cv2.VideoCapture(0)
 
 def gen_frames():
-    global camera_active, current_status, last_status
-    try:
-        # Try different camera indices for production compatibility
-        for i in range(3):  # Try first 3 camera indices
-            video = cv2.VideoCapture(i)
-            if video.isOpened():
-                print(f"Successfully opened camera {i}")
-                break
-            video.release()
-        
-        if not video.isOpened():
-            print("Error: Could not open any camera")
-            return
+    while True:
+        success, frame = camera.read()
+        if not success:
+            break
+        else:
+            # Flip the frame horizontally for a mirror effect
+            frame = cv2.flip(frame, 1)
             
-        # Set camera properties for better performance
-        video.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        video.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        video.set(cv2.CAP_PROP_FPS, 15)  # Reduced FPS for better performance
-        video.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Reduce buffer size
-        
-        while camera_active:
-            success, frame = video.read()  # read the camera frame
-            if not success:
-                print("Failed to grab frame")
-                break
-            else:
-                frame = cv2.flip(frame, 1)  # flip the frame horizontally
-                
-                # Detect pose and classify
-                frame, landmarks = detectPose(frame, pose, display=False)
-                if landmarks:
-                    _, _, pose_status = classifyPose(landmarks, frame, display=False)
-                    # Update last status before changing current status
-                    if pose_status != current_status:
-                        last_status = current_status
-                        current_status = pose_status
-                    print(f"Current Status: {current_status}, Last Status: {last_status}")  # Debug print
-
-                # Encode frame to JPEG with lower quality for better performance
-                ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 60])
-                frame = buffer.tobytes()
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-                
-        # Clean up
-        video.release()
-    except Exception as e:
-        print(f"Error in gen_frames: {str(e)}")
-        if 'video' in locals():
-            video.release()
-        camera_active = False
+            # Resize frame for better performance
+            frame = cv2.resize(frame, (640, 480))
+            
+            # Encode frame to JPEG
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 def detectPose(image, pose, display=True):
 
@@ -342,30 +307,21 @@ def get_status():
 
 @app.route('/stop_camera')
 def stop_camera():
-    global camera_active
     try:
-        camera_active = False
+        camera.release()
         return jsonify({'status': 'success'})
     except Exception as e:
-        print(f"Error in stop_camera: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/video_feed')
 def video_feed():
-    global camera_active
-    try:
-        camera_active = True
-        return Response(gen_frames(), 
-                      mimetype='multipart/x-mixed-replace; boundary=frame',
-                      headers={
-                          'Cache-Control': 'no-cache, no-store, must-revalidate',
-                          'Pragma': 'no-cache',
-                          'Expires': '0'
-                      })
-    except Exception as e:
-        print(f"Error in video_feed: {str(e)}")
-        camera_active = False
-        return Response(status=500)
+    return Response(gen_frames(), 
+                   mimetype='multipart/x-mixed-replace; boundary=frame',
+                   headers={
+                       'Cache-Control': 'no-cache, no-store, must-revalidate',
+                       'Pragma': 'no-cache',
+                       'Expires': '0'
+                   })
 
 @app.route('/subscribe', methods=['POST'])
 def subscribe():

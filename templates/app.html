@@ -108,23 +108,11 @@
           <div class="col-lg-8 mb-4 mb-lg-0">
             <div class="camera-frame">
               <div id="cameraFeedContainer" class="ratio ratio-16x9 rounded-3 overflow-hidden shadow-lg">
-                <img id="video_feed" class="w-100 h-100 object-fit-cover" alt="Live Camera Feed" style="display: none;">
-                <div id="cameraPlaceholder" class="d-flex align-items-center justify-content-center bg-light" style="height: 100%;">
-                  <div class="text-center">
-                    <i class="bi bi-camera-video-off display-1 text-muted"></i>
-                    <p class="mt-2">Camera feed will appear here</p>
-                  </div>
-                </div>
+                <img src="{{ url_for('video_feed') }}" id="video_feed" class="w-100 h-100 object-fit-cover" alt="Live Camera Feed">
               </div>
               <div class="camera-controls mt-3">
-                <button id="startCameraButton" class="btn btn-primary">
-                  <i class="bi bi-camera-video"></i> Start Camera
-                </button>
-                <button id="stopCameraButton" class="btn btn-warning" style="display: none;">
-                  <i class="bi bi-pause-circle"></i> Stop Camera
-                </button>
-                <button id="closeCameraButton" class="btn btn-danger" style="display: none;">
-                  <i class="bi bi-x-circle"></i> Close Camera
+                <button id="stopCameraButton" class="btn btn-danger">
+                  <i class="bi bi-x-circle"></i> Stop Camera
                 </button>
               </div>
             </div>
@@ -253,100 +241,13 @@
 
     <script>
       document.addEventListener('DOMContentLoaded', function() {
-        // Get the current hostname and port from the window location
-        const baseUrl = window.location.protocol + '//' + window.location.host;
-        
-        const startButton = document.getElementById('startCameraButton');
         const stopButton = document.getElementById('stopCameraButton');
-        const closeButton = document.getElementById('closeCameraButton');
         const videoFeed = document.getElementById('video_feed');
-        const cameraPlaceholder = document.getElementById('cameraPlaceholder');
-        const statusDot = document.getElementById('statusDot');
-        const lastStatusDot = document.getElementById('lastStatusDot');
         const feedbackText = document.getElementById('feedbackText');
-        const poseStatus = document.getElementById('pose_status');
-        const lastPoseStatus = document.getElementById('last_pose_status');
-        let statusInterval = null;
-        let isCameraActive = false;
-
-        // Initialize status dots based on initial status
-        const initialStatus = poseStatus.textContent.trim();
-        const initialLastStatus = lastPoseStatus.textContent.trim();
-        updateStatusDots(initialStatus);
-        updateFeedbackMessage(initialStatus);
-
-        async function startCamera() {
-          try {
-            if (isCameraActive) return;
-            
-            // Show loading state
-            feedbackText.textContent = "Initializing camera...";
-            
-            // Check if browser supports getUserMedia
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-              throw new Error('Your browser does not support camera access');
-            }
-            
-            // Try to access camera
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-              video: { 
-                width: { ideal: 640 },
-                height: { ideal: 480 },
-                facingMode: "user"
-              } 
-            });
-            
-            if (!stream) {
-              throw new Error('Could not access camera');
-            }
-            
-            // Hide placeholder and show video feed
-            cameraPlaceholder.style.display = 'none';
-            videoFeed.style.display = 'block';
-            
-            // Set the video feed source with a timestamp to prevent caching
-            videoFeed.src = baseUrl + "/video_feed?" + new Date().getTime();
-            
-            // Update button states
-            startButton.style.display = 'none';
-            stopButton.style.display = 'inline-block';
-            closeButton.style.display = 'inline-block';
-            
-            // Set camera as active
-            isCameraActive = true;
-            
-            // Start polling for status updates
-            startStatusUpdates();
-            
-            // Add error event listener to video feed
-            videoFeed.onerror = function() {
-              feedbackText.textContent = "Error: Could not display video feed. Please check your camera connection.";
-              stopCamera();
-            };
-            
-            // Add load event listener to video feed
-            videoFeed.onload = function() {
-              feedbackText.textContent = "Camera is active. You can now start your exercises.";
-            };
-            
-          } catch (err) {
-            console.error("Error accessing camera:", err);
-            feedbackText.textContent = "Error: " + err.message + ". Please check your camera permissions and try again.";
-            videoFeed.style.display = 'none';
-            cameraPlaceholder.style.display = 'flex';
-            startButton.style.display = 'inline-block';
-            stopButton.style.display = 'none';
-            closeButton.style.display = 'none';
-            isCameraActive = false;
-          }
-        }
 
         async function stopCamera() {
           try {
-            if (!isCameraActive) return;
-            
-            // Call the stop_camera endpoint
-            const response = await fetch(baseUrl + "/stop_camera", {
+            const response = await fetch('/stop_camera', {
               method: 'GET',
               headers: {
                 'Accept': 'application/json'
@@ -357,164 +258,18 @@
               throw new Error('Failed to stop camera');
             }
             
-            // Hide the video feed and show placeholder
+            // Hide the video feed
             videoFeed.style.display = 'none';
-            cameraPlaceholder.style.display = 'flex';
-            videoFeed.src = "";
+            feedbackText.textContent = "Camera has been stopped. Please refresh the page to restart.";
             
-            // Update button states
-            stopButton.style.display = 'none';
-            startButton.style.display = 'inline-block';
-            feedbackText.textContent = "Camera is paused. Click 'Start Camera' to resume.";
-            
-            // Set camera as inactive
-            isCameraActive = false;
-            
-            // Stop polling for status updates
-            stopStatusUpdates();
           } catch (err) {
             console.error("Error stopping camera:", err);
             feedbackText.textContent = "Error stopping camera. Please try again.";
           }
         }
 
-        async function closeCamera() {
-          try {
-            if (!isCameraActive) return;
-            
-            // Call the stop_camera endpoint
-            const response = await fetch(baseUrl + "/stop_camera", {
-              method: 'GET',
-              headers: {
-                'Accept': 'application/json'
-              }
-            });
-            
-            if (!response.ok) {
-              throw new Error('Failed to close camera');
-            }
-            
-            // Hide the video feed and show placeholder
-            videoFeed.style.display = 'none';
-            cameraPlaceholder.style.display = 'flex';
-            videoFeed.src = "";
-            
-            // Update button states
-            startButton.style.display = 'inline-block';
-            stopButton.style.display = 'none';
-            closeButton.style.display = 'none';
-            feedbackText.textContent = "Start the camera to begin posture detection and receive real-time feedback on your form.";
-            
-            // Set camera as inactive
-            isCameraActive = false;
-            
-            // Stop polling for status updates
-            stopStatusUpdates();
-          } catch (err) {
-            console.error("Error closing camera:", err);
-            feedbackText.textContent = "Error closing camera. Please try again.";
-          }
-        }
-
-        function startStatusUpdates() {
-          // Poll for status updates every 500ms
-          if (!statusInterval) {
-            statusInterval = setInterval(updateStatus, 500);
-          }
-        }
-
-        function stopStatusUpdates() {
-          if (statusInterval) {
-            clearInterval(statusInterval);
-            statusInterval = null;
-          }
-        }
-
-        async function updateStatus() {
-          try {
-            const response = await fetch(baseUrl + "/get_status", {
-              method: 'GET',
-              headers: {
-                'Accept': 'application/json'
-              }
-            });
-            
-            if (!response.ok) {
-              throw new Error('Failed to get status');
-            }
-            
-            const data = await response.json();
-            console.log('Status update:', data);
-            
-            if (data.current_status && data.current_status !== poseStatus.textContent) {
-              // Update current status
-              poseStatus.textContent = data.current_status;
-              
-              // Update last status
-              lastPoseStatus.textContent = data.last_status;
-              
-              // Update status indicators
-              updateStatusDots(data.current_status);
-              
-              // Update feedback message based on status
-              updateFeedbackMessage(data.current_status);
-            }
-          } catch (err) {
-            console.error("Error updating status:", err);
-            // Don't update the feedback text on error to avoid flickering
-          }
-        }
-
-        function updateFeedbackMessage(status) {
-          if (!status) return;
-          
-          switch(status.toLowerCase()) {
-            case 'warrior ii pose':
-              feedbackText.textContent = "Great job! You're in the Warrior II pose.";
-              break;
-            case 't pose':
-              feedbackText.textContent = "Perfect! You're in the T pose.";
-              break;
-            case 'tree pose':
-              feedbackText.textContent = "Excellent! You're in the Tree pose.";
-              break;
-            case 'cobra pose':
-              feedbackText.textContent = "Well done! You're in the Cobra pose.";
-              break;
-            case 'unknown':
-              feedbackText.textContent = "Please try to match one of the target poses.";
-              break;
-            default:
-              if (videoFeed.style.display === 'block') {
-                feedbackText.textContent = "Camera is active. You can now start your exercises.";
-              }
-          }
-        }
-
-        function updateStatusDots(status) {
-          if (!status) return;
-          
-          const dotClass = getStatusClass(status);
-          statusDot.className = 'status-dot ' + dotClass;
-          lastStatusDot.className = 'status-dot ' + getStatusClass(lastPoseStatus.textContent);
-        }
-
-        function getStatusClass(status) {
-          if (!status) return '';
-          status = status.toLowerCase();
-          if (status.includes('pose') && status !== 'unknown pose') {
-            return 'active';
-          } else if (status === 'unknown') {
-            return 'warning';
-          } else {
-            return '';
-          }
-        }
-
-        // Add event listeners
-        startButton.addEventListener('click', startCamera);
+        // Add event listener
         stopButton.addEventListener('click', stopCamera);
-        closeButton.addEventListener('click', closeCamera);
       });
     </script>
 

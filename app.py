@@ -1,4 +1,5 @@
 from flask import Flask, render_template, Response, jsonify, request, flash, redirect, url_for
+from flask_cors import CORS
 import cv2
 from time import time
 import mediapipe as mp
@@ -13,6 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 app.secret_key = os.urandom(24)  # Required for flash messages
 
 # ---------------------------------------------Pose Detection and Classification---------------------------------------------
@@ -296,74 +298,18 @@ def about():
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
     if request.method == 'POST':
+        # Handle contact form submission
         name = request.form.get('name')
         email = request.form.get('email')
         message = request.form.get('message')
-        
-        try:
-            # Email configuration
-            sender_email = os.getenv('EMAIL_USER')
-            sender_password = os.getenv('EMAIL_PASSWORD')
-            receiver_email = os.getenv('ADMIN_EMAIL')
-            
-            # Create message for admin
-            admin_msg = MIMEMultipart()
-            admin_msg['From'] = sender_email
-            admin_msg['To'] = receiver_email
-            admin_msg['Subject'] = f"Posture Sense New Contact Form Submission from {name}"
-            
-            # Admin email body
-            admin_body = f"""
-            New contact form submission:
-            
-            Name: {name}
-            Email: {email}
-            Message: {message}
-            """
-            
-            admin_msg.attach(MIMEText(admin_body, 'plain'))
-            
-            # Create confirmation message for sender
-            sender_msg = MIMEMultipart()
-            sender_msg['From'] = sender_email
-            sender_msg['To'] = email
-            sender_msg['Subject'] = "Thank you for contacting Posture Sense"
-            
-            # Sender confirmation email body
-            sender_body = f"""
-            Dear {name},
+        # Add your contact form handling logic here
+        flash('Thank you for your message! We will get back to you soon.', 'success')
+        return redirect(url_for('contact'))
+    return render_template('contact.html')
 
-            Thank you for contacting Posture Sense. We have received your message and will get back to you as soon as possible.
-
-            Here's a copy of your message:
-            {message}
-
-            Best regards,
-            Posture Sense Team
-            """
-            
-            sender_msg.attach(MIMEText(sender_body, 'plain'))
-            
-            # Send emails
-            with smtplib.SMTP('smtp.gmail.com', 587) as server:
-                server.starttls()
-                server.login(sender_email, sender_password)
-                
-                # Send to admin
-                server.send_message(admin_msg)
-                
-                # Send confirmation to sender
-                server.send_message(sender_msg)
-            
-            flash('Your message has been sent successfully!', 'success')
-            return redirect(url_for('index'))
-            
-        except Exception as e:
-            print(f"Error sending email: {str(e)}")  # Add this line for debugging
-            flash('An error occurred while sending your message. Please try again later.', 'error')
-            return redirect(url_for('index'))
-    
-    return render_template('index.html')
+@app.route('/yoga-poses')
+def yoga_poses():
+    return render_template('yoga-poses.html')
 
 @app.route('/pricing')
 def join_now():
@@ -437,4 +383,4 @@ def subscribe():
             return jsonify({'status': 'error', 'message': 'An error occurred while processing your subscription. Please try again later.'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True)

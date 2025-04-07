@@ -109,8 +109,14 @@
             <div class="camera-frame">
               <div id="cameraFeedContainer" class="ratio ratio-16x9 rounded-3 overflow-hidden shadow-lg">
                 <img id="video_feed" class="w-100 h-100 object-fit-cover" alt="Live Camera Feed" style="display: none;">
+                <div id="cameraPlaceholder" class="d-flex align-items-center justify-content-center bg-light" style="height: 100%;">
+                  <div class="text-center">
+                    <i class="bi bi-camera-video-off display-1 text-muted"></i>
+                    <p class="mt-2">Camera feed will appear here</p>
+                  </div>
+                </div>
               </div>
-              <div class="camera-controls">
+              <div class="camera-controls mt-3">
                 <button id="startCameraButton" class="btn btn-primary">
                   <i class="bi bi-camera-video"></i> Start Camera
                 </button>
@@ -254,6 +260,7 @@
         const stopButton = document.getElementById('stopCameraButton');
         const closeButton = document.getElementById('closeCameraButton');
         const videoFeed = document.getElementById('video_feed');
+        const cameraPlaceholder = document.getElementById('cameraPlaceholder');
         const statusDot = document.getElementById('statusDot');
         const lastStatusDot = document.getElementById('lastStatusDot');
         const feedbackText = document.getElementById('feedbackText');
@@ -278,14 +285,26 @@
             }
             
             // Try to access camera
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+              video: { 
+                width: { ideal: 640 },
+                height: { ideal: 480 },
+                facingMode: "user"
+              } 
+            });
+            
             if (!stream) {
               throw new Error('Could not access camera');
             }
             
+            // Hide placeholder and show video feed
+            cameraPlaceholder.style.display = 'none';
+            videoFeed.style.display = 'block';
+            
             // Set the video feed source with a timestamp to prevent caching
             videoFeed.src = baseUrl + "/video_feed?" + new Date().getTime();
             
+            // Update button states
             startButton.style.display = 'none';
             stopButton.style.display = 'inline-block';
             closeButton.style.display = 'inline-block';
@@ -303,6 +322,7 @@
             console.error("Error accessing camera:", err);
             feedbackText.textContent = "Error: " + err.message + ". Please check your camera permissions and try again.";
             videoFeed.style.display = 'none';
+            cameraPlaceholder.style.display = 'flex';
             startButton.style.display = 'inline-block';
             stopButton.style.display = 'none';
             closeButton.style.display = 'none';
@@ -318,12 +338,17 @@
                 'Accept': 'application/json'
               }
             });
-            if (!response.ok) throw new Error('Failed to stop camera');
             
-            // Hide the video feed
+            if (!response.ok) {
+              throw new Error('Failed to stop camera');
+            }
+            
+            // Hide the video feed and show placeholder
             videoFeed.style.display = 'none';
+            cameraPlaceholder.style.display = 'flex';
             videoFeed.src = "";
             
+            // Update button states
             stopButton.style.display = 'none';
             startButton.style.display = 'inline-block';
             feedbackText.textContent = "Camera is paused. Click 'Start Camera' to resume.";
@@ -345,12 +370,17 @@
                 'Accept': 'application/json'
               }
             });
-            if (!response.ok) throw new Error('Failed to close camera');
             
-            // Hide the video feed
+            if (!response.ok) {
+              throw new Error('Failed to close camera');
+            }
+            
+            // Hide the video feed and show placeholder
             videoFeed.style.display = 'none';
+            cameraPlaceholder.style.display = 'flex';
             videoFeed.src = "";
             
+            // Update button states
             startButton.style.display = 'inline-block';
             stopButton.style.display = 'none';
             closeButton.style.display = 'none';
@@ -457,6 +487,7 @@
           }
         }
 
+        // Add event listeners
         startButton.addEventListener('click', startCamera);
         stopButton.addEventListener('click', stopCamera);
         closeButton.addEventListener('click', closeCamera);

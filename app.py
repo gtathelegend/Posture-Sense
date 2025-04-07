@@ -39,7 +39,7 @@ camera = None
 def gen_frames():
     global camera_active, current_status, last_status
     try:
-        # Try different camera indices for Replit compatibility
+        # Try different camera indices for production compatibility
         for i in range(3):  # Try first 3 camera indices
             video = cv2.VideoCapture(i)
             if video.isOpened():
@@ -54,8 +54,9 @@ def gen_frames():
         # Set camera properties for better performance
         video.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         video.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        video.set(cv2.CAP_PROP_FPS, 30)
-            
+        video.set(cv2.CAP_PROP_FPS, 15)  # Reduced FPS for better performance
+        video.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Reduce buffer size
+        
         while camera_active:
             success, frame = video.read()  # read the camera frame
             if not success:
@@ -75,7 +76,7 @@ def gen_frames():
                     print(f"Current Status: {current_status}, Last Status: {last_status}")  # Debug print
 
                 # Encode frame to JPEG with lower quality for better performance
-                ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 80])
+                ret, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 60])
                 frame = buffer.tobytes()
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
@@ -341,18 +342,30 @@ def get_status():
 
 @app.route('/stop_camera')
 def stop_camera():
-    global camera, camera_active
-    camera_active = False
-    if camera is not None:
-        camera.release()
-        camera = None
-    return jsonify({'status': 'success'})
+    global camera_active
+    try:
+        camera_active = False
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        print(f"Error in stop_camera: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/video_feed')
 def video_feed():
     global camera_active
-    camera_active = True
-    return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    try:
+        camera_active = True
+        return Response(gen_frames(), 
+                      mimetype='multipart/x-mixed-replace; boundary=frame',
+                      headers={
+                          'Cache-Control': 'no-cache, no-store, must-revalidate',
+                          'Pragma': 'no-cache',
+                          'Expires': '0'
+                      })
+    except Exception as e:
+        print(f"Error in video_feed: {str(e)}")
+        camera_active = False
+        return Response(status=500)
 
 @app.route('/subscribe', methods=['POST'])
 def subscribe():

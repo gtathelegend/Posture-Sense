@@ -318,63 +318,8 @@ def join_now():
 # Route to process form submission
 @app.route('/submit', methods=['POST'])
 def submit():
-    # Get form data
-    name = request.form.get('name')
-    email = request.form.get('email')
-    message = request.form.get('message')
-
-    try:
-        # Email configuration
-        sender_email = os.getenv('EMAIL_USER')
-        sender_password = os.getenv('EMAIL_PASSWORD')
-        admin_email = os.getenv('ADMIN_EMAIL')  # Your email address
-
-        # Create message for admin
-        admin_msg = MIMEMultipart()
-        admin_msg['From'] = sender_email
-        admin_msg['To'] = admin_email
-        admin_msg['Subject'] = "New Contact Form Submission"
-        admin_body = f"""
-        You have received a new message from the contact form:
-
-        Name: {name}
-        Email: {email}
-        Message: {message}
-        """
-        admin_msg.attach(MIMEText(admin_body, 'plain'))
-
-        # Create confirmation message for sender
-        sender_msg = MIMEMultipart()
-        sender_msg['From'] = sender_email
-        sender_msg['To'] = email
-        sender_msg['Subject'] = "Thank you for contacting us!"
-        sender_body = f"""
-        Hi {name},
-
-        Thank you for reaching out to us. We have received your message and will get back to you soon.
-
-        Here is a copy of your message:
-        {message}
-
-        Best regards,
-        The Team
-        """
-        sender_msg.attach(MIMEText(sender_body, 'plain'))
-
-        # Send emails
-        with smtplib.SMTP('smtp.gmail.com', 587) as server:
-            server.starttls()
-            server.login(sender_email, sender_password)
-            server.send_message(admin_msg)
-            server.send_message(sender_msg)
-
-        flash('Your message has been sent successfully!', 'success')
-        return redirect(url_for('contact'))
-
-    except Exception as e:
-        print(f"Error sending emails: {str(e)}")
-        flash('An error occurred while sending your message. Please try again later.', 'danger')
-        return redirect(url_for('contact'))
+    # Process form data here
+    return 'Form submitted successfully!'
 
 @app.route('/get_status')
 def get_status():

@@ -2,9 +2,10 @@ Flask
 Flask-SQLAlchemy
 Flask-Login
 Flask-Bcrypt
-mediapipe
+mediapipe==0.10.14
 opencv-contrib-python
-numpy
+numpy<2
+protobuf<5
 gunicorn
 flask_cors
 python-dotenv

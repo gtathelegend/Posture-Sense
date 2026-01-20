@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Posture Sense</title>
+    <link rel="icon" href="{{ url_for('static', filename='assets/img/favicon.ico') }}">
+    <!-- Vendor CSS -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='assets/vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='assets/vendor/aos/aos.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='assets/vendor/glightbox/css/glightbox.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='assets/vendor/swiper/swiper-bundle.min.css') }}" rel="stylesheet">
+    <!-- Main CSS -->
+    <link href="{{ url_for('static', filename='assets/css/main.css') }}" rel="stylesheet">
+</head>
+<body class="index-page">
+    <!-- Header aligned with home -->
+    <header id="header" class="header d-flex align-items-center fixed-top" style="z-index: 9999;">
+        <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
+            <a href="{{ url_for('index')}}" class="logo d-flex align-items-center">
+                <h1 class="sitename">Posture Sense</h1>
+            </a>
+            <nav id="navmenu" class="navmenu">
+                <ul>
+                    <li><a href="{{ url_for('index')}}">Home</a></li>
+                    <li><a href="{{ url_for('index')}}#about">About</a></li>
+                    <li><a href="{{ url_for('index')}}#features">Features</a></li>
+                    <li><a href="{{ url_for('pose_detection')}}">Demo App</a></li>
+                    <li><a href="{{ url_for('yoga_poses')}}">Yoga Poses</a></li>
+                    <li><a href="{{ url_for('index')}}#contact">Contact</a></li>
+                    <li><a href="{{ url_for('dashboard')}}" class="active">Dashboard</a></li>
+                    <li><a href="{{ url_for('logout')}}">Logout</a></li>
+                </ul>
+                <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <section class="page-title dark-background" style="padding-top: 120px;">
+            <div class="container">
+                <div class="row align-items-center gy-3">
+                    <div class="col-md-6">
+                        <h1>Your Pose Detection Dashboard</h1>
+                        <p class="mb-0">Track your progress and view your pose history</p>
+                        <div class="mt-2">
+                            <span class="live-indicator">
+                                <span class="live-dot"></span>
+                                Live Updates Active
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <a href="{{ url_for('pose_detection') }}" class="btn btn-pose-detection">
+                            <i class="bi bi-camera-video"></i> Start Pose Detection
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container">
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="stats-card text-center">
+                    <i class="bi bi-camera-video stats-icon" style="color: #667eea;"></i>
+                    <div class="stats-value">{{ total_sessions }}</div>
+                    <div class="stats-label">Total Sessions</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card text-center">
+                    <i class="bi bi-clock-history stats-icon" style="color: #764ba2;"></i>
+                    <div class="stats-value">{{ "%.1f"|format(total_duration / 60) }}</div>
+                    <div class="stats-label">Minutes Practiced</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card text-center">
+                    <i class="bi bi-graph-up stats-icon" style="color: #52c41a;"></i>
+                    <div class="stats-value">{{ "%.1f"|format(avg_accuracy) }}%</div>
+                    <div class="stats-label">Average Accuracy</div>
+                </div>
+            </div>
+        </div>
+
+        {% if pose_counts %}
+        <div class="row">
+            <div class="col-12">
+                <div class="pose-distribution">
+                    <h4 class="mb-4">Pose Distribution</h4>
+                    {% set max_count = pose_counts.values()|max %}
+                    {% for pose, count in pose_counts.items() %}
+                    {% set percentage = (count * 100 / max_count) if max_count > 0 else 0 %}
+                    <div class="pose-bar">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>{{ pose }}</strong></span>
+                            <span>{{ count }} session{{ 's' if count != 1 else '' }}</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ percentage|int }}%;"
+                                     aria-valuenow="{{ count }}" aria-valuemin="0" aria-valuemax="{{ max_count }}">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-12">
+                <div class="session-table">
+                    <h4 class="mb-4">Recent Sessions</h4>
+                    {% if sessions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Pose</th>
+                                    <th>Duration</th>
+                                    <th>Accuracy</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in sessions[:20] %}
+                                <tr>
+                                    <td>{{ session.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    <td><span class="badge badge-pose bg-primary">{{ session.pose_label }}</span></td>
+                                    <td>{{ "%.1f"|format(session.duration) }}s</td>
+                                    <td>
+                                        <span class="badge bg-success">{{ "%.1f"|format(session.accuracy) }}%</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+                        <p class="text-muted mt-3">No sessions yet. Start your first pose detection session!</p>
+                        <a href="{{ url_for('pose_detection') }}" class="btn btn-pose-detection mt-3">
+                            Start Now
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+            </div>
+        </section>
+    </main>
+
+    <div style="height: 50px;"></div>
+
+    <!-- Footer aligned with home -->
+    <footer id="footer" class="footer dark-background mt-auto">
+        <div class="container footer-top">
+            <div class="row gy-4">
+                <div class="col-lg-4 col-md-6 footer-about">
+                    <a href="{{ url_for('index')}}" class="logo d-flex align-items-center">
+                        <span class="sitename">Posture Sense</span>
+                    </a>
+                    <div class="footer-contact pt-3">
+                        <p>Vivekananda Global University</p>
+                        <p>Jaipur, Rajasthan, 303012</p>
+                        <p class="mt-3"><strong>Phone:</strong> <span>+91 87500 98715</span></p>
+                        <p><strong>Email:</strong> <span>info@posturesense.ct.ws</span></p>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-3 footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="{{ url_for('index')}}">Home</a></li>
+                        <li><a href="{{ url_for('index')}}#about">About</a></li>
+                        <li><a href="{{ url_for('index')}}#features">Features</a></li>
+                        <li><a href="{{ url_for('pose_detection')}}">Demo App</a></li>
+                        <li><a href="{{ url_for('yoga_poses')}}">Yoga Poses</a></li>
+                        <li><a href="{{ url_for('index')}}#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 col-md-12 footer-newsletter">
+                    <h4>Our Newsletter</h4>
+                    <p>Subscribe to get the latest updates.</p>
+                    <form id="newsletterFormDashboard">
+                        <div class="newsletter-form">
+                            <input type="email" name="email" placeholder="Enter your email" required>
+                            <input type="submit" value="Subscribe">
+                        </div>
+                        <div class="loading">Loading</div>
+                        <div class="error-message"></div>
+                        <div class="sent-message">Your subscription request has been sent. Thank you!</div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="container copyright text-center mt-4">
+            <p>© <span>Copyright</span> <strong class="px-1 sitename">Posture Sense</strong> <span>All Rights Reserved</span></p>
+            <div class="credits">Designed by <a href="tel:9750098715">Vedaang Sharma</a></div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/vendor/php-email-form/validate.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/vendor/aos/aos.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/vendor/glightbox/js/glightbox.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/vendor/purecounter/purecounter_vanilla.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/main.js') }}"></script>
+    <script>
+        // Newsletter on dashboard footer
+        const formDash = document.getElementById('newsletterFormDashboard');
+        if (formDash) {
+            formDash.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const loading = formDash.querySelector('.loading');
+                const sent = formDash.querySelector('.sent-message');
+                const err = formDash.querySelector('.error-message');
+                loading.style.display = 'block';
+                sent.style.display = 'none';
+                err.style.display = 'none';
+                const fd = new FormData(formDash);
+                fetch("{{ url_for('subscribe') }}", { method: 'POST', body: fd })
+                    .then(r => r.json())
+                    .then(data => {
+                        loading.style.display = 'none';
+                        if (data.status === 'success') { sent.textContent = data.message; sent.style.display = 'block'; formDash.reset(); }
+                        else { err.textContent = data.message || 'Subscription failed'; err.style.display = 'block'; }
+                        setTimeout(() => { sent.style.display = 'none'; err.style.display = 'none'; }, 4000);
+                    })
+                    .catch(() => { loading.style.display = 'none'; err.textContent = 'Subscription failed'; err.style.display = 'block'; });
+            });
+        }
+
+        // Real-time dashboard updates
+        let lastUpdateTime = Date.now();
+        
+        function updateDashboard() {
+            fetch('/api/dashboard_stats')
+                .then(response => {
+                    // If login expired, Flask will redirect to /login (HTML response)
+                    if (response.redirected) {
+                        window.location = response.url;
+                        throw new Error('Redirected to login');
+                    }
+
+                    const contentType = response.headers.get('content-type') || '';
+                    if (!contentType.includes('application/json')) {
+                        return response.text().then(text => {
+                            const snippet = text.slice(0, 120);
+                            throw new Error('Non-JSON response: ' + snippet);
+                        });
+                    }
+
+                    return response.json();
+                })
+                .then(data => {
+                    // Update stats cards
+                    updateStatsCards(data);
+                    
+                    // Update pose distribution
+                    updatePoseDistribution(data.pose_counts);
+                    
+                    // Update recent sessions table
+                    updateRecentSessions(data.recent_sessions);
+                    
+                    lastUpdateTime = Date.now();
+                })
+                .catch(error => {
+                    console.error('Error updating dashboard:', error);
+                });
+        }
+        
+        function updateStatsCards(data) {
+            // Update total sessions
+            const totalSessionsEl = document.querySelector('.stats-card:nth-child(1) .stats-value');
+            if (totalSessionsEl) {
+                animateValue(totalSessionsEl, parseInt(totalSessionsEl.textContent) || 0, data.total_sessions);
+            }
+            
+            // Update total duration (convert to minutes)
+            const totalDurationEl = document.querySelector('.stats-card:nth-child(2) .stats-value');
+            if (totalDurationEl) {
+                const minutes = (data.total_duration / 60).toFixed(1);
+                animateValue(totalDurationEl, parseFloat(totalDurationEl.textContent) || 0, parseFloat(minutes), 1);
+            }
+            
+            // Update average accuracy
+            const avgAccuracyEl = document.querySelector('.stats-card:nth-child(3) .stats-value');
+            if (avgAccuracyEl) {
+                const currentVal = parseFloat(avgAccuracyEl.textContent) || 0;
+                animateValue(avgAccuracyEl, currentVal, data.avg_accuracy, 1, '%');
+            }
+        }
+        
+        function animateValue(element, start, end, decimals = 0, suffix = '') {
+            const duration = 500;
+            const startTime = Date.now();
+            
+            function update() {
+                const now = Date.now();
+                const progress = Math.min((now - startTime) / duration, 1);
+                const value = start + (end - start) * progress;
+                element.textContent = value.toFixed(decimals) + suffix;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            
+            update();
+        }
+        
+        function updatePoseDistribution(poseCounts) {
+            const distributionDiv = document.querySelector('.pose-distribution');
+            if (!distributionDiv || Object.keys(poseCounts).length === 0) return;
+            
+            const maxCount = Math.max(...Object.values(poseCounts));
+            if (!isFinite(maxCount) || maxCount <= 0) {
+                distributionDiv.innerHTML = '<p class="text-muted mb-0">No pose data yet.</p>';
+                return;
+            }
+            let html = '<h4 class="mb-4">Pose Distribution</h4>';
+            
+            for (const [pose, count] of Object.entries(poseCounts)) {
+                const percentage = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
+                html += `
+                    <div class="pose-bar">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span><strong>${pose}</strong></span>
+                            <span>${count} session${count !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" 
+                                 style="width: ${percentage}%"
+                                 aria-valuenow="${count}" aria-valuemin="0" aria-valuemax="${maxCount}">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            distributionDiv.innerHTML = html;
+        }
+        
+        function updateRecentSessions(sessions) {
+            const tbody = document.querySelector('.session-table tbody');
+            if (!tbody) return;
+            
+            if (sessions.length === 0) {
+                tbody.closest('.session-table').innerHTML = `
+                    <h4 class="mb-4">Recent Sessions</h4>
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+                        <p class="text-muted mt-3">No sessions yet. Start your first pose detection session!</p>
+                        <a href="/pose_detection" class="btn btn-pose-detection mt-3">
+                            Start Now
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            sessions.forEach(session => {
+                html += `
+                    <tr>
+                        <td>${session.timestamp}</td>
+                        <td><span class="badge badge-pose bg-primary">${session.pose_label}</span></td>
+                        <td>${session.duration}s</td>
+                        <td><span class="badge bg-success">${session.accuracy}%</span></td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+        
+        // Update dashboard every 3 seconds
+        setInterval(updateDashboard, 3000);
+        
+        // Also update when page becomes visible
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                updateDashboard();
+            }
+        });
+    </script>
+</body>
+</html>

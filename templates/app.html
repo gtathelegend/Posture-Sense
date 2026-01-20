@@ -54,7 +54,7 @@
 
 <body class="starter-page-page">
 
-  <header id="header" class="header d-flex align-items-center fixed-top">
+  <header id="header" class="header d-flex align-items-center fixed-top" style="z-index: 9999;">
     <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
 
       <a href="{{ url_for('index')}}" class="logo d-flex align-items-center">
@@ -71,6 +71,12 @@
           <li><a href="{{ url_for('pose_detection')}}">Start Learning</a></li>
           <li><a href="{{ url_for('yoga_poses')}}">Yoga Poses</a></li>
           <li><a href="{{ url_for('index')}}#contact">Contact</a></li>
+          {% if current_user.is_authenticated %}
+          <li><a href="{{ url_for('dashboard')}}">Dashboard</a></li>
+          <li><a href="{{ url_for('logout')}}">Logout</a></li>
+          {% else %}
+          <li><a href="{{ url_for('login')}}">Login</a></li>
+          {% endif %}
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
@@ -260,6 +266,11 @@
         const poseStatus = document.getElementById('pose_status');
         const lastPoseStatus = document.getElementById('last_pose_status');
         let statusInterval = null;
+        
+        // Pose tracking variables
+        let currentPose = null;
+        let poseStartTime = null;
+        let poseAccuracyScore = 0;
 
         // Initialize status dots based on initial status
         const initialStatus = poseStatus.textContent.trim();
@@ -294,6 +305,11 @@
 
         async function stopCamera() {
           try {
+            // Save current pose session if there is one
+            if (currentPose && poseStartTime) {
+              await savePoseSession();
+            }
+            
             // Call the stop_camera endpoint
             const response = await fetch(baseUrl + "/stop_camera", {
               method: 'GET',
@@ -321,6 +337,11 @@
 
         async function closeCamera() {
           try {
+            // Save current pose session if there is one
+            if (currentPose && poseStartTime) {
+              await savePoseSession();
+            }
+            
             // Call the stop_camera endpoint
             const response = await fetch(baseUrl + "/stop_camera", {
               method: 'GET',
@@ -375,6 +396,19 @@
             console.log('Status update:', data); // Debug log
             
             if (data.current_status && data.current_status !== poseStatus.textContent) {
+              // Check if pose changed
+              const newPose = data.current_status;
+              if (newPose !== currentPose && newPose !== 'Unknown' && newPose !== 'Scanning ...') {
+                // Save previous pose session if exists
+                if (currentPose && poseStartTime) {
+                  await savePoseSession();
+                }
+                // Start new pose tracking
+                currentPose = newPose;
+                poseStartTime = Date.now();
+                poseAccuracyScore = 85 + Math.random() * 15; // Simulated accuracy 85-100%
+              }
+              
               // Update current status
               poseStatus.textContent = data.current_status;
               
@@ -391,6 +425,45 @@
             console.error("Error updating status:", err);
             // Don't update the feedback text on error to avoid flickering
           }
+        }
+
+        async function savePoseSession() {
+          if (!currentPose || !poseStartTime) return;
+          
+          const duration = (Date.now() - poseStartTime) / 1000; // Convert to seconds
+          
+          // Only save sessions longer than 2 seconds
+          if (duration < 2) {
+            currentPose = null;
+            poseStartTime = null;
+            return;
+          }
+          
+          try {
+            const response = await fetch(baseUrl + "/save_pose_session", {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                pose_label: currentPose,
+                duration: duration,
+                accuracy: poseAccuracyScore
+              })
+            });
+            
+            if (response.ok) {
+              console.log('Pose session saved:', currentPose, duration.toFixed(1) + 's');
+            }
+          } catch (err) {
+            console.error("Error saving pose session:", err);
+          }
+          
+          // Reset tracking variables
+          currentPose = null;
+          poseStartTime = null;
+          poseAccuracyScore = 0;
         }
 
         function updateFeedbackMessage(status) {

@@ -9,6 +9,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
 from dotenv import load_dotenv
+# import pyttsx3
 
 # Load environment variables
 load_dotenv()
@@ -22,7 +23,12 @@ app.secret_key = os.urandom(24)  # Required for flash messages
 mp_pose = mp.solutions.pose
 
 # Setting up the Pose function.
-pose = mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.3, model_complexity=2)
+# from this:
+# pose = mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.3, model_complexity=2)
+
+# to this (better for video):
+pose = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
+
 
 # Initializing mediapipe drawing class, useful for annotation.
 mp_drawing = mp.solutions.drawing_utils
@@ -36,47 +42,198 @@ last_status = "Unknown"
 camera_active = False
 camera = None
 
-def gen_frames():
-    global camera_active, current_status, last_status
-    try:
-        video = cv2.VideoCapture(0)
-        if not video.isOpened():
-            print("Error: Could not open camera")
-            return
-            
-        while camera_active:
-            success, frame = video.read()  # read the camera frame
-            if not success:
-                print("Failed to grab frame")
-                break
-            else:
-                frame = cv2.flip(frame, 1)  # flip the frame horizontally
-                frame_height, frame_width, _ = frame.shape
-                frame = cv2.resize(frame, (int(frame_width * (640 / frame_height)), 640))
-                
-                # Detect pose and classify
-                frame, landmarks = detectPose(frame, pose, display=False)
-                if landmarks:
-                    _, _, pose_status = classifyPose(landmarks, frame, display=False)
-                    # Update last status before changing current status
-                    if pose_status != current_status:
-                        last_status = current_status
-                        current_status = pose_status
-                    print(f"Current Status: {current_status}, Last Status: {last_status}")  # Debug print
+# Initialize text-to-speech engine
+# tts_engine = pyttsx3.init()
+# # tts_engine.setProperty('rate', 150)  # Speed of speech
+# # tts_engine.setProperty('volume', 1.0)  # Volume (0.0 to 1.0)
+# def speak_pose(pose_label):
+#     try:
+#         tts_engine.say(f"You are in {pose_label}")
+#         tts_engine.runAndWait()
+#     except Exception as e:
+#         print(f"Voice feedback error: {str(e)}")
 
-                # Encode frame to JPEG
-                ret, buffer = cv2.imencode('.jpg', frame)
-                frame = buffer.tobytes()
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-                
-        # Clean up
-        video.release()
+
+def find_working_camera(max_index=4):
+    """Try camera indexes 0..max_index-1 and return first that works (or None)."""
+    for idx in range(max_index):
+        cap = cv2.VideoCapture(idx)
+        if cap is None or not cap.isOpened():
+            if cap:
+                cap.release()
+            continue
+        # try one read
+        ret, _ = cap.read()
+        if ret:
+            cap.release()
+            return idx
+        cap.release()
+    return None
+
+def open_camera(index=None):
+    """Open camera and tune small params. Returns VideoCapture or None."""
+    try:
+        if index is None:
+            idx = find_working_camera()
+            if idx is None:
+                return None
+        else:
+            idx = index
+        cap = cv2.VideoCapture(idx, cv2.CAP_DSHOW)  # keep CAP_DSHOW on windows/WSL if needed
+        # Optional: reduce buffer and set resolution
+        try:
+            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        except Exception:
+            pass
+        if not cap.isOpened():
+            cap.release()
+            return None
+        return cap
     except Exception as e:
-        print(f"Error in gen_frames: {str(e)}")
-        if 'video' in locals():
-            video.release()
+        print(f"open_camera error: {e}")
+        return None
+
+def gen_frames():
+    global camera_active, current_status, last_status, camera
+    camera = open_camera()  # open once
+    if camera is None:
+        print("Error: Could not open camera (no working index).")
+        yield b''  # generator must yield something (client will see nothing)
+        return
+
+    camera_active = True
+    failure_count = 0
+    max_failures = 10
+
+    try:
+        while camera_active:
+            success, frame = camera.read()
+            if not success or frame is None:
+                failure_count += 1
+                print(f"gen_frames: failed to grab frame ({failure_count})")
+                # attempt to reopen camera after some consecutive failures
+                if failure_count >= 3:
+                    # try reopen
+                    camera.release()
+                    camera = open_camera()
+                    if camera is None:
+                        print("gen_frames: unable to reopen camera, sleeping and retrying...")
+                        import time as _t; _t.sleep(1)
+                        failure_count = 0
+                        continue
+                    else:
+                        print("gen_frames: camera reopened")
+                        failure_count = 0
+                        continue
+                else:
+                    # small delay then continue
+                    import time as _t; _t.sleep(0.05)
+                    continue
+            failure_count = 0  # reset on success
+
+            # flip & resize safely
+            frame = cv2.flip(frame, 1)
+            h, w = frame.shape[:2]
+            target_h = 640
+            scale = target_h / float(h)
+            new_w = int(w * scale)
+            frame = cv2.resize(frame, (new_w, target_h))
+
+            # Detect pose and classify
+            output_frame, landmarks = detectPose(frame, pose, display=False)
+            if landmarks:
+                label_img, label, ps = classifyPose(landmarks, output_frame, display=False)
+                # Update last/current statuses
+                if ps != current_status:
+                    last_status = current_status
+                    current_status = ps
+                # optional: print debug
+                # print(f"Current Status: {current_status}, Last Status: {last_status}")
+
+            # encode & stream
+            ret, buffer = cv2.imencode('.jpg', output_frame)
+            if not ret:
+                print("gen_frames: encode failed")
+                continue
+            frame_bytes = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        # end while
+    except GeneratorExit:
+        # client disconnected
+        print("gen_frames: client disconnected")
+    except Exception as e:
+        print(f"Error in gen_frames main loop: {e}")
+    finally:
+        try:
+            if camera is not None:
+                camera.release()
+                camera = None
+        except Exception:
+            pass
         camera_active = False
+        print("gen_frames: cleaned up camera")
+
+# mp_pose = mp.solutions.pose
+
+# # Setting up the Pose function.
+# pose = mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.3, model_complexity=2)
+
+# # Initializing mediapipe drawing class, useful for annotation.
+# mp_drawing = mp.solutions.drawing_utils
+
+# # Initialize a variable to store the status of the pose.
+# pose_status = "Scanning"
+
+# # Global variables for posture status
+# current_status = "Unknown"
+# last_status = "Unknown"
+# camera_active = False
+# camera = None
+
+# def gen_frames():
+#     global camera_active, current_status, last_status
+#     try:
+#         video = cv2.VideoCapture("http://172.16.207.161:8080/video")
+#         if not video.isOpened():
+#             print("Error: Could not open camera")
+#             return
+            
+#         while camera_active:
+#             success, frame = video.read()  # read the camera frame
+#             if not success:
+#                 print("Failed to grab frame")
+#                 break
+#             else:
+#                 frame = cv2.flip(frame, 1)  # flip the frame horizontally
+#                 frame_height, frame_width, _ = frame.shape
+#                 frame = cv2.resize(frame, (int(frame_width * (640 / frame_height)), 640))
+                
+#                 # Detect pose and classify
+#                 frame, landmarks = detectPose(frame, pose, display=False)
+#                 if landmarks:
+#                     _, _, pose_status = classifyPose(landmarks, frame, display=False)
+#                     # Update last status before changing current status
+#                     if pose_status != current_status:
+#                         last_status = current_status
+#                         current_status = pose_status
+#                     print(f"Current Status: {current_status}, Last Status: {last_status}")  # Debug print
+
+#                 # Encode frame to JPEG
+#                 ret, buffer = cv2.imencode('.jpg', frame)
+#                 frame = buffer.tobytes()
+#                 yield (b'--frame\r\n'
+#                        b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                
+#         # Clean up
+#         video.release()
+#     except Exception as e:
+#         print(f"Error in gen_frames: {str(e)}")
+#         if 'video' in locals():
+#             video.release()
+#         camera_active = False
 
 def detectPose(image, pose, display=True):
 
@@ -261,6 +418,7 @@ def classifyPose(landmarks, output_image, display=False):
     global pose_status
     if label != 'Unknown Pose':
         pose_status = label
+        # speak_pose(label) 
     else:
         pose_status = "Unknown"
     return output_image, label, pose_status
@@ -299,12 +457,83 @@ def about():
 def contact():
     if request.method == 'POST':
         # Handle contact form submission
-        name = request.form.get('name')
-        email = request.form.get('email')
-        message = request.form.get('message')
-        # Add your contact form handling logic here
-        flash('Thank you for your message! We will get back to you soon.', 'success')
-        return redirect(url_for('contact'))
+        
+        if request.method == 'POST':
+            name = request.form.get('name')
+            email = request.form.get('email')
+            message = request.form.get('message')
+        
+        try:
+            # Email configuration
+            sender_email = os.getenv('EMAIL_USER')
+            sender_password = os.getenv('EMAIL_PASSWORD')
+            receiver_email = os.getenv('ADMIN_EMAIL')
+            
+            # Create message
+            msg = MIMEMultipart()
+            msg['From'] = sender_email
+            msg['To'] = receiver_email
+            msg['Subject'] = f"New Message from {name}"
+            
+            # Email body
+            body = f"""
+            New Message from {name}:
+
+            Email: {email}
+            Message: {message}
+
+            """
+            
+
+            
+            
+            msg.attach(MIMEText(body, 'plain'))
+            
+            # Send email
+            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+            
+            
+            
+
+            
+            
+            # Create message
+            msg = MIMEMultipart()
+            msg['From'] = sender_email
+            msg['To'] = email
+            msg['Subject'] = f"Thank you for contacting {name}"
+            
+            # Email body
+            body = f"""
+            Thank you for contacting us {name} !
+            We will contact you shortly.
+            Thanks,
+            Team Posture Sense
+
+            """
+            
+
+            
+            
+            msg.attach(MIMEText(body, 'plain'))
+            
+            # Send email
+            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+            
+            return jsonify({'status': 'success', 'message': 'Thank you for contacting us!'})
+        
+
+        except Exception as e:
+            print(f"Error sending contact email: {str(e)}")
+            return jsonify({'status': 'error', 'message': 'An error occurred while processing your contact form. Please try again later.'}), 500
+            # flash('Thank you for your message! We will get back to you soon.', 'success')
+            # return redirect(url_for('contact'))
     return render_template('contact.html')
 
 @app.route('/yoga-poses')
@@ -318,8 +547,54 @@ def join_now():
 # Route to process form submission
 @app.route('/submit', methods=['POST'])
 def submit():
-    # Process form data here
-    return 'Form submitted successfully!'
+    if request.method == 'POST':
+        # Handle contact form submission
+        
+        if request.method == 'POST':
+            name = request.form.get('name')
+            email = request.form.get('email')
+            message = request.form.get('message')
+        
+        try:
+            # Email configuration
+            sender_email = os.getenv('EMAIL_USER')
+            sender_password = os.getenv('EMAIL_PASSWORD')
+            receiver_email = os.getenv('ADMIN_EMAIL')
+            
+            # Create message
+            msg = MIMEMultipart()
+            msg['From'] = sender_email
+            msg['To'] = receiver_email
+            msg['Subject'] = f"New Message from {name}"
+            
+            # Email body
+            body = f"""
+            New Message from {name}:
+
+            Email: {email}
+            Message: {message}
+
+            """
+            
+
+            
+            
+            msg.attach(MIMEText(body, 'plain'))
+            
+            # Send email
+            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+            
+            return jsonify({'status': 'success', 'message': 'Thank you for contacting us!'})
+            
+        except Exception as e:
+            print(f"Error sending contact email: {str(e)}")
+            return jsonify({'status': 'error', 'message': 'An error occurred while processing your contact form. Please try again later.'}), 500
+            # flash('Thank you for your message! We will get back to you soon.', 'success')
+            # return redirect(url_for('contact'))
+    return render_template('contact.html')
 
 @app.route('/get_status')
 def get_status():

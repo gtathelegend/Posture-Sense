@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response, jsonify, request, flash, redirect, url_for, session
+from flask import Flask, render_template, Response, jsonify, request, flash, redirect, url_for, session, send_file
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -614,6 +614,14 @@ def pose_status_updates():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/sitemap.xml')
+def sitemap():
+    return send_file('sitemap.xml', mimetype='text/xml')
+
+@app.route('/robots.txt')
+def robots():
+    return send_file('robots.txt', mimetype='text/plain')
 
 @app.route('/pose_detection')
 @login_required

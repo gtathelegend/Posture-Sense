@@ -615,6 +615,10 @@ def pose_status_updates():
 def index():
     return render_template('index.html')
 
+@app.route('/favicon.ico')
+def favicon():
+    return send_file('favicon.ico', mimetype='image/x-icon')
+
 @app.route('/sitemap.xml')
 def sitemap():
     return send_file('sitemap.xml', mimetype='text/xml')

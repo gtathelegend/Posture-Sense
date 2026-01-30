@@ -172,6 +172,7 @@ MIT License - See [LICENSE](LICENSE)
 ## 👨‍💻 Creator
 
 **Vedaang Sharma**
+- LinkedIN: [Vedaang Sharma](https://www.linkedin.com/in/vedaangsharma2006/)
 - GitHub: [@gtathelegend](https://github.com/gtathelegend)
 - Email: vedaangsharma2006@gmail.com
 

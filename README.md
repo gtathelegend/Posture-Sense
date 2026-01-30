@@ -178,6 +178,6 @@ MIT License - See [LICENSE](LICENSE)
 
 ---
 
-**Last Updated**: January 26, 2026 | **Version**: 1.0.0
+**Last Updated**: January 26, 2026 | **Version**: 1.7.1
 
 Made with ❤️ by **Vedaang Sharma**

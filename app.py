@@ -623,6 +623,10 @@ def favicon():
 def sitemap():
     return send_file('sitemap.xml', mimetype='text/xml')
 
+@app.route('/sitemap2.xml')
+def sitemap2():
+    return send_file('sitemap2.xml', mimetype='text/xml')
+
 @app.route('/robots.txt')
 def robots():
     return send_file('robots.txt', mimetype='text/plain')

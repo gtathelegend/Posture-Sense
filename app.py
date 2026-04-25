@@ -615,6 +615,10 @@ def pose_status_updates():
 def index():
     return render_template('index.html')
 
+@app.route('/landing')
+def landing():
+    return render_template('landing.html')
+
 @app.route('/favicon.ico')
 def favicon():
     return send_file('favicon.ico', mimetype='image/x-icon')

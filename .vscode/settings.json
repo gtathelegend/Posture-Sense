@@ -34,5 +34,6 @@
         ".vscode{,/**}"
     ],
     "appService.defaultWebAppToDeploy": "/subscriptions/773f8d6b-326a-4042-8136-f0536d7c398b/resourceGroups/vedaangsharma2006/providers/Microsoft.Web/sites/vedaangsharma2006",
-    "appService.deploySubpath": "."
+    "appService.deploySubpath": ".",
+    "postman.settings.dotenv-detection-notification-visibility": false
 }

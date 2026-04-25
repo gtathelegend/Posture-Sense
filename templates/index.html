@@ -1,738 +1,415 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
+{% set active_page = 'home' %}
 
-<head>
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-58LHCRGF');</script>
-  <!-- End Google Tag Manager -->
+{% block title %}Posture Sense | AI-Powered Real-Time Posture Correction{% endblock %}
+{% block meta_desc %}Revolutionary AI smart mirror that provides real-time exercise feedback and posture correction using computer vision. Improve your workouts and maintain healthy posture.{% endblock %}
 
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>Posture Sense | AI Smart Mirror Exercise Correction by Vedaang Sharma</title>
-  <meta name="description" content="Posture Sense: Revolutionary AI-powered smart mirror for real-time exercise feedback and posture correction. Uses computer vision and MediaPipe for intelligent motion tracking. Improve your form, prevent injuries, and achieve your fitness goals. Created by Vedaang Sharma.">
-  <meta name="keywords" content="AI posture detection, real-time exercise feedback, smart mirror fitness, posture correction app, form correction technology, exercise form analyzer, yoga pose detection, workout form checker, fitness posture monitor, home fitness coach, virtual personal trainer, injury prevention, computer vision fitness, motion capture technology, Vedaang Sharma">
+{% block content %}
 
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://posture-sense.onrender.com/">
-  <meta property="og:title" content="Posture Sense | Smart Mirror Exercise Correction">
-  <meta property="og:description" content="Posture Sense is a revolutionary smart mirror that provides real-time exercise feedback and posture correction using AI and computer vision technology.Made by Vedaang Sharma.">
-  <meta property="og:image" content="/static/assets/img/hero-img.jpeg">
+<!-- ================================================
+     HERO
+     ================================================ -->
+<section class="home-hero">
+  <div class="wrap">
+    <div class="home-hero-grid">
 
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://posture-sense.onrender.com/">
-  <meta property="twitter:title" content="Posture Sense | Smart Mirror Exercise Correction">
-  <meta property="twitter:description" content="Posture Sense is a revolutionary smart mirror that provides real-time exercise feedback and posture correction using AI and computer vision technology.Made by Vedaang Sharma.">
-  <meta property="twitter:image" content="/static/assets/img/hero-img.jpeg">
-
-  <!-- WhatsApp -->
-  <meta property="og:site_name" content="Posture Sense">
-  <meta property="og:locale" content="en_US">
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Posture Sense | Smart Mirror Exercise Correction">
-  <meta property="og:description" content="Posture Sense is a revolutionary smart mirror that provides real-time exercise feedback and posture correction using AI and computer vision technology.Made by Vedaang Sharma.">
-  <meta property="og:image" content="/static/assets/img/hero-img.jpeg">
-  <meta property="og:url" content="https://posture-sense.onrender.com/">
-
-  <!-- Favicons -->
-  <link href="/static/assets/img/favicon.ico" rel="icon">
-  <link href="/static/assets/img/vgu.png" rel="apple-touch-icon">
-
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com" rel="preconnect">
-  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-
-  <!-- Vendor CSS Files -->
-  <link href="/static/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  <link href="/static/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-  <link href="/static/assets/vendor/aos/aos.css" rel="stylesheet">
-  <link href="/static/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
-  <link href="/static/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
-
-  <!-- Main CSS File -->
-  <link href="/static/assets/css/main.css" rel="stylesheet">
-
-</head>
-
-<body class="index-page">
-  <!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-58LHCRGF"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
-
-  <header id="header" class="header d-flex align-items-center fixed-top" style="z-index: 9999;">
-    <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
-
-      <a href="{{ url_for('index')}}" class="logo d-flex align-items-center">
-        <!-- Uncomment the line below if you also wish to use an image logo -->
-        <!-- <img src="/static/assets/img/logo.png" alt=""> -->
-        <h1 class="sitename">Posture Sense</h1>
-      </a>
-
-      <nav id="navmenu" class="navmenu">
-        <ul>
-          <li><a href="{{ url_for('index')}}" class="active">Home</a></li>
-          <li><a href="{{ url_for('index')}}#about">About</a></li>
-          <li><a href="{{ url_for('index')}}#features">Features</a></li>
-          <li><a href="{{ url_for('pose_detection')}}">Demo APP</a></li>
-          <li><a href="{{ url_for('yoga_poses')}}">Yoga Poses</a></li>
-          <li><a href="{{ url_for('index')}}#contact">Contact</a></li>
-          {% if current_user.is_authenticated %}
-          <li><a href="{{ url_for('dashboard')}}">Dashboard</a></li>
-          <li><a href="{{ url_for('logout')}}">Logout</a></li>
-          {% else %}
-          <li><a href="{{ url_for('login')}}">Login</a></li>
-          <li><a href="{{ url_for('register')}}">Register</a></li>
-          {% endif %}
-        </ul>
-        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-      </nav>
-
-    </div>
-  </header>
-
-  <main class="main">
-
-    <!-- Hero Section -->
-    <section id="hero" class="hero section dark-background">
-      <img src="/static/assets/img/hero-bg-2.jpg" alt="Posture Sense Smart Mirror - AI-Powered Posture Correction by Vedaang Sharma" class="hero-bg">
-
-      <div class="container">
-        <div class="row gy-4 justify-content-between">
-          <div class="col-lg-4 order-lg-last hero-img" data-aos="zoom-out" data-aos-delay="100">
-            <img src="/static/assets/img/hero-img.jpeg" class="img-fluid animated" alt="Posture Sense AI-Powered Smart Mirror for Real-Time Exercise Correction by Vedaang Sharma">
-          </div>
-
-          <div class="col-lg-6  d-flex flex-column justify-content-center" data-aos="fade-in">
-            <h1>Real Time Posture Correction and Excercise Feedback with <span>Posture Sense</span></h1>
-            <p>Posture Sense is a revolutionary smart mirror that provides real-time exercise feedback 
-              and posture correction using AI and computer vision technology. Improve your workouts and 
-              maintain a healthy posture with ease!</p>
-            <div class="d-flex">
-              <a href="{{ url_for('pose_detection')}}" class="btn-get-started">Get Started</a>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <svg class="hero-waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28 " preserveAspectRatio="none">
-        <defs>
-          <path id="wave-path" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z"></path>
-        </defs>
-        <g class="wave1">
-          <use xlink:href="#wave-path" x="50" y="3"></use>
-        </g>
-        <g class="wave2">
-          <use xlink:href="#wave-path" x="50" y="0"></use>
-        </g>
-        <g class="wave3">
-          <use xlink:href="#wave-path" x="50" y="9"></use>
-        </g>
-      </svg>
-
-    </section><!-- /Hero Section -->
-
-    <!-- About Section -->
-    <section id="about" class="about section">
-
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
-        <div class="row align-items-xl-center gy-5">
-
-          <div class="col-xl-5 content">
-            <h3>About Us</h3>
-            <h2>What is Posture Sense?</h2>
-            <p>Posture Sense is a next-gen smart mirror designed for  <br> fitness enthusiasts, 
-              office workers, and individuals <br>looking to improve their posture and well-being. 
-              <br><br>By leveraging advanced motion tracking and AI, it provides instant feedback on 
-              your movements, helping you exercise safely and effectively.
-              </p>
-              <!-- <a href="#" class="read-more"><span>Read More</span><i class="bi bi-arrow-right"></i></a> -->
-          </div>
-
-          <div class="col-xl-7">
-            <div class="row gy-4 icon-boxes">
-
-              <div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
-                <div class="icon-box">
-                  <i class="bi bi-buildings"></i>
-                  <h3>Smart Home Integration</h3>
-                  <p>Sync with your favorite health apps and smart devices.</p>
-                </div>
-              </div> <!-- End Icon Box -->
-
-              <div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
-                <div class="icon-box">
-                  <i class="bi bi-clipboard-pulse"></i>
-                  <h3>Real-Time Exercise Insights</h3>
-                  <p>Monitor repetitions, angles, and movements for optimized workouts.</p>
-                </div>
-              </div> <!-- End Icon Box -->
-
-              <div class="col-md-6" data-aos="fade-up" data-aos-delay="400">
-                <div class="icon-box">
-                  <i class="bi bi-command"></i>
-                  <h3>AI-Powered Posture Correction</h3>
-                  <p>Analyze body alignment and get instant form correction tips.</p>
-                </div>
-              </div> <!-- End Icon Box -->
-
-              <div class="col-md-6" data-aos="fade-up" data-aos-delay="500">
-                <div class="icon-box">
-                  <i class="bi bi-graph-up-arrow"></i>
-                  <h3>Personalized Workout Plans</h3>
-                  <p>Get AI-recommended exercises tailored to your fitness goals.</p>
-                </div>
-              </div> <!-- End Icon Box -->
-
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-    </section><!-- /About Section -->
-
-    <!-- Features Section -->
-    <section id="features" class="features section">
-
-      <div class="container">
-
-        <div class="row gy-4">
-
-          
-
-          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="400">
-            <div class="features-item">
-              <i class="bi bi-nut" style="color: #e361ff;"></i>
-              <h3><a href="" class="stretched-link">Posture Detection using AI models</a></h3>
-            </div>
-          </div><!-- End Feature Item -->
-
-          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="500">
-            <div class="features-item">
-              <i class="bi bi-shuffle" style="color: #47aeff;"></i>
-              <h3><a href="" class="stretched-link">Real Time Feedback</a></h3>
-            </div>
-          </div><!-- End Feature Item -->
-
-          
-
-          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="800">
-            <div class="features-item">
-              <i class="bi bi-camera-video" style="color: #4233ff;"></i>
-              <h3><a href="" class="stretched-link">Camera and Sensor data is used by Ai</a></h3>
-            </div>
-          </div><!-- End Feature Item -->
-
-          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="900">
-            <div class="features-item">
-              <i class="bi bi-command" style="color: #b2904f;"></i>
-              <h3><a href="" class="stretched-link">Correct Posture is displayed</a></h3>
-            </div>
-          </div><!-- End Feature Item -->
-
-          
-
-          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="1100">
-            <div class="features-item">
-              <i class="bi bi-activity" style="color: #ff5828;"></i>
-              <h3><a href="" class="stretched-link">Excercise Analytics</a></h3>
-            </div>
-          </div><!-- End Feature Item -->
-
-          <div class="col-lg-3 col-md-4" data-aos="fade-up" data-aos-delay="1200">
-            <div class="features-item">
-              <i class="bi bi-brightness-high" style="color: #29cc61;"></i>
-              <h3><a href="" class="stretched-link">Better Workout Results</a></h3>
-            </div>
-          </div><!-- End Feature Item -->
-
+      <!-- Left: copy -->
+      <div>
+        <div style="margin-bottom:24px">
+          <span class="chip cyan">
+            <span class="pulse-dot" style="width:6px;height:6px"></span>
+            AI-POWERED &middot; REAL-TIME &middot; ZERO WEARABLES
+          </span>
         </div>
 
-      </div>
+        <h1>
+          Real-Time<br>Posture Correction<br>
+          with <span class="grad-text">AI</span>
+        </h1>
 
-    </section><!-- /Features Section -->
+        <p style="margin-top:24px;font-size:17px;max-width:480px;line-height:1.65;color:var(--fg-2)">
+          Revolutionary AI smart mirror that provides real-time exercise feedback and
+          posture correction using computer vision. No wearables. No guesswork.
+        </p>
 
-    
-
-    <!-- Details Section -->
-    <section id="details" class="details section">
-
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Details</h2>
-        <div><span>Check Our</span> <span class="description-title">Details</span></div>
-      </div><!-- End Section Title -->
-
-      <div class="container">
-
-        <div class="row gy-4 align-items-center features-item">
-          <div class="col-md-5 d-flex align-items-center" data-aos="zoom-out" data-aos-delay="100">
-            <img src="/static/assets/img/details-1.png" class="img-fluid" alt="Posture Sense AI Posture Correction and Real-Time Fitness Feedback Feature">
-          </div>
-          <div class="col-md-7" data-aos="fade-up" data-aos-delay="100">
-            <h3>Intelligent Posture Correction & Real-Time Feedback</h3>
-            <p class="fst-italic">
-              Posture Sense uses AI-driven motion tracking to analyze your movements 
-              and provide instant posture corrections while you exercise.
-            </p>
-            <ul>
-              <li><i class="bi bi-check"></i><span><b>AI-Powered Accuracy – </b> Detects improper posture and suggests corrections.</span></li>
-              <li><i class="bi bi-check"></i> <span><b>Real-Time Feedback – </b> Get instant alerts and adjustments for better form.</span></li>
-              <li><i class="bi bi-check"></i> <span><b>Injury Prevention – </b> Reduce the risk of strains and improve workout efficiency.</span></li>
-            </ul>
-          </div>
-        </div><!-- Features Item -->
-
-        <div class="row gy-4 align-items-center features-item">
-          <div class="col-md-5 order-1 order-md-2 d-flex align-items-center" data-aos="zoom-out" data-aos-delay="200">
-            <img src="/static/assets/img/details-2.png" class="img-fluid" alt="Posture Sense Seamless AI Fitness Integration - Smart Workout Tracking by Vedaang Sharma">
-          </div>
-          <div class="col-md-7 order-2 order-md-1" data-aos="fade-up" data-aos-delay="200">
-            <h3>Seamless Integration with Your Fitness Routine</h3>
-            <p class="fst-italic">
-              Posture Sense revolutionizes the way you work out by seamlessly integrating 
-              AI-driven posture correction into your daily routine. As you exercise, the 
-              smart mirror analyzes your movements in real-time, identifying improper posture 
-              and providing instant corrections.
-            </p>
-            <p>
-              With intelligent motion tracking, Posture Sense ensures that every squat, 
-              push-up, or yoga pose is performed with precision and safety, reducing the 
-              risk of injuries and maximizing workout efficiency. Over time, the system 
-              adapts to your progress, offering personalized insights to help you improve 
-              form and build better habits.
-            </p>
-          </div>
-        </div><!-- Features Item -->
-
-        <div class="row gy-4 align-items-center features-item">
-          <div class="col-md-5 d-flex align-items-center" data-aos="zoom-out">
-            <img src="/static/assets/img/details-3.png" class="img-fluid" alt="Posture Sense AI Technology for Better Movement - Personalized Coaching by Vedaang Sharma">
-          </div>
-          <div class="col-md-7" data-aos="fade-up">
-            <h3>Achieve better posture and movement with cutting-edge AI technology!</h3>
-            <p>Posture Sense analyzes your body movements and provides instant feedback for 
-              an optimized fitness experience.</p>
-            <ul>
-              <li><i class="bi bi-check"></i> <span>Personalized AI Coaching – Tailored feedback for your unique posture.</span></li>
-              <li><i class="bi bi-check"></i><span>Progress Tracking – Monitor improvements over time.</span></li>
-              <li><i class="bi bi-check"></i> <span>Interactive Workouts – Follow guided sessions for better results.</span>.</li>
-            </ul>
-          </div>
-        </div><!-- Features Item -->
-
-        <!-- <div class="row gy-4 align-items-center features-item">
-          <div class="col-md-5 order-1 order-md-2 d-flex align-items-center" data-aos="zoom-out">
-            <img src="/static/assets/img/details-4.png" class="img-fluid" alt="Posture Sense Progress Tracking - Monitor Your Fitness Improvement by Vedaang Sharma">
-          </div>
-          <div class="col-md-7 order-2 order-md-1" data-aos="fade-up">
-            <h3>Achieve better posture and movement with cutting-edge AI technology!</h3>
-            <p class="fst-italic">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
-              magna aliqua.
-            </p>
-            <p>
-              Ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-              velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-              culpa qui officia deserunt mollit anim id est laborum
-            </p>
-          </div>
-        </div> -->
-        <!-- Features Item -->
-
-      </div>
-
-    </section><!-- /Details Section -->
-
-    
-
-    
-
-    <!-- Team Section -->
-    <section id="team" class="team section">
-
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Team</h2>
-        <div><span>Check Our</span> <span class="description-title">Team</span></div>
-      </div><!-- End Section Title -->
-
-      <div class="container">
-
-        <div class="row gy-5">
-
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
-            <div class="member">
-              <!-- <div class="pic"><img src="/static/assets/img/team/team-1.jpg" class="img-fluid" alt=""></div> -->
-              <div class="member-info">
-                <h4>Vedaang Sharma</h4>
-                <!-- <span>Chief Executive Officer</span>
-                <div class="social">
-                  <a href=""><i class="bi bi-twitter-x"></i></a>
-                  <a href=""><i class="bi bi-facebook"></i></a>
-                  <a href=""><i class="bi bi-instagram"></i></a>
-                  <a href=""><i class="bi bi-linkedin"></i></a>
-                </div> -->
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-<br><br>
-          <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
-            <div class="member">
-              <!-- <div class="pic"><img src="/static/assets/img/team/team-2.jpg" class="img-fluid" alt=""></div> -->
-              <div class="member-info">
-                <h4>Trisha Bohra</h4>
-                <!-- <span>Product Manager</span>
-                <div class="social">
-                  <a href=""><i class="bi bi-twitter-x"></i></a>
-                  <a href=""><i class="bi bi-facebook"></i></a>
-                  <a href=""><i class="bi bi-instagram"></i></a>
-                  <a href=""><i class="bi bi-linkedin"></i></a>
-                </div> -->
-              </div>
-            </div>
-          </div><!-- End Team Member -->
-          <br><br>
-          
-          <br><br>
-        </div>
-
-      </div>
-
-    </section><!-- /Team Section -->
-
-    
-
-    
-
-    <!-- Contact Section -->
-    <section id="contact" class="contact section">
-
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Contact</h2>
-        <div><span>Check Our</span> <span class="description-title">Contact</span></div>
-      </div><!-- End Section Title -->
-
-      <div class="container" data-aos="fade" data-aos-delay="100">
-
-        <div class="row gy-4">
-
-          <div class="col-lg-4">
-            <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="200">
-              <i class="bi bi-geo-alt flex-shrink-0"></i>
-              <div>
-                <h3>Address</h3>
-                <p>Vivekananda Global University</p>
-              </div>
-            </div><!-- End Info Item -->
-
-            <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="300">
-              <i class="bi bi-telephone flex-shrink-0"></i>
-              <div>
-                <h3>Call Us</h3>
-                <p>+91 87500 98715</p>
-              </div>
-            </div><!-- End Info Item -->
-
-            <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="400">
-              <i class="bi bi-envelope flex-shrink-0"></i>
-              <div>
-                <h3>Email Us</h3>
-                <p>vedaangsharma2006@gmail.com</p>
-              </div>
-            </div><!-- End Info Item -->
-
-            <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="500">
-              <i class="bi bi-linkedin flex-shrink-0"></i>
-              <div>
-                <h3>LinkedIn</h3>
-                <p><a href="https://linkedin.com/in/vedaangsharma2006" target="_blank">linkedin.com/in/vedaangsharma2006</a></p>
-              </div>
-            </div><!-- End Info Item -->
-
-            <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="600">
-              <i class="bi bi-github flex-shrink-0"></i>
-              <div>
-                <h3>GitHub</h3>
-                <p><a href="https://github.com/gtathelegend" target="_blank">github.com/gtathelegend</a></p>
-              </div>
-            </div><!-- End Info Item -->
-
-          </div>
-
-          <div class="col-lg-8">
-            <!-- Flash Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                {% for category, message in messages %}
-                  <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                  </div>
-                {% endfor %}
-              {% endif %}
-            {% endwith %}
-
-            <!-- Contact Form -->
-            <form id="contactForm" method="POST" class="php-email-form" data-aos="fade-up" data-aos-delay="200">
-              <div class="row gy-4">
-                <div class="col-md-6">
-                  <input type="text" name="name" class="form-control" placeholder="Your Name" required>
-                </div>
-
-                <div class="col-md-6">
-                  <input type="email" class="form-control" name="email" placeholder="Your Email" required>
-                </div>
-
-                <div class="col-md-12">
-                  <textarea class="form-control" name="message" rows="6" placeholder="Message" required></textarea>
-                </div>
-
-                <div class="col-md-12 text-center">
-                  <div id="messageResponse"></div>
-                  <button type="submit">Send Message</button>
-                </div>
-              </div>
-            </form>
-
-            <script>
-              document.getElementById("contactForm").addEventListener("submit", function(event) {
-                event.preventDefault(); // Prevent default form submission
-
-                const form = this;
-                const messageResponse = document.getElementById("messageResponse");
-                
-                // Show loading state
-                messageResponse.innerHTML = "<div class='alert alert-info'>Sending message...</div>";
-
-                let formData = new FormData(form);
-
-                fetch("/contact", {
-                  method: "POST",
-                  body: formData
-                })
-                .then(response => {
-                  if (response.ok) {
-                    messageResponse.innerHTML = "<div class='alert alert-success'>Message sent successfully!</div>";
-                    form.reset();
-                    
-                    // Hide success message after 5 seconds
-                    setTimeout(() => {
-                      messageResponse.innerHTML = "";
-                    }, 5000);
-                  } else {
-                    throw new Error('Network response was not ok');
-                  }
-                })
-                .catch(error => {
-                  messageResponse.innerHTML = "<div class='alert alert-danger'>Failed to send message. Please try again.</div>";
-                  console.error('Error:', error);
-                  
-                  // Hide error message after 5 seconds
-                  setTimeout(() => {
-                    messageResponse.innerHTML = "";
-                  }, 5000);
-                });
-              });
-            </script>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </section><!-- /Contact Section -->
-
-  </main>
-
-  <footer id="footer" class="footer dark-background">
-
-    <div class="container footer-top">
-      <div class="row gy-4">
-        <div class="col-lg-4 col-md-6 footer-about">
-          <a href="{{ url_for('index')}}" class="logo d-flex align-items-center">
-            <span class="sitename">Posture Sense</span>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:36px;align-items:center">
+          <a href="{{ url_for('pose_detection') }}" class="btn btn-primary btn-lg">
+            Launch Live Demo &rarr;
           </a>
-          <div class="footer-contact pt-3">
-            <p>Vivekananda Global University</p>
-            <p>Jaipur, Rajasthan, 303012</p>
-            <p class="mt-3"><strong>Phone:</strong> <span>+91 87500 98715</span></p>
-            <p><strong>Email:</strong> <span>vedaangsharma2006@gmail.com</span></p>
+          <a href="{{ url_for('yoga_poses') }}" class="btn btn-ghost btn-lg">
+            View Poses
+          </a>
+        </div>
+
+        <!-- Trust strip — proper 3-col grid -->
+        <div class="hero-trust" style="margin-top:48px">
+          <div>
+            <div class="hero-stat">Real-Time</div>
+            <div class="mono" style="font-size:10px;color:var(--fg-3);letter-spacing:0.12em;text-transform:uppercase;margin-top:6px">AI Feedback</div>
           </div>
-          <div class="social-links d-flex mt-4">
-            <a href="https://linkedin.com/in/vedaangsharma2006" target="_blank" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
-            <a href="https://github.com/gtathelegend" target="_blank" title="GitHub"><i class="bi bi-github"></i></a>
+          <div>
+            <div class="hero-stat">6+</div>
+            <div class="mono" style="font-size:10px;color:var(--fg-3);letter-spacing:0.12em;text-transform:uppercase;margin-top:6px">Pose Models</div>
+          </div>
+          <div>
+            <div class="hero-stat">Zero</div>
+            <div class="mono" style="font-size:10px;color:var(--fg-3);letter-spacing:0.12em;text-transform:uppercase;margin-top:6px">Wearables</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: hero image -->
+      <div class="home-hero-img">
+        <div class="hud-corners"></div>
+        <img
+          src="{{ url_for('static', filename='assets/img/hero-img.jpeg') }}"
+          alt="Posture Sense AI-Powered Smart Mirror for Real-Time Exercise Correction"
+        >
+        <div class="home-hero-img-overlay"></div>
+        <div style="position:absolute;bottom:20px;left:20px">
+          <span class="chip lime">
+            <span class="pulse-dot" style="width:6px;height:6px"></span>
+            LIVE DETECTION
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================
+     FEATURES (#features)
+     ================================================ -->
+<section id="features" class="ps-section">
+  <div class="wrap">
+
+    <div class="section-head">
+      <span class="eyebrow">Capabilities</span>
+      <h2>Everything your form needs</h2>
+      <p>
+        Posture Sense combines computer vision and AI to give you a complete
+        picture of your movement, in real time.
+      </p>
+    </div>
+
+    <div class="feature-grid">
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <div class="feature-card-icon">🤖</div>
+        <h3>AI Posture Detection</h3>
+        <p>MediaPipe skeleton tracking identifies joint angles and body alignment across dozens of exercise patterns.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <div class="feature-card-icon">⚡</div>
+        <h3>Real-Time Feedback</h3>
+        <p>Frame-by-frame corrections delivered instantly — no delay between what your body does and what the system sees.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <div class="feature-card-icon">📷</div>
+        <h3>Camera-Only AI</h3>
+        <p>Works with any standard webcam. No depth sensors, no wearable hardware, no setup friction.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <div class="feature-card-icon" style="background:var(--lime-soft);border-color:oklch(0.88 0.22 135 / 0.2)">✅</div>
+        <h3>Correct Posture Display</h3>
+        <p>Reference skeleton overlays show ideal form side-by-side with your live movement for instant visual correction.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <div class="feature-card-icon" style="background:var(--magenta-soft);border-color:oklch(0.70 0.24 330 / 0.2)">📊</div>
+        <h3>Exercise Analytics</h3>
+        <p>Rep counts, accuracy scores, and session history logged automatically to your personal dashboard.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <div class="feature-card-icon" style="background:oklch(0.82 0.18 75 / 0.15);border-color:oklch(0.82 0.18 75 / 0.2)">🎯</div>
+        <h3>Better Results</h3>
+        <p>Consistent form correction means faster progress, fewer injuries, and workouts that actually work.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================
+     DETAILS / ABOUT (#about)
+     ================================================ -->
+<section id="about" class="ps-section">
+  <div class="wrap-narrow">
+
+    <div class="section-head">
+      <span class="eyebrow">Details</span>
+      <h2>How it works</h2>
+    </div>
+
+    <!-- Row 1 -->
+    <div class="detail-row">
+      <div class="detail-img">
+        <img
+          src="{{ url_for('static', filename='assets/img/details-1.png') }}"
+          alt="Posture Sense AI Posture Correction Feature"
+        >
+      </div>
+      <div class="detail-text">
+        <span class="eyebrow no-rule">01</span>
+        <h3 style="margin-top:12px">Intelligent Posture Correction</h3>
+        <p style="margin-top:12px">
+          Posture Sense uses AI-driven motion tracking to analyze your movements
+          and provide instant posture corrections while you exercise.
+        </p>
+        <ul class="detail-list">
+          <li><strong>AI-Powered Accuracy</strong>&nbsp;&mdash;&nbsp;Detects improper posture and suggests corrections in real time.</li>
+          <li><strong>Real-Time Feedback</strong>&nbsp;&mdash;&nbsp;Get instant alerts and adjustments for better form every rep.</li>
+          <li><strong>Injury Prevention</strong>&nbsp;&mdash;&nbsp;Reduce the risk of strains and improve workout efficiency long-term.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Row 2 (reversed) -->
+    <div class="detail-row reverse">
+      <div class="detail-img">
+        <img
+          src="{{ url_for('static', filename='assets/img/details-2.png') }}"
+          alt="Posture Sense Seamless AI Fitness Integration"
+        >
+      </div>
+      <div class="detail-text">
+        <span class="eyebrow no-rule">02</span>
+        <h3 style="margin-top:12px">Seamless Fitness Integration</h3>
+        <p style="margin-top:12px">
+          Posture Sense revolutionizes the way you work out by seamlessly integrating
+          AI-driven posture correction into your daily routine. As you exercise, the
+          smart mirror analyzes your movements in real-time, identifying improper posture
+          and providing instant corrections.
+        </p>
+        <p style="margin-top:14px">
+          With intelligent motion tracking, every squat, push-up, or yoga pose is
+          performed with precision and safety, reducing the risk of injuries and maximizing
+          workout efficiency.
+        </p>
+      </div>
+    </div>
+
+    <!-- Row 3 -->
+    <div class="detail-row">
+      <div class="detail-img">
+        <img
+          src="{{ url_for('static', filename='assets/img/details-3.png') }}"
+          alt="Posture Sense AI Technology for Better Movement"
+        >
+      </div>
+      <div class="detail-text">
+        <span class="eyebrow no-rule">03</span>
+        <h3 style="margin-top:12px">Cutting-Edge AI Technology</h3>
+        <p style="margin-top:12px">
+          Posture Sense analyzes your body movements and provides instant feedback for
+          an optimized fitness experience.
+        </p>
+        <ul class="detail-list">
+          <li><strong>Personalized AI Coaching</strong>&nbsp;&mdash;&nbsp;Tailored feedback for your unique posture and movement patterns.</li>
+          <li><strong>Progress Tracking</strong>&nbsp;&mdash;&nbsp;Monitor improvements over time with session-by-session data.</li>
+          <li><strong>Interactive Workouts</strong>&nbsp;&mdash;&nbsp;Follow guided sessions for better, safer results.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ================================================
+     TEAM (#team)
+     ================================================ -->
+<section id="team" class="ps-section">
+  <div class="wrap-narrow">
+
+    <div class="section-head">
+      <span class="eyebrow">People</span>
+      <h2>Meet the team</h2>
+      <p>Built at Vivekananda Global University, Jaipur.</p>
+    </div>
+
+    <div class="team-grid">
+
+      <div class="team-card">
+        <div class="team-avatar">
+          <span>VS</span>
+          <div class="team-avatar-ring"></div>
+        </div>
+        <div>
+          <div style="font-size:17px;font-weight:500;color:var(--fg-0);letter-spacing:-0.01em">Vedaang Sharma</div>
+          <div class="mono" style="font-size:11px;color:var(--fg-3);letter-spacing:0.06em;margin-top:4px">Lead Developer</div>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <a href="https://linkedin.com/in/vedaangsharma2006" target="_blank" class="chip" style="font-size:10px;text-decoration:none">LinkedIn</a>
+            <a href="https://github.com/gtathelegend" target="_blank" class="chip" style="font-size:10px;text-decoration:none">GitHub</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="team-card">
+        <div class="team-avatar" style="background:linear-gradient(135deg, var(--magenta), var(--amber))">
+          <span>TB</span>
+          <div class="team-avatar-ring"></div>
+        </div>
+        <div>
+          <div style="font-size:17px;font-weight:500;color:var(--fg-0);letter-spacing:-0.01em">Trisha Bohra</div>
+          <div class="mono" style="font-size:11px;color:var(--fg-3);letter-spacing:0.06em;margin-top:4px">Co-Developer</div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <span class="chip" style="font-size:10px">VGU &middot; Jaipur</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================
+     CONTACT (#contact)
+     ================================================ -->
+<section id="contact" class="ps-section">
+  <div class="wrap-narrow">
+
+    <div class="section-head">
+      <span class="eyebrow">Contact</span>
+      <h2>Get in touch</h2>
+      <p>Have questions? We&rsquo;d love to hear from you.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="ps-alert ps-alert-{{ 'danger' if category == 'error' else category }}" style="margin-bottom:24px">
+            <span>{{ message }}</span>
+            <button class="ps-alert-close" type="button">&times;</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="contact-grid">
+
+      <!-- Left: info -->
+      <div>
+        <div class="contact-info-item">
+          <div class="contact-info-icon">📍</div>
+          <div>
+            <div class="contact-info-label">Address</div>
+            <div class="contact-info-value">Vivekananda Global University<br>Jaipur, Rajasthan 303012</div>
           </div>
         </div>
 
-        <div class="col-lg-2 col-md-3 footer-links">
-          <h4>Quick Links</h4>
-          <ul>
-            <li><a href="{{ url_for('index')}}">Home</a></li>
-            <li><a href="{{ url_for('index')}}#about">About</a></li>
-            <li><a href="{{ url_for('index')}}#features">Features</a></li>
-            <li><a href="{{ url_for('pose_detection')}}">Demo APP</a></li>
-            <li><a href="{{ url_for('yoga_poses')}}">Yoga Poses</a></li>
-            <li><a href="{{ url_for('index')}}#contact">Contact</a></li>
-          </ul>
+        <div class="contact-info-item">
+          <div class="contact-info-icon">📞</div>
+          <div>
+            <div class="contact-info-label">Phone</div>
+            <div class="contact-info-value">+91 87500 98715</div>
+          </div>
         </div>
 
-        <!-- <div class="col-lg-2 col-md-3 footer-links">
-          <h4>Our Services</h4>
-          <ul>
-            <li><a href="#">Web Design</a></li>
-            <li><a href="#">Web Development</a></li>
-            <li><a href="#">Product Management</a></li>
-            <li><a href="#">Marketing</a></li>
-            <li><a href="#">Graphic Design</a></li>
-          </ul>
-        </div> -->
-
-        <div class="col-lg-4 col-md-12 footer-newsletter">
-          <h4>Our Newsletter</h4>
-          <p>Subscribe to our newsletter and receive the latest news about our products and services!</p>
-          <form id="newsletterForm">
-            <div class="newsletter-form">
-              <input type="email" name="email" placeholder="Enter your email" required>
-              <input type="submit" value="Subscribe">
+        <div class="contact-info-item">
+          <div class="contact-info-icon">✉️</div>
+          <div>
+            <div class="contact-info-label">Email</div>
+            <div class="contact-info-value">
+              <a href="mailto:vedaangsharma2006@gmail.com">vedaangsharma2006@gmail.com</a>
             </div>
-            <div class="loading">Loading</div>
-            <div class="error-message"></div>
-            <div class="sent-message">Your subscription request has been sent. Thank you!</div>
-          </form>
-
-          <style>
-            .newsletter-form {
-              position: relative;
-              display: flex;
-              gap: 10px;
-            }
-            .newsletter-form input[type="email"] {
-              flex: 1;
-              padding: 12px 15px;
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              background: rgba(255, 255, 255, 0.05);
-              color: #fff;
-              border-radius: 4px;
-              transition: all 0.3s ease;
-            }
-            .newsletter-form input[type="email"]:focus {
-              background: rgba(255, 255, 255, 0.1);
-              border-color: rgba(255, 255, 255, 0.2);
-              outline: none;
-            }
-            .newsletter-form input[type="submit"] {
-              padding: 12px 25px;
-              background: #4154f1;
-              color: #fff;
-              border: none;
-              border-radius: 4px;
-              cursor: pointer;
-              transition: all 0.3s ease;
-            }
-            .newsletter-form input[type="submit"]:hover {
-              background: #2b3db8;
-            }
-            .loading, .error-message, .sent-message {
-              display: none;
-              margin-top: 10px;
-              padding: 10px 15px;
-              border-radius: 4px;
-            }
-            .loading {
-              background: rgba(255, 255, 255, 0.1);
-              color: #fff;
-            }
-            .error-message {
-              background: rgba(220, 53, 69, 0.1);
-              color: #dc3545;
-            }
-            .sent-message {
-              background: rgba(40, 167, 69, 0.1);
-              color: #28a745;
-            }
-          </style>
-
-          <script>
-            document.getElementById("newsletterForm").addEventListener("submit", function(event) {
-              event.preventDefault();
-              
-              const form = this;
-              const loading = form.querySelector('.loading');
-              const sentMessage = form.querySelector('.sent-message');
-              
-              // Show loading state
-              loading.style.display = 'block';
-              sentMessage.style.display = 'none';
-              
-              let formData = new FormData(form);
-              
-              fetch("/subscribe", {
-                method: "POST",
-                body: formData
-              })
-              .then(response => response.json())
-              .then(data => {
-                loading.style.display = 'none';
-                if (data.status === 'success') {
-                  sentMessage.textContent = data.message;
-                  sentMessage.style.display = 'block';
-                  form.reset();
-                  
-                  // Hide success message after 5 seconds
-                  setTimeout(() => {
-                    sentMessage.style.display = 'none';
-                  }, 5000);
-                }
-              })
-              .catch(error => {
-                loading.style.display = 'none';
-                console.error('Error:', error);
-              });
-            });
-          </script>
+          </div>
         </div>
 
+        <div class="contact-info-item">
+          <div class="contact-info-icon">💼</div>
+          <div>
+            <div class="contact-info-label">LinkedIn</div>
+            <div class="contact-info-value">
+              <a href="https://linkedin.com/in/vedaangsharma2006" target="_blank" rel="noopener">linkedin.com/in/vedaangsharma2006</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-info-item">
+          <div class="contact-info-icon">⌨️</div>
+          <div>
+            <div class="contact-info-label">GitHub</div>
+            <div class="contact-info-value">
+              <a href="https://github.com/gtathelegend" target="_blank" rel="noopener">github.com/gtathelegend</a>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div class="container copyright text-center mt-4">
-      <p>© <span>Copyright</span> <strong class="px-1 sitename">Posture Sense</strong> <span>All Rights Reserved</span></p>
-      <div class="credits">
-        
-        Designed by <a href="tel:9750098715">Vedaang Sharma</a>
+      <!-- Right: form -->
+      <div class="contact-form-card">
+        <h3 style="font-size:20px;margin-bottom:28px">Send a message</h3>
+
+        <form id="contactForm" method="POST">
+          <div class="contact-form-row">
+            <div class="field">
+              <label for="contact-name">Your Name</label>
+              <input type="text" id="contact-name" name="name" placeholder="Jane Smith" required>
+            </div>
+            <div class="field">
+              <label for="contact-email">Your Email</label>
+              <input type="email" id="contact-email" name="email" placeholder="jane@example.com" required>
+            </div>
+          </div>
+
+          <div class="field" style="margin-top:20px">
+            <label for="contact-message">Message</label>
+            <textarea id="contact-message" name="message" rows="5" placeholder="Tell us what&rsquo;s on your mind&hellip;" required style="resize:vertical"></textarea>
+          </div>
+
+          <div id="messageResponse" style="margin-top:16px"></div>
+
+          <button type="submit" class="btn btn-primary" style="margin-top:24px;width:100%;justify-content:center">
+            Send Message
+          </button>
+        </form>
       </div>
+
     </div>
+  </div>
+</section>
 
-  </footer>
+{% endblock %}
 
-  <!-- Scroll Top -->
-  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
-  <!-- Preloader -->
-  <div id="preloader"></div>
-
-  <!-- Vendor JS Files -->
-  <script src="/static/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="/static/assets/vendor/php-email-form/validate.js"></script>
-  <script src="/static/assets/vendor/aos/aos.js"></script>
-  <script src="/static/assets/vendor/glightbox/js/glightbox.min.js"></script>
-  <script src="/static/assets/vendor/purecounter/purecounter_vanilla.js"></script>
-  <script src="/static/assets/vendor/swiper/swiper-bundle.min.js"></script>
-
-  <!-- Main JS File -->
-  <script src="/static/assets/js/main.js"></script>
-
-</body>
-
-</html>
+{% block extra_scripts %}
+<script>
+  document.getElementById("contactForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+    var form = this;
+    var messageResponse = document.getElementById("messageResponse");
+    messageResponse.innerHTML = "<div class='ps-alert ps-alert-info'>Sending message&hellip;</div>";
+    var formData = new FormData(form);
+    fetch("/contact", { method: "POST", body: formData })
+      .then(function(response) {
+        if (response.ok) {
+          messageResponse.innerHTML = "<div class='ps-alert ps-alert-success'>Message sent successfully!</div>";
+          form.reset();
+          setTimeout(function() { messageResponse.innerHTML = ""; }, 5000);
+        } else {
+          throw new Error('Network response was not ok');
+        }
+      })
+      .catch(function(error) {
+        messageResponse.innerHTML = "<div class='ps-alert ps-alert-danger'>Failed to send message. Please try again.</div>";
+        console.error('Error:', error);
+        setTimeout(function() { messageResponse.innerHTML = ""; }, 5000);
+      });
+  });
+</script>
+{% endblock %}

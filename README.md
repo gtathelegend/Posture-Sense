@@ -44,7 +44,7 @@
 
 ### Technical Features
 - **Real-Time Processing** - Sub-100ms pose detection and feedback
-- **Database Storage** - SQLite with SQLAlchemy ORM for user data
+- **Database Storage** - Supabase Postgres for user and session data
 - **Server-Sent Events** - Live status updates without polling
 - **SEO Optimized** - Sitemap, robots.txt, and meta tags included
 
@@ -54,7 +54,7 @@
 
 ### Backend
 - **Framework**: Flask (Python web framework)
-- **Database**: SQLite with SQLAlchemy ORM
+- **Database**: Supabase Postgres
 - **Authentication**: Flask-Login with Bcrypt
 - **Computer Vision**: MediaPipe Pose, OpenCV (cv2)
 - **Email**: SMTP Gmail integration
@@ -79,6 +79,7 @@
 - Modern web browser with camera access
 - Webcam or camera device
 - Gmail account (for email features)
+- Supabase project with `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and `SUPABASE_SECRET_KEY`
 
 ---
 
@@ -117,12 +118,21 @@ Create a `.env` file:
 
 ```env
 SECRET_KEY=your_secret_key
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+SUPABASE_SECRET_KEY=your_supabase_secret_key
 EMAIL_USER=your_gmail@gmail.com
 EMAIL_PASSWORD=your_app_password
 ADMIN_EMAIL=admin@example.com
 ```
 
-### 5. Run the Application
+The Flask app uses `SUPABASE_SECRET_KEY` for server-side database access. Keep `SUPABASE_PUBLISHABLE_KEY` available if you later add browser-side Supabase calls.
+
+### 5. Create the Supabase tables
+
+Run the SQL from [supabase_schema.sql](supabase_schema.sql) in the Supabase SQL editor before starting the app.
+
+### 6. Run the Application
 
 ```bash
 python app.py
@@ -146,10 +156,11 @@ Visit `http://localhost:8080`
 ```
 Posture-Sense/
 ├── app.py              # Flask application
+├── supabase_schema.sql  # Supabase table schema
 ├── requirements.txt    # Dependencies
 ├── templates/          # HTML pages
 ├── static/             # CSS, JS, images
-└── instance/           # Database
+└── instance/           # Runtime files
 ```
 
 ---

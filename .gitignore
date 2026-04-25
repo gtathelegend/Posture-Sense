@@ -1,0 +1,28 @@
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+!.env.sample
+*.local
+
+# Secrets and credentials
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+*.p7b
+*.jks
+*.keystore
+*.ovpn
+credentials.*
+secrets.*
+secret.*
+*_secret*
+*_secrets*
+
+# Cloud and tool credentials
+.aws/
+.azure/
+.gcloud/

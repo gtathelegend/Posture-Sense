@@ -1,7 +1,7 @@
 Flask
-Flask-SQLAlchemy
 Flask-Login
 Flask-Bcrypt
+supabase
 mediapipe==0.10.14
 opencv-contrib-python
 numpy<2

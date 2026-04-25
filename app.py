@@ -1,9 +1,10 @@
 from flask import Flask, render_template, Response, jsonify, request, flash, redirect, url_for, session, send_file
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
+from supabase import create_client, Client
 from datetime import datetime
+from typing import Optional
 import cv2
 from time import time
 import mediapipe as mp
@@ -22,44 +23,152 @@ app = Flask(__name__)
 CORS(app)
 app.secret_key = os.getenv('SECRET_KEY', os.urandom(24))  # Required for flash messages and sessions
 
-# Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posture_sense.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 # Initialize extensions
-db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Please log in to access this page.'
 
-# ---------------------------------------------Database Models---------------------------------------------
 
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    sessions = db.relationship('PoseSession', backref='user', lazy=True)
+def _get_supabase_client() -> Optional[Client]:
+    supabase_url = os.getenv('SUPABASE_URL')
+    supabase_secret_key = os.getenv('SUPABASE_SECRET_KEY')
+    supabase_publishable_key = os.getenv('SUPABASE_PUBLISHABLE_KEY')
+    supabase_key = supabase_secret_key or supabase_publishable_key
+    if not supabase_url or not supabase_key:
+        return None
+    return create_client(supabase_url, supabase_key)
+
+
+supabase = _get_supabase_client()
+
+
+def _require_supabase() -> Client:
+    if supabase is None:
+        raise RuntimeError('SUPABASE_URL and SUPABASE_SECRET_KEY must be set.')
+    return supabase
+
+
+def _parse_timestamp(value):
+    if isinstance(value, datetime):
+        return value
+    if not value:
+        return datetime.utcnow()
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value.replace('Z', '+00:00')).replace(tzinfo=None)
+        except ValueError:
+            pass
+    return datetime.utcnow()
+
+
+class User(UserMixin):
+    def __init__(self, id, username, email, password_hash, created_at=None):
+        self.id = str(id)
+        self.username = username
+        self.email = email
+        self.password_hash = password_hash
+        self.created_at = _parse_timestamp(created_at)
 
     def set_password(self, password):
         self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
-    
+
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password_hash, password)
 
-class PoseSession(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    pose_label = db.Column(db.String(100), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    duration = db.Column(db.Float, default=0.0)  # Duration in seconds
-    accuracy = db.Column(db.Float, default=0.0)  # Accuracy percentage
-    
+
+class PoseSession:
+    def __init__(self, id, user_id, pose_label, timestamp=None, duration=0.0, accuracy=0.0):
+        self.id = id
+        self.user_id = str(user_id)
+        self.pose_label = pose_label
+        self.timestamp = _parse_timestamp(timestamp)
+        self.duration = float(duration or 0.0)
+        self.accuracy = float(accuracy or 0.0)
+
+
+def _build_user(record):
+    if not record:
+        return None
+    return User(
+        id=record.get('id'),
+        username=record.get('username'),
+        email=record.get('email'),
+        password_hash=record.get('password_hash'),
+        created_at=record.get('created_at'),
+    )
+
+
+def _build_pose_session(record):
+    if not record:
+        return None
+    return PoseSession(
+        id=record.get('id'),
+        user_id=record.get('user_id'),
+        pose_label=record.get('pose_label'),
+        timestamp=record.get('timestamp'),
+        duration=record.get('duration'),
+        accuracy=record.get('accuracy'),
+    )
+
+
+def fetch_user_by_id(user_id):
+    response = _require_supabase().table('users').select('*').eq('id', str(user_id)).limit(1).execute()
+    data = response.data or []
+    return _build_user(data[0]) if data else None
+
+
+def fetch_user_by_username(username):
+    response = _require_supabase().table('users').select('*').eq('username', username).limit(1).execute()
+    data = response.data or []
+    return _build_user(data[0]) if data else None
+
+
+def fetch_user_by_email(email):
+    response = _require_supabase().table('users').select('*').eq('email', email).limit(1).execute()
+    data = response.data or []
+    return _build_user(data[0]) if data else None
+
+
+def create_user(username, email, password):
+    password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+    payload = {
+        'username': username,
+        'email': email,
+        'password_hash': password_hash,
+    }
+    response = _require_supabase().table('users').insert(payload).execute()
+    data = response.data or []
+    if data:
+        return _build_user(data[0])
+    return fetch_user_by_username(username)
+
+
+def fetch_pose_sessions(user_id):
+    response = (
+        _require_supabase()
+        .table('pose_sessions')
+        .select('*')
+        .eq('user_id', str(user_id))
+        .order('timestamp', desc=True)
+        .execute()
+    )
+    return [_build_pose_session(record) for record in (response.data or [])]
+
+
+def create_pose_session(user_id, pose_label, duration, accuracy):
+    payload = {
+        'user_id': str(user_id),
+        'pose_label': pose_label,
+        'duration': float(duration or 0.0),
+        'accuracy': float(accuracy or 0.0),
+    }
+    response = _require_supabase().table('pose_sessions').insert(payload).execute()
+    data = response.data or []
+    return _build_pose_session(data[0]) if data else None
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return fetch_user_by_id(user_id)
 
 # ---------------------------------------------Pose Detection and Classification---------------------------------------------
 # Initializing mediapipe pose class.
@@ -494,19 +603,19 @@ def register():
             return render_template('register.html')
         
         # Check if user already exists
-        if User.query.filter_by(username=username).first():
+        if fetch_user_by_username(username):
             flash('Username already exists.', 'error')
             return render_template('register.html')
         
-        if User.query.filter_by(email=email).first():
+        if fetch_user_by_email(email):
             flash('Email already registered.', 'error')
             return render_template('register.html')
         
         # Create new user
-        user = User(username=username, email=email)
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
+        user = create_user(username, email, password)
+        if user is None:
+            flash('Unable to create your account right now.', 'error')
+            return render_template('register.html')
         
         flash('Registration successful! Please log in.', 'success')
         return redirect(url_for('login'))
@@ -522,7 +631,7 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        user = User.query.filter_by(username=username).first()
+        user = fetch_user_by_username(username)
         
         if user and user.check_password(password):
             login_user(user)
@@ -545,7 +654,7 @@ def logout():
 @login_required
 def dashboard():
     # Get user's pose sessions
-    sessions = PoseSession.query.filter_by(user_id=current_user.id).order_by(PoseSession.timestamp.desc()).all()
+    sessions = fetch_pose_sessions(current_user.id)
     
     # Calculate statistics
     total_sessions = len(sessions)
@@ -568,7 +677,7 @@ def dashboard():
 @login_required
 def dashboard_stats():
     # Get user's pose sessions
-    sessions = PoseSession.query.filter_by(user_id=current_user.id).order_by(PoseSession.timestamp.desc()).all()
+    sessions = fetch_pose_sessions(current_user.id)
     
     # Calculate statistics
     total_sessions = len(sessions)
@@ -819,14 +928,7 @@ def save_pose_session():
     accuracy = data.get('accuracy', 0.0)
     
     if pose_label and pose_label != 'Unknown' and pose_label != 'Scanning ...':
-        session = PoseSession(
-            user_id=current_user.id,
-            pose_label=pose_label,
-            duration=duration,
-            accuracy=accuracy
-        )
-        db.session.add(session)
-        db.session.commit()
+        create_pose_session(current_user.id, pose_label, duration, accuracy)
         return jsonify({'status': 'success', 'message': 'Pose session saved'})
     
     return jsonify({'status': 'error', 'message': 'Invalid pose data'})
@@ -876,9 +978,6 @@ def subscribe():
             return jsonify({'status': 'error', 'message': 'An error occurred while processing your subscription. Please try again later.'}), 500
 
 if __name__ == '__main__':
-    # Create database tables
-    with app.app_context():
-        db.create_all()
-        print("Database tables created successfully!")
-    
+    if supabase is None:
+        print('Warning: SUPABASE_URL and SUPABASE_SECRET_KEY are not configured.')
     app.run(host='0.0.0.0', port=8080, debug=True)

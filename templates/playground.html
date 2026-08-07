@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Developer Playground — PostureSense v2{% endblock %}
+{% block title %}Developer Playground — PostureSense v2 Runtime{% endblock %}
 
 {% block content %}
 <div class="container py-5" style="margin-top: 80px;">
   <div class="row">
     <div class="col-lg-12">
       <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>🛠️ Developer Playground & Architecture Diagnostics</h2>
-        <span class="badge bg-primary fs-6">Internal Debug Page</span>
+        <h2>🛠️ Engine Runtime & Diagnostics Playground</h2>
+        <span class="badge bg-primary fs-6">Runtime System v2.0.0</span>
       </div>
-      <p class="text-muted">This developer playground monitors core system components, event bus state, and backend engine registration status.</p>
+      <p class="text-muted">Monitors engine registration, lifecycle states, topological dependency resolution, health scores, and metrics.</p>
     </div>
   </div>
 
@@ -18,35 +18,69 @@
     <!-- Diagnostics Card 1 -->
     <div class="col-md-4">
       <div class="card bg-dark border-secondary h-100 text-white p-3">
-        <h5>⚙️ System Status</h5>
+        <h5>⚙️ Runtime System</h5>
         <hr class="border-secondary">
         <p><strong>App Version:</strong> <span class="text-info">2.0.0</span></p>
-        <p><strong>Config Version:</strong> <span class="text-info">2.0.0</span></p>
-        <p><strong>Environment:</strong> <span class="text-warning">Development</span></p>
-        <p><strong>Shared Core:</strong> <span class="text-success">Active</span></p>
+        <p><strong>Runtime Version:</strong> <span class="text-info">2.0.0</span></p>
+        <p><strong>Lifecycle State:</strong> <span class="text-success">READY</span></p>
+        <p><strong>Event Bus:</strong> <span class="text-success">Active</span></p>
       </div>
     </div>
 
     <!-- Diagnostics Card 2 -->
     <div class="col-md-4">
       <div class="card bg-dark border-secondary h-100 text-white p-3">
-        <h5>🔌 Engine Registration</h5>
+        <h5>🔌 Engine Registry & Graph</h5>
         <hr class="border-secondary">
-        <p><strong>Camera Engine:</strong> <span class="text-muted">Not Registered</span></p>
-        <p><strong>MediaPipe Engine:</strong> <span class="text-muted">Not Registered</span></p>
-        <p><strong>Biomechanics Engine:</strong> <span class="text-muted">Not Registered</span></p>
-        <p><strong>Event Bus:</strong> <span class="text-success">Ready</span></p>
+        <p><strong>Registered Engines:</strong> <span class="text-warning">12 Defined</span></p>
+        <p><strong>Dependency Resolver:</strong> <span class="text-success">Kahn's Topological</span></p>
+        <p><strong>Health Monitoring:</strong> <span class="text-success">Active</span></p>
+        <p><strong>Metrics Collector:</strong> <span class="text-success">Active</span></p>
       </div>
     </div>
 
     <!-- Diagnostics Card 3 -->
     <div class="col-md-4">
       <div class="card bg-dark border-secondary h-100 text-white p-3">
-        <h5>📡 Backend & Network</h5>
+        <h5>📡 System Health & Debug</h5>
         <hr class="border-secondary">
         <p><strong>Backend Status:</strong> <span id="playground-backend" class="text-success">Connecting...</span></p>
-        <p><strong>Database Status:</strong> <span class="text-success">Connected (Supabase)</span></p>
+        <p><strong>Database:</strong> <span class="text-success">Connected</span></p>
         <p><strong>Debug Overlay:</strong> Press <kbd>CTRL + SHIFT + D</kbd></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dependency Graph Visualization Table -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card bg-dark border-secondary text-white p-4">
+        <h5>🕸️ Engine Dependency Topology</h5>
+        <div class="table-responsive mt-3">
+          <table class="table table-dark table-striped align-middle">
+            <thead>
+              <tr>
+                <th>Priority</th>
+                <th>Engine ID</th>
+                <th>Category</th>
+                <th>Lifecycle State</th>
+                <th>Dependencies</th>
+                <th>Health Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>camera_engine</td><td>Vision Input</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>None</td><td><span class="badge bg-success">100.0</span></td></tr>
+              <tr><td>2</td><td>mediapipe_engine</td><td>Landmark Detection</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>camera_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
+              <tr><td>3</td><td>landmark_engine</td><td>Landmark Filtering</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>mediapipe_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
+              <tr><td>4</td><td>biomechanics_engine</td><td>Angle Math</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>landmark_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
+              <tr><td>5</td><td>pose_rule_engine</td><td>Pose Recognition</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>biomechanics_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
+              <tr><td>6</td><td>movement_engine</td><td>Rep Counter</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>pose_rule_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
+              <tr><td>7</td><td>scoring_engine</td><td>Form Scoring</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>movement_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
+              <tr><td>8</td><td>feedback_engine</td><td>Guidance</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>scoring_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
+              <tr><td>9</td><td>analytics_engine</td><td>Session Stats</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>feedback_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>

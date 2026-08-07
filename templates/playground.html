@@ -1,34 +1,34 @@
 {% extends "base.html" %}
 
-{% block title %}Developer Playground — Landmark Processing Engine & Runtime{% endblock %}
+{% block title %}Developer Playground — Biomechanics Engine & Runtime{% endblock %}
 
 {% block content %}
 <div class="container py-5" style="margin-top: 80px;">
   <div class="row mb-4">
     <div class="col-lg-12">
       <div class="d-flex justify-content-between align-items-center">
-        <h2>🛠️ Landmark Engine & Quality Gate Playground</h2>
-        <span class="badge bg-primary fs-6">Landmark Engine v2.0.0</span>
+        <h2>🛠️ Biomechanics Engine & Vector Math Playground</h2>
+        <span class="badge bg-primary fs-6">Biomechanics Engine v2.0.0</span>
       </div>
-      <p class="text-muted">Interactive test harness for landmark validation, coordinate normalization, EMA/OneEuro temporal smoothing, interpolation, and quality scoring (0–100).</p>
+      <p class="text-muted">Interactive test harness for 3D joint angle vector geometry, body orientation, Center of Mass (CoM), symmetry analysis, and Range of Motion (ROM) metrics.</p>
     </div>
   </div>
 
   <div class="row g-4">
-    <!-- Camera & Pipeline Viewport Card -->
+    <!-- Pipeline Viewport Card -->
     <div class="col-lg-7">
       <div class="card bg-dark border-secondary text-white p-3 h-100">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="m-0">📷 Full AI Pipeline Viewport</h5>
+          <h5 class="m-0">📷 Full AI & Biomechanics Pipeline</h5>
           <div>
             <span id="cam-status-pill" class="badge bg-secondary me-2">Camera Stopped</span>
-            <span id="lm-status-pill" class="badge bg-warning text-dark">Landmark Engine Ready</span>
+            <span id="bio-status-pill" class="badge bg-warning text-dark">Biomechanics Engine Ready</span>
           </div>
         </div>
         
         <div id="camera-viewport-container" class="mb-3"></div>
 
-        <!-- Pipeline Controls -->
+        <!-- Controls -->
         <div class="d-flex flex-wrap gap-2 align-items-center">
           <button id="btn-start-pipeline" class="btn btn-success"><i class="bi bi-play-fill"></i> Start Pipeline</button>
           <button id="btn-pause-pipeline" class="btn btn-warning" disabled><i class="bi bi-pause-fill"></i> Pause</button>
@@ -37,45 +37,63 @@
       </div>
     </div>
 
-    <!-- Landmark Diagnostics Panel -->
+    <!-- Biomechanics Diagnostics Panel -->
     <div class="col-lg-5">
       <div class="card bg-dark border-secondary text-white p-3 h-100 d-flex flex-column justify-content-between">
         <div>
-          <h5 class="border-bottom border-secondary pb-2 mb-3">🛡️ Landmark Quality Gate</h5>
+          <h5 class="border-bottom border-secondary pb-2 mb-3">📐 3D Biomechanical Measurements</h5>
           
-          <div class="mb-3">
-            <label class="form-label text-muted small">Smoothing Filter:</label>
-            <select id="select-filter-method" class="form-select bg-dark text-white border-secondary">
-              <option value="ema" selected>Exponential Moving Average (EMA α=0.35)</option>
-              <option value="one_euro">OneEuro Filter (Adaptive Low-Pass)</option>
-              <option value="none">None (Raw Keypoints)</option>
-            </select>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <div class="p-2 bg-black rounded border border-secondary text-center">
+                <span class="text-muted d-block small">Left Knee Angle</span>
+                <strong id="angle-left-knee" class="text-info fs-5">175.0°</strong>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-2 bg-black rounded border border-secondary text-center">
+                <span class="text-muted d-block small">Right Knee Angle</span>
+                <strong id="angle-right-knee" class="text-info fs-5">175.0°</strong>
+              </div>
+            </div>
+            <div class="col-6 mt-2">
+              <div class="p-2 bg-black rounded border border-secondary text-center">
+                <span class="text-muted d-block small">Spine Angle</span>
+                <strong id="angle-spine" class="text-warning fs-5">5.0°</strong>
+              </div>
+            </div>
+            <div class="col-6 mt-2">
+              <div class="p-2 bg-black rounded border border-secondary text-center">
+                <span class="text-muted d-block small">Neck Angle</span>
+                <strong id="angle-neck" class="text-warning fs-5">12.0°</strong>
+              </div>
+            </div>
           </div>
 
-          <h5 class="border-bottom border-secondary pb-2 my-3">📊 Quality & Stability Diagnostics</h5>
+          <h5 class="border-bottom border-secondary pb-2 my-3">⚖️ Orientation, CoM & Symmetry</h5>
           <div class="row g-2 text-center">
             <div class="col-6">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Frame Quality Score</span>
-                <strong id="diag-lm-score" class="text-success fs-4">95.0</strong>
+                <span class="text-muted d-block small">Overall Symmetry</span>
+                <strong id="diag-bio-symm" class="text-success fs-5">98.0%</strong>
               </div>
             </div>
             <div class="col-6">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Jitter Score</span>
-                <strong id="diag-lm-jitter" class="text-info fs-4">0.002</strong>
+                <span class="text-muted d-block small">Left/Right Balance</span>
+                <strong id="diag-bio-bal" class="text-primary fs-5">50.0% / 50.0%</strong>
               </div>
             </div>
             <div class="col-6 mt-2">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Accepted / Rejected</span>
-                <span id="diag-lm-accepted" class="text-success small fw-bold">100 / 0</span>
+                <span class="text-muted d-block small">Center of Mass (CoM)</span>
+                <span id="diag-bio-com" class="text-info small fw-bold">(0.50, 0.50)</span>
               </div>
             </div>
             <div class="col-6 mt-2">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Interpolation Status</span>
-                <span id="diag-lm-interp" class="text-primary small fw-bold">Active (Max 5)</span>
+                <span class="text-muted d-block small">Forward / Side Lean</span>
+                <span id="diag-bio-lean" class="text-warning small fw-bold">2.5° / 0.8°</span>
               </div>
             </div>
           </div>
@@ -93,26 +111,32 @@
   import { CameraEngine } from '/static/assets/js/engines/camera_engine.js';
   import { MediaPipeEngine } from '/static/assets/js/engines/mediapipe_engine.js';
   import { LandmarkEngine } from '/static/assets/js/engines/landmark_engine.js';
+  import { BiomechanicsEngine } from '/static/assets/js/engines/biomechanics_engine.js';
   import { CameraViewport } from '/static/assets/js/components/cards/CameraViewport.js';
 
   document.addEventListener("DOMContentLoaded", async () => {
     const camEngine = new CameraEngine();
     const mpEngine = new MediaPipeEngine();
     const lmEngine = new LandmarkEngine();
+    const bioEngine = new BiomechanicsEngine();
     const viewport = new CameraViewport('camera-viewport-container', camEngine);
 
     const btnStart = document.getElementById('btn-start-pipeline');
     const btnPause = document.getElementById('btn-pause-pipeline');
     const btnStop = document.getElementById('btn-stop-pipeline');
-    const selectFilter = document.getElementById('select-filter-method');
 
-    const diagScore = document.getElementById('diag-lm-score');
-    const diagJitter = document.getElementById('diag-lm-jitter');
-    const diagAccepted = document.getElementById('diag-lm-accepted');
-    const diagInterp = document.getElementById('diag-lm-interp');
+    const angleLKnee = document.getElementById('angle-left-knee');
+    const angleRKnee = document.getElementById('angle-right-knee');
+    const angleSpine = document.getElementById('angle-spine');
+    const angleNeck = document.getElementById('angle-neck');
+    const diagSymm = document.getElementById('diag-bio-symm');
+    const diagBal = document.getElementById('diag-bio-bal');
+    const diagCom = document.getElementById('diag-bio-com');
+    const diagLean = document.getElementById('diag-bio-lean');
 
     await mpEngine.initialize();
     await lmEngine.initialize();
+    await bioEngine.initialize();
 
     btnStart.addEventListener('click', async () => {
       try {
@@ -120,12 +144,13 @@
         await camEngine.start(viewport.videoElement);
         await mpEngine.start();
         await lmEngine.start();
+        await bioEngine.start();
         viewport.setLive();
 
         document.getElementById('cam-status-pill').className = 'badge bg-success me-2';
         document.getElementById('cam-status-pill').textContent = 'Camera Live';
-        document.getElementById('lm-status-pill').className = 'badge bg-success';
-        document.getElementById('lm-status-pill').textContent = 'Landmarks Filtered & Validated';
+        document.getElementById('bio-status-pill').className = 'badge bg-success';
+        document.getElementById('bio-status-pill').textContent = 'Biomechanics Active';
 
         btnStart.disabled = true;
         btnPause.disabled = false;
@@ -140,11 +165,13 @@
         camEngine.pause();
         mpEngine.pause();
         lmEngine.pause();
+        bioEngine.pause();
         btnPause.textContent = 'Resume';
       } else {
         camEngine.resume();
         mpEngine.resume();
         lmEngine.resume();
+        bioEngine.resume();
         btnPause.textContent = 'Pause';
       }
     });
@@ -153,28 +180,24 @@
       await camEngine.stop();
       await mpEngine.stop();
       await lmEngine.stop();
+      await bioEngine.stop();
       viewport.setStopped();
 
       document.getElementById('cam-status-pill').className = 'badge bg-secondary me-2';
       document.getElementById('cam-status-pill').textContent = 'Camera Stopped';
-      document.getElementById('lm-status-pill').className = 'badge bg-secondary';
-      document.getElementById('lm-status-pill').textContent = 'Landmark Engine Standby';
+      document.getElementById('bio-status-pill').className = 'badge bg-secondary';
+      document.getElementById('bio-status-pill').textContent = 'Biomechanics Standby';
 
       btnStart.disabled = false;
       btnPause.disabled = true;
       btnStop.disabled = true;
     });
 
-    selectFilter.addEventListener('change', (e) => {
-      lmEngine.config.smoothingMethod = e.target.value;
-    });
-
     setInterval(() => {
-      const diag = lmEngine.getDiagnostics();
-      diagScore.textContent = diag.metrics.averageQualityScore;
-      diagJitter.textContent = diag.metrics.jitterScore;
-      diagAccepted.textContent = `${diag.metrics.framesAccepted} / ${diag.metrics.framesRejected}`;
-      diagInterp.textContent = `Active (${diag.metrics.interpolationCount} Recovered)`;
+      const diag = bioEngine.getDiagnostics();
+      diagSymm.textContent = `${diag.metrics.overallSymmetryScore}%`;
+      diagBal.textContent = `${diag.metrics.leftRightBalanceRatio}% / ${(100 - diag.metrics.leftRightBalanceRatio).toFixed(1)}%`;
+      diagCom.textContent = `(${diag.metrics.centerOfMassX}, ${diag.metrics.centerOfMassY})`;
       viewport.updateMetrics(camEngine.metrics.fps, camEngine.metrics.resolution);
     }, 500);
   });

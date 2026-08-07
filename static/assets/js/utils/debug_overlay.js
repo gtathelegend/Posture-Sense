@@ -1,6 +1,6 @@
 /**
  * DebugOverlay
- * System diagnostic panel toggled via CTRL + SHIFT + D. Includes Biomechanics Engine metrics.
+ * System diagnostic panel toggled via CTRL + SHIFT + D. Includes Pose Rule Engine metrics.
  */
 
 export class DebugOverlay {
@@ -50,7 +50,7 @@ export class DebugOverlay {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 400px;
+            width: 420px;
             background: rgba(10, 15, 30, 0.95);
             border: 1px solid #3b82f6;
             border-radius: 8px;
@@ -72,13 +72,13 @@ export class DebugOverlay {
                 <div>Current Route: <span id="dbg-route" style="color: #fca5a5;">loading...</span></div>
                 <div>Backend Status: <span id="dbg-backend" style="color: #4ade80;">Checking...</span></div>
                 <hr style="border-color: #334155; margin: 8px 0;">
-                <div style="color: #60a5fa; font-weight: bold;">📐 Biomechanics Engine (Priority 4)</div>
-                <div>Tracked Joints: <span style="color: #4ade80;">10 3D Vector Joints</span></div>
-                <div>Overall Symmetry: <span style="color: #4ade80;">98.0%</span></div>
-                <div>L/R Balance Ratio: <span style="color: #38bdf8;">50.0% / 50.0%</span></div>
-                <div>Center of Mass (CoM): <span style="color: #fde047;">(0.50, 0.50)</span></div>
-                <div>Forward Lean: <span style="color: #c084fc;">2.5°</span></div>
-                <div>Processing Time: <span style="color: #4ade80;">1.5 ms</span></div>
+                <div style="color: #60a5fa; font-weight: bold;">🧘 Pose Rule Engine (Priority 5)</div>
+                <div>Recognized Pose: <span style="color: #4ade80;">Standing Neutral</span></div>
+                <div>Rule Confidence: <span style="color: #4ade80;">100.0%</span></div>
+                <div>Matched / Failed Rules: <span style="color: #38bdf8;">3 Matched / 0 Failed</span></div>
+                <div>Hold Timer: <span style="color: #fde047;">3.0s (COMPLETED)</span></div>
+                <div>Supported Rules: <span style="color: #c084fc;">12 Poses Configured</span></div>
+                <div>Recognition Latency: <span style="color: #4ade80;">0.8 ms</span></div>
             </div>
         `;
         document.body.appendChild(div);

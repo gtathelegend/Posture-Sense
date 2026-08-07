@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Developer Playground — Biomechanics Engine & Runtime{% endblock %}
+{% block title %}Developer Playground — Pose Rule Engine & Runtime{% endblock %}
 
 {% block content %}
 <div class="container py-5" style="margin-top: 80px;">
   <div class="row mb-4">
     <div class="col-lg-12">
       <div class="d-flex justify-content-between align-items-center">
-        <h2>🛠️ Biomechanics Engine & Vector Math Playground</h2>
-        <span class="badge bg-primary fs-6">Biomechanics Engine v2.0.0</span>
+        <h2>🛠️ Pose Rule Engine & Static Classification Playground</h2>
+        <span class="badge bg-primary fs-6">Pose Rule Engine v2.0.0</span>
       </div>
-      <p class="text-muted">Interactive test harness for 3D joint angle vector geometry, body orientation, Center of Mass (CoM), symmetry analysis, and Range of Motion (ROM) metrics.</p>
+      <p class="text-muted">Interactive test harness for configuration-driven static pose recognition (12 supported poses), rule constraint satisfaction, confidence calculation, and hold timer state machine.</p>
     </div>
   </div>
 
@@ -19,10 +19,10 @@
     <div class="col-lg-7">
       <div class="card bg-dark border-secondary text-white p-3 h-100">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="m-0">📷 Full AI & Biomechanics Pipeline</h5>
+          <h5 class="m-0">📷 Full AI & Pose Classifier Viewport</h5>
           <div>
             <span id="cam-status-pill" class="badge bg-secondary me-2">Camera Stopped</span>
-            <span id="bio-status-pill" class="badge bg-warning text-dark">Biomechanics Engine Ready</span>
+            <span id="pose-status-pill" class="badge bg-warning text-dark">Pose Engine Ready</span>
           </div>
         </div>
         
@@ -37,63 +37,41 @@
       </div>
     </div>
 
-    <!-- Biomechanics Diagnostics Panel -->
+    <!-- Pose Diagnostics Panel -->
     <div class="col-lg-5">
       <div class="card bg-dark border-secondary text-white p-3 h-100 d-flex flex-column justify-content-between">
         <div>
-          <h5 class="border-bottom border-secondary pb-2 mb-3">📐 3D Biomechanical Measurements</h5>
+          <h5 class="border-bottom border-secondary pb-2 mb-3">🧘 Pose Classification & Hold State</h5>
           
-          <div class="row g-2 mb-3">
-            <div class="col-6">
-              <div class="p-2 bg-black rounded border border-secondary text-center">
-                <span class="text-muted d-block small">Left Knee Angle</span>
-                <strong id="angle-left-knee" class="text-info fs-5">175.0°</strong>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="p-2 bg-black rounded border border-secondary text-center">
-                <span class="text-muted d-block small">Right Knee Angle</span>
-                <strong id="angle-right-knee" class="text-info fs-5">175.0°</strong>
-              </div>
-            </div>
-            <div class="col-6 mt-2">
-              <div class="p-2 bg-black rounded border border-secondary text-center">
-                <span class="text-muted d-block small">Spine Angle</span>
-                <strong id="angle-spine" class="text-warning fs-5">5.0°</strong>
-              </div>
-            </div>
-            <div class="col-6 mt-2">
-              <div class="p-2 bg-black rounded border border-secondary text-center">
-                <span class="text-muted d-block small">Neck Angle</span>
-                <strong id="angle-neck" class="text-warning fs-5">12.0°</strong>
-              </div>
-            </div>
+          <div class="p-3 bg-black rounded border border-secondary text-center mb-3">
+            <span class="text-muted d-block small">Recognized Pose</span>
+            <h3 id="diag-pose-name" class="text-success m-0 fw-bold">Standing Neutral</h3>
           </div>
 
-          <h5 class="border-bottom border-secondary pb-2 my-3">⚖️ Orientation, CoM & Symmetry</h5>
+          <h5 class="border-bottom border-secondary pb-2 my-3">📊 Rule Satisfaction & Timer</h5>
           <div class="row g-2 text-center">
             <div class="col-6">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Overall Symmetry</span>
-                <strong id="diag-bio-symm" class="text-success fs-5">98.0%</strong>
+                <span class="text-muted d-block small">Rule Confidence</span>
+                <strong id="diag-pose-conf" class="text-info fs-4">100.0%</strong>
               </div>
             </div>
             <div class="col-6">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Left/Right Balance</span>
-                <strong id="diag-bio-bal" class="text-primary fs-5">50.0% / 50.0%</strong>
+                <span class="text-muted d-block small">Hold Timer</span>
+                <strong id="diag-pose-timer" class="text-warning fs-4">2.5s</strong>
               </div>
             </div>
             <div class="col-6 mt-2">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Center of Mass (CoM)</span>
-                <span id="diag-bio-com" class="text-info small fw-bold">(0.50, 0.50)</span>
+                <span class="text-muted d-block small">Matched / Failed Rules</span>
+                <span id="diag-pose-rules" class="text-success small fw-bold">3 Matched / 0 Failed</span>
               </div>
             </div>
             <div class="col-6 mt-2">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Forward / Side Lean</span>
-                <span id="diag-bio-lean" class="text-warning small fw-bold">2.5° / 0.8°</span>
+                <span class="text-muted d-block small">Hold State</span>
+                <span id="diag-pose-state" class="text-primary small fw-bold">COMPLETED</span>
               </div>
             </div>
           </div>
@@ -112,6 +90,7 @@
   import { MediaPipeEngine } from '/static/assets/js/engines/mediapipe_engine.js';
   import { LandmarkEngine } from '/static/assets/js/engines/landmark_engine.js';
   import { BiomechanicsEngine } from '/static/assets/js/engines/biomechanics_engine.js';
+  import { PoseRuleEngine } from '/static/assets/js/engines/pose_rule_engine.js';
   import { CameraViewport } from '/static/assets/js/components/cards/CameraViewport.js';
 
   document.addEventListener("DOMContentLoaded", async () => {
@@ -119,24 +98,23 @@
     const mpEngine = new MediaPipeEngine();
     const lmEngine = new LandmarkEngine();
     const bioEngine = new BiomechanicsEngine();
+    const poseEngine = new PoseRuleEngine();
     const viewport = new CameraViewport('camera-viewport-container', camEngine);
 
     const btnStart = document.getElementById('btn-start-pipeline');
     const btnPause = document.getElementById('btn-pause-pipeline');
     const btnStop = document.getElementById('btn-stop-pipeline');
 
-    const angleLKnee = document.getElementById('angle-left-knee');
-    const angleRKnee = document.getElementById('angle-right-knee');
-    const angleSpine = document.getElementById('angle-spine');
-    const angleNeck = document.getElementById('angle-neck');
-    const diagSymm = document.getElementById('diag-bio-symm');
-    const diagBal = document.getElementById('diag-bio-bal');
-    const diagCom = document.getElementById('diag-bio-com');
-    const diagLean = document.getElementById('diag-bio-lean');
+    const diagPoseName = document.getElementById('diag-pose-name');
+    const diagConf = document.getElementById('diag-pose-conf');
+    const diagTimer = document.getElementById('diag-pose-timer');
+    const diagRules = document.getElementById('diag-pose-rules');
+    const diagState = document.getElementById('diag-pose-state');
 
     await mpEngine.initialize();
     await lmEngine.initialize();
     await bioEngine.initialize();
+    await poseEngine.initialize();
 
     btnStart.addEventListener('click', async () => {
       try {
@@ -145,12 +123,13 @@
         await mpEngine.start();
         await lmEngine.start();
         await bioEngine.start();
+        await poseEngine.start();
         viewport.setLive();
 
         document.getElementById('cam-status-pill').className = 'badge bg-success me-2';
         document.getElementById('cam-status-pill').textContent = 'Camera Live';
-        document.getElementById('bio-status-pill').className = 'badge bg-success';
-        document.getElementById('bio-status-pill').textContent = 'Biomechanics Active';
+        document.getElementById('pose-status-pill').className = 'badge bg-success';
+        document.getElementById('pose-status-pill').textContent = 'Pose Classification Active';
 
         btnStart.disabled = true;
         btnPause.disabled = false;
@@ -166,12 +145,14 @@
         mpEngine.pause();
         lmEngine.pause();
         bioEngine.pause();
+        poseEngine.pause();
         btnPause.textContent = 'Resume';
       } else {
         camEngine.resume();
         mpEngine.resume();
         lmEngine.resume();
         bioEngine.resume();
+        poseEngine.resume();
         btnPause.textContent = 'Pause';
       }
     });
@@ -181,12 +162,13 @@
       await mpEngine.stop();
       await lmEngine.stop();
       await bioEngine.stop();
+      await poseEngine.stop();
       viewport.setStopped();
 
       document.getElementById('cam-status-pill').className = 'badge bg-secondary me-2';
       document.getElementById('cam-status-pill').textContent = 'Camera Stopped';
-      document.getElementById('bio-status-pill').className = 'badge bg-secondary';
-      document.getElementById('bio-status-pill').textContent = 'Biomechanics Standby';
+      document.getElementById('pose-status-pill').className = 'badge bg-secondary';
+      document.getElementById('pose-status-pill').textContent = 'Pose Engine Standby';
 
       btnStart.disabled = false;
       btnPause.disabled = true;
@@ -194,10 +176,12 @@
     });
 
     setInterval(() => {
-      const diag = bioEngine.getDiagnostics();
-      diagSymm.textContent = `${diag.metrics.overallSymmetryScore}%`;
-      diagBal.textContent = `${diag.metrics.leftRightBalanceRatio}% / ${(100 - diag.metrics.leftRightBalanceRatio).toFixed(1)}%`;
-      diagCom.textContent = `(${diag.metrics.centerOfMassX}, ${diag.metrics.centerOfMassY})`;
+      const diag = poseEngine.getDiagnostics();
+      diagPoseName.textContent = diag.metrics.currentPoseName;
+      diagConf.textContent = `${diag.metrics.confidenceScore}%`;
+      diagTimer.textContent = `${diag.metrics.holdDurationSeconds}s`;
+      diagRules.textContent = `${diag.metrics.matchedRulesCount} Matched / ${diag.metrics.failedRulesCount} Failed`;
+      diagState.textContent = poseEngine.holdState.toUpperCase();
       viewport.updateMetrics(camEngine.metrics.fps, camEngine.metrics.resolution);
     }, 500);
   });

@@ -19,6 +19,7 @@
 | **TD-13** | Raw keypoint jitter and unvalidated landmarks | Implemented `LandmarkEngine` quality gate with EMA filtering, NaN validation, and interpolation. |
 | **TD-14** | Heuristic 2D joint angle approximations | Implemented `BiomechanicsEngine` 3D vector geometry, CoM estimation, symmetry analysis, and ROM tracking. |
 | **TD-15** | Hardcoded pose classification thresholds | Implemented configuration-driven `PoseRuleEngine` matching 12 poses with hold timers. |
+| **TD-16** | No real-time skeleton or biomechanics visualization | Implemented `VisualizationEngine` Canvas renderer with 11 configurable overlays, 60 FPS target, High-DPI support, and mirror mode. |
 
 ---
 

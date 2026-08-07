@@ -1,6 +1,6 @@
 """
 PostureSense v2 Shared Core Infrastructure Package
-Provides contracts, event bus, config loading, plugin interfaces, constants, and utilities.
+Provides contracts, event bus, config loading, plugin interfaces, constants, runtime, and utilities.
 """
 
 from shared.constants import EventNames, PoseNames, ExerciseNames, ScoreCategories, ErrorCodes
@@ -13,6 +13,7 @@ from shared.events import Event, EventBus
 from shared.config import ConfigLoader
 from shared.plugins import BasePlugin, PluginRegistry
 from shared.core import BaseEngine
+from shared.core.runtime import EngineRuntime, EngineRegistry, LifecycleState, EngineDiagnostics
 from shared.utils import ContractValidator, calculate_angle_3p, format_duration
 
 __version__ = "2.0.0"

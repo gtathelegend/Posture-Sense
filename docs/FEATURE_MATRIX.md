@@ -20,3 +20,4 @@
 | **Engine Runtime System** | ❌ Monolithic execution | ✅ `EngineRuntime` & Topology Resolver | ✅ Enterprise Engine Runtime |
 | **Browser Camera Engine** | ❌ Server OpenCV stream | ✅ Production Browser `CameraEngine` | ✅ Browser `getUserMedia` & FPS Meter |
 | **Computer Vision Engine** | ❌ Server-side OpenCV/MediaPipe | ✅ Production Browser MediaPipe Tasks WASM | ✅ Off-Main-Thread Web Worker (33 Keypoints) |
+| **Landmark Processing Engine** | ❌ Unfiltered raw keypoints | ✅ `LandmarkEngine` Quality Gate | ✅ EMA Filtering, Interpolation & Quality Scoring |

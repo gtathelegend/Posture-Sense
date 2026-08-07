@@ -16,6 +16,7 @@
 | **TD-10** | Lack of runtime lifecycle state machine & dependency resolution | Implemented `EngineRuntime`, `EngineRegistry`, `LifecycleState`, and `DependencyResolver`. |
 | **TD-11** | Server-side webcam streaming dependency | Implemented browser-native `CameraEngine` with device selection, resolution options, and FPS meter. |
 | **TD-12** | Main-thread blocking computer vision inference | Implemented `MediaPipeEngine` with WebAssembly (`PoseLandmarker`) running inside a Web Worker. |
+| **TD-13** | Raw keypoint jitter and unvalidated landmarks | Implemented `LandmarkEngine` quality gate with EMA filtering, NaN validation, and interpolation. |
 
 ---
 

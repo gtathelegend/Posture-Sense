@@ -26,3 +26,42 @@ secret.*
 .aws/
 .azure/
 .gcloud/
+
+# Byte-compiled / Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.cache/
+*.pyc
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+mediapipe/
+mediapipe_old/
+install/
+
+# Database & local runtime files
+instance/
+*.db
+*.sqlite3
+
+# Node / Frontend build outputs (v2 prep)
+node_modules/
+.next/
+out/
+dist/
+build/
+.npm/
+
+# Operating System & IDE artifacts
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+!.vscode/settings.json
+.claude/
+.codex

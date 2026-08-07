@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Developer Playground — Camera Engine & Runtime{% endblock %}
+{% block title %}Developer Playground — MediaPipe Vision & Runtime{% endblock %}
 
 {% block content %}
 <div class="container py-5" style="margin-top: 80px;">
   <div class="row mb-4">
     <div class="col-lg-12">
       <div class="d-flex justify-content-between align-items-center">
-        <h2>🛠️ Camera Engine & Runtime Playground</h2>
-        <span class="badge bg-primary fs-6">Camera Engine v2.0.0</span>
+        <h2>🛠️ MediaPipe Vision Engine & Diagnostics Playground</h2>
+        <span class="badge bg-primary fs-6">MediaPipe Engine v2.0.0</span>
       </div>
-      <p class="text-muted">Interactive test harness for browser camera capture, resolution scaling, device selection, and frame publishing over EventBus.</p>
+      <p class="text-muted">Interactive test harness for WebAssembly MediaPipe Tasks Vision (`PoseLandmarker`), off-main-thread Web Worker inference, and 33-landmark contract publication.</p>
     </div>
   </div>
 
@@ -19,67 +19,64 @@
     <div class="col-lg-7">
       <div class="card bg-dark border-secondary text-white p-3 h-100">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="m-0">📷 Live Camera Viewport</h5>
-          <span id="cam-status-pill" class="badge bg-secondary">Stopped</span>
+          <h5 class="m-0">📷 Camera & MediaPipe Pose Viewport</h5>
+          <div>
+            <span id="cam-status-pill" class="badge bg-secondary me-2">Camera Stopped</span>
+            <span id="mp-status-pill" class="badge bg-warning text-dark">MediaPipe Standby</span>
+          </div>
         </div>
         
         <div id="camera-viewport-container" class="mb-3"></div>
 
-        <!-- Camera Controls -->
+        <!-- Camera & MediaPipe Controls -->
         <div class="d-flex flex-wrap gap-2 align-items-center">
-          <button id="btn-start-cam" class="btn btn-success"><i class="bi bi-play-fill"></i> Start Camera</button>
-          <button id="btn-pause-cam" class="btn btn-warning" disabled><i class="bi bi-pause-fill"></i> Pause</button>
-          <button id="btn-stop-cam" class="btn btn-danger" disabled><i class="bi bi-stop-fill"></i> Stop</button>
+          <button id="btn-start-pipeline" class="btn btn-success"><i class="bi bi-play-fill"></i> Start Pipeline</button>
+          <button id="btn-pause-pipeline" class="btn btn-warning" disabled><i class="bi bi-pause-fill"></i> Pause</button>
+          <button id="btn-stop-pipeline" class="btn btn-danger" disabled><i class="bi bi-stop-fill"></i> Stop</button>
         </div>
       </div>
     </div>
 
-    <!-- Camera Diagnostics & Configuration Panel -->
+    <!-- MediaPipe Diagnostics Panel -->
     <div class="col-lg-5">
       <div class="card bg-dark border-secondary text-white p-3 h-100 d-flex flex-column justify-content-between">
         <div>
-          <h5 class="border-bottom border-secondary pb-2 mb-3">⚙️ Camera Settings</h5>
+          <h5 class="border-bottom border-secondary pb-2 mb-3">🧠 MediaPipe Tasks Vision (WASM)</h5>
           
           <div class="mb-3">
-            <label class="form-label text-muted small">Select Input Device:</label>
-            <select id="select-camera-device" class="form-select bg-dark text-white border-secondary">
-              <option value="">Detecting cameras...</option>
-            </select>
+            <label class="form-label text-muted small">Model Status:</label>
+            <span id="diag-mp-model" class="badge bg-success d-block text-start p-2">PoseLandmarker Lite (Float16) Loaded</span>
           </div>
 
           <div class="mb-3">
-            <label class="form-label text-muted small">Resolution:</label>
-            <select id="select-camera-res" class="form-select bg-dark text-white border-secondary">
-              <option value="640x480">640 x 480 (SD)</option>
-              <option value="1280x720" selected>1280 x 720 (HD 720p)</option>
-              <option value="1920x1080">1920 x 1080 (FHD 1080p)</option>
-            </select>
+            <label class="form-label text-muted small">Inference Thread:</label>
+            <span class="badge bg-info text-dark d-block text-start p-2">Web Worker (Off-Main-Thread)</span>
           </div>
 
-          <h5 class="border-bottom border-secondary pb-2 my-3">📊 Real-Time Diagnostics</h5>
+          <h5 class="border-bottom border-secondary pb-2 my-3">📊 Real-Time Pose Diagnostics</h5>
           <div class="row g-2 text-center">
             <div class="col-6">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">FPS</span>
-                <strong id="diag-fps" class="text-warning fs-4">0</strong>
+                <span class="text-muted d-block small">Landmark Count</span>
+                <strong id="diag-mp-landmarks" class="text-warning fs-4">33</strong>
               </div>
             </div>
             <div class="col-6">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Captured Frames</span>
-                <strong id="diag-frames" class="text-info fs-4">0</strong>
+                <span class="text-muted d-block small">Inference Latency</span>
+                <strong id="diag-mp-latency" class="text-info fs-4">12.5 ms</strong>
               </div>
             </div>
             <div class="col-6 mt-2">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Current Resolution</span>
-                <span id="diag-res" class="text-success small fw-bold">1280x720</span>
+                <span class="text-muted d-block small">Tracking Status</span>
+                <span id="diag-mp-tracking" class="text-success small fw-bold">ACTIVE</span>
               </div>
             </div>
             <div class="col-6 mt-2">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Permission Status</span>
-                <span id="diag-perm" class="text-primary small fw-bold">prompt</span>
+                <span class="text-muted d-block small">Detection Confidence</span>
+                <span id="diag-mp-conf" class="text-primary small fw-bold">95.0%</span>
               </div>
             </div>
           </div>
@@ -95,42 +92,36 @@
 
 <script type="module">
   import { CameraEngine } from '/static/assets/js/engines/camera_engine.js';
+  import { MediaPipeEngine } from '/static/assets/js/engines/mediapipe_engine.js';
   import { CameraViewport } from '/static/assets/js/components/cards/CameraViewport.js';
 
   document.addEventListener("DOMContentLoaded", async () => {
     const camEngine = new CameraEngine();
+    const mpEngine = new MediaPipeEngine();
     const viewport = new CameraViewport('camera-viewport-container', camEngine);
 
-    const btnStart = document.getElementById('btn-start-cam');
-    const btnPause = document.getElementById('btn-pause-cam');
-    const btnStop = document.getElementById('btn-stop-cam');
-    const selectDevice = document.getElementById('select-camera-device');
-    const selectRes = document.getElementById('select-camera-res');
+    const btnStart = document.getElementById('btn-start-pipeline');
+    const btnPause = document.getElementById('btn-pause-pipeline');
+    const btnStop = document.getElementById('btn-stop-pipeline');
 
-    const diagFps = document.getElementById('diag-fps');
-    const diagFrames = document.getElementById('diag-frames');
-    const diagRes = document.getElementById('diag-res');
-    const diagPerm = document.getElementById('diag-perm');
+    const diagLandmarks = document.getElementById('diag-mp-landmarks');
+    const diagLatency = document.getElementById('diag-mp-latency');
+    const diagTracking = document.getElementById('diag-mp-tracking');
+    const diagConf = document.getElementById('diag-mp-conf');
 
-    // Populate camera devices
-    const devices = await camEngine.enumerateDevices();
-    selectDevice.innerHTML = '';
-    if (devices.length === 0) {
-      selectDevice.innerHTML = '<option value="">Default Camera</option>';
-    } else {
-      devices.forEach(d => {
-        const opt = document.createElement('option');
-        opt.value = d.deviceId;
-        opt.textContent = d.label || `Camera ${selectDevice.options.length + 1}`;
-        selectDevice.appendChild(opt);
-      });
-    }
+    await mpEngine.initialize();
 
     btnStart.addEventListener('click', async () => {
       try {
         viewport.setLoading();
         await camEngine.start(viewport.videoElement);
+        await mpEngine.start();
         viewport.setLive();
+
+        document.getElementById('cam-status-pill').className = 'badge bg-success me-2';
+        document.getElementById('cam-status-pill').textContent = 'Camera Live';
+        document.getElementById('mp-status-pill').className = 'badge bg-success';
+        document.getElementById('mp-status-pill').textContent = 'MediaPipe Tracking';
 
         btnStart.disabled = true;
         btnPause.disabled = false;
@@ -143,40 +134,37 @@
     btnPause.addEventListener('click', () => {
       if (camEngine.status === 'running') {
         camEngine.pause();
+        mpEngine.pause();
         btnPause.textContent = 'Resume';
       } else {
         camEngine.resume();
+        mpEngine.resume();
         btnPause.textContent = 'Pause';
       }
     });
 
     btnStop.addEventListener('click', async () => {
       await camEngine.stop();
+      await mpEngine.stop();
       viewport.setStopped();
+
+      document.getElementById('cam-status-pill').className = 'badge bg-secondary me-2';
+      document.getElementById('cam-status-pill').textContent = 'Camera Stopped';
+      document.getElementById('mp-status-pill').className = 'badge bg-secondary';
+      document.getElementById('mp-status-pill').textContent = 'MediaPipe Standby';
+
       btnStart.disabled = false;
       btnPause.disabled = true;
       btnStop.disabled = true;
     });
 
-    selectDevice.addEventListener('change', async (e) => {
-      if (e.target.value) {
-        await camEngine.setDevice(e.target.value);
-      }
-    });
-
-    selectRes.addEventListener('change', async (e) => {
-      const [w, h] = e.target.value.split('x').map(Number);
-      await camEngine.setResolution(w, h);
-    });
-
-    // Update real-time metrics UI
     setInterval(() => {
-      const diag = camEngine.getDiagnostics();
-      diagFps.textContent = diag.metrics.fps;
-      diagFrames.textContent = diag.metrics.frameCount;
-      diagRes.textContent = diag.metrics.resolution;
-      diagPerm.textContent = diag.metrics.permissionStatus;
-      viewport.updateMetrics(diag.metrics.fps, diag.metrics.resolution);
+      const diag = mpEngine.getDiagnostics();
+      diagLandmarks.textContent = diag.metrics.landmarkCount;
+      diagLatency.textContent = `${diag.metrics.inferenceLatencyMs.toFixed(1)} ms`;
+      diagTracking.textContent = diag.isTracking ? 'ACTIVE' : 'LOST';
+      diagConf.textContent = `${(diag.metrics.trackingConfidence * 100).toFixed(0)}%`;
+      viewport.updateMetrics(camEngine.metrics.fps, camEngine.metrics.resolution);
     }, 500);
   });
 </script>

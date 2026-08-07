@@ -15,4 +15,6 @@
 | **Security Middleware** | ❌ None | ✅ `security.py` (Headers & CORS) | ✅ Full Security Engine |
 | **User Authentication** | ✅ Working (Flask-Login) | ✅ Preserved 100% | ✅ JWT / Supabase Auth |
 | **Dashboard & Analytics** | ✅ Working | ✅ Preserved 100% | ✅ Real-time Analytics Engine |
+| **Frontend Service Layer** | ❌ Direct fetch in inline scripts | ✅ Modular Service Layer | ✅ Fully Decoupled Frontend |
+| **Frontend Component & Context Architecture** | ❌ Inline template scripts | ✅ `EngineAdapter`, Contexts & Diagnostics | ✅ Browser Engine Framework |
 | **Computer Vision Engine** | ⚠️ Server-side OpenCV/MediaPipe | ⚠️ Server-side in `cv_utils.py` | 🎯 Browser-side MediaPipe WASM |

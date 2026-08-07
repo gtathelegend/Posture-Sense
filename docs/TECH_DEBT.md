@@ -11,6 +11,8 @@
 | **TD-05** | Unstructured `print()` statements for debugging | Replaced with standard Flask logging in `backend/app/logging.py`. |
 | **TD-06** | Unhandled HTTP exceptions returning generic 500 errors | Added centralized error handlers in `backend/app/errors.py`. |
 | **TD-07** | Missing security HTTP response headers | Added security middleware (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`). |
+| **TD-08** | Direct HTTP fetch calls embedded in HTML inline scripts | Extracted frontend service layer (`AuthService`, `DashboardService`, `SessionService`, `ContactService`). |
+| **TD-09** | Tight coupling between UI elements and lower event handlers | Introduced `EngineAdapter` and `EngineContext` state architecture. |
 
 ---
 

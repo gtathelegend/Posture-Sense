@@ -19,4 +19,4 @@
 | **Frontend Component & Context Architecture** | ❌ Inline template scripts | ✅ `EngineAdapter`, Contexts & Diagnostics | ✅ Browser Engine Framework |
 | **Engine Runtime System** | ❌ Monolithic execution | ✅ `EngineRuntime` & Topology Resolver | ✅ Enterprise Engine Runtime |
 | **Browser Camera Engine** | ❌ Server OpenCV stream | ✅ Production Browser `CameraEngine` | ✅ Browser `getUserMedia` & FPS Meter |
-| **Computer Vision Engine** | ⚠️ Server-side OpenCV/MediaPipe | ⚠️ Server-side in `cv_utils.py` | 🎯 Browser-side MediaPipe WASM |
+| **Computer Vision Engine** | ❌ Server-side OpenCV/MediaPipe | ✅ Production Browser MediaPipe Tasks WASM | ✅ Off-Main-Thread Web Worker (33 Keypoints) |

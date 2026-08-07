@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 from shared.constants.scores import SCHEMA_VERSION_V2
 
@@ -15,7 +15,7 @@ class BaseContract:
         source: str = "system"
     ):
         self.id = id or str(uuid.uuid4())
-        self.timestamp = timestamp or datetime.utcnow().isoformat()
+        self.timestamp = timestamp or datetime.now(timezone.utc).isoformat()
         self.schema_version = schema_version
         self.source = source
 

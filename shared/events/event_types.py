@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 import uuid
 
@@ -10,7 +10,7 @@ class Event:
         self.event_id = event_id or str(uuid.uuid4())
         self.name = name
         self.data = data
-        self.timestamp = timestamp or datetime.utcnow().isoformat()
+        self.timestamp = timestamp or datetime.now(timezone.utc).isoformat()
 
     def to_dict(self) -> Dict[str, Any]:
         data_serialized = self.data.to_dict() if hasattr(self.data, 'to_dict') else self.data

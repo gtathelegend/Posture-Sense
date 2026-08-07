@@ -13,6 +13,7 @@
 | **TD-07** | Missing security HTTP response headers | Added security middleware (`X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`). |
 | **TD-08** | Direct HTTP fetch calls embedded in HTML inline scripts | Extracted frontend service layer (`AuthService`, `DashboardService`, `SessionService`, `ContactService`). |
 | **TD-09** | Tight coupling between UI elements and lower event handlers | Introduced `EngineAdapter` and `EngineContext` state architecture. |
+| **TD-10** | Lack of runtime lifecycle state machine & dependency resolution | Implemented `EngineRuntime`, `EngineRegistry`, `LifecycleState`, and `DependencyResolver`. |
 
 ---
 

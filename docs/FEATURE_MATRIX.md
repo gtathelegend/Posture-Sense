@@ -17,4 +17,5 @@
 | **Dashboard & Analytics** | ✅ Working | ✅ Preserved 100% | ✅ Real-time Analytics Engine |
 | **Frontend Service Layer** | ❌ Direct fetch in inline scripts | ✅ Modular Service Layer | ✅ Fully Decoupled Frontend |
 | **Frontend Component & Context Architecture** | ❌ Inline template scripts | ✅ `EngineAdapter`, Contexts & Diagnostics | ✅ Browser Engine Framework |
+| **Engine Runtime System** | ❌ Monolithic execution | ✅ `EngineRuntime` & Topology Resolver | ✅ Enterprise Engine Runtime |
 | **Computer Vision Engine** | ⚠️ Server-side OpenCV/MediaPipe | ⚠️ Server-side in `cv_utils.py` | 🎯 Browser-side MediaPipe WASM |

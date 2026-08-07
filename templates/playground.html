@@ -1,189 +1,335 @@
 {% extends "base.html" %}
 
-{% block title %}Developer Playground — Pose Rule Engine & Runtime{% endblock %}
+{% block title %}Developer Playground — Skeleton Visualization & Full Pipeline{% endblock %}
 
 {% block content %}
-<div class="container py-5" style="margin-top: 80px;">
-  <div class="row mb-4">
-    <div class="col-lg-12">
-      <div class="d-flex justify-content-between align-items-center">
-        <h2>🛠️ Pose Rule Engine & Static Classification Playground</h2>
-        <span class="badge bg-primary fs-6">Pose Rule Engine v2.0.0</span>
-      </div>
-      <p class="text-muted">Interactive test harness for configuration-driven static pose recognition (12 supported poses), rule constraint satisfaction, confidence calculation, and hold timer state machine.</p>
+<style>
+  #viz-canvas-wrapper {
+    position: relative;
+    width: 100%;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  #viz-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    transform: scaleX(-1); /* mirror */
+  }
+  #viz-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  .toggle-btn { min-width: 140px; }
+  .metric-box {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 6px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .metric-box .label { font-size: 10px; color: #64748b; display: block; margin-bottom: 2px; }
+  .metric-box .value { font-size: 17px; font-weight: 700; }
+</style>
+
+<div class="container-fluid py-4" style="margin-top: 72px;">
+  <div class="row mb-3 align-items-center">
+    <div class="col">
+      <h4 class="mb-0 text-white fw-bold">🦴 Skeleton Visualization Engine — Developer Playground</h4>
+      <p class="text-muted small mb-0">Real-time skeleton, joint angles, CoM, balance, and pose overlay. No AI logic — pure rendering.</p>
+    </div>
+    <div class="col-auto d-flex gap-2 align-items-center">
+      <span id="pill-cam"  class="badge bg-secondary">Camera Stopped</span>
+      <span id="pill-viz"  class="badge bg-secondary">Visualization Standby</span>
+      <span id="pill-fps"  class="badge bg-dark border border-secondary text-info">-- FPS</span>
     </div>
   </div>
 
-  <div class="row g-4">
-    <!-- Pipeline Viewport Card -->
-    <div class="col-lg-7">
-      <div class="card bg-dark border-secondary text-white p-3 h-100">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="m-0">📷 Full AI & Pose Classifier Viewport</h5>
-          <div>
-            <span id="cam-status-pill" class="badge bg-secondary me-2">Camera Stopped</span>
-            <span id="pose-status-pill" class="badge bg-warning text-dark">Pose Engine Ready</span>
+  <div class="row g-3">
+
+    <!-- ── Viewport column ─────────────────────────────────────── -->
+    <div class="col-lg-8">
+      <div class="card bg-dark border-secondary text-white p-2">
+
+        <!-- Video + canvas stack -->
+        <div id="viz-canvas-wrapper" style="min-height: 320px;">
+          <video id="viz-video" autoplay muted playsinline></video>
+          <canvas id="viz-canvas"></canvas>
+
+          <!-- No-signal placeholder -->
+          <div id="viz-placeholder" style="
+              position:absolute; inset:0; display:flex;
+              flex-direction:column; align-items:center; justify-content:center;
+              background:rgba(0,0,0,0.85); color:#475569;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor"
+                 viewBox="0 0 16 16" style="margin-bottom:12px">
+              <path d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16
+                       4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2
+                       2 0 0 1-2-2V5z"/>
+            </svg>
+            <span class="fw-semibold">Start the pipeline to see live skeleton rendering</span>
           </div>
         </div>
-        
-        <div id="camera-viewport-container" class="mb-3"></div>
 
-        <!-- Controls -->
-        <div class="d-flex flex-wrap gap-2 align-items-center">
-          <button id="btn-start-pipeline" class="btn btn-success"><i class="bi bi-play-fill"></i> Start Pipeline</button>
-          <button id="btn-pause-pipeline" class="btn btn-warning" disabled><i class="bi bi-pause-fill"></i> Pause</button>
-          <button id="btn-stop-pipeline" class="btn btn-danger" disabled><i class="bi bi-stop-fill"></i> Stop</button>
+        <!-- Pipeline controls -->
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          <button id="btn-start" class="btn btn-success btn-sm">▶ Start Pipeline</button>
+          <button id="btn-pause" class="btn btn-warning btn-sm" disabled>⏸ Pause</button>
+          <button id="btn-stop"  class="btn btn-danger  btn-sm" disabled>⏹ Stop</button>
+          <button id="btn-fs"    class="btn btn-outline-secondary btn-sm ms-auto">⛶ Fullscreen Canvas</button>
         </div>
       </div>
     </div>
 
-    <!-- Pose Diagnostics Panel -->
-    <div class="col-lg-5">
-      <div class="card bg-dark border-secondary text-white p-3 h-100 d-flex flex-column justify-content-between">
-        <div>
-          <h5 class="border-bottom border-secondary pb-2 mb-3">🧘 Pose Classification & Hold State</h5>
-          
-          <div class="p-3 bg-black rounded border border-secondary text-center mb-3">
-            <span class="text-muted d-block small">Recognized Pose</span>
-            <h3 id="diag-pose-name" class="text-success m-0 fw-bold">Standing Neutral</h3>
-          </div>
+    <!-- ── Right panel ─────────────────────────────────────────── -->
+    <div class="col-lg-4 d-flex flex-column gap-3">
 
-          <h5 class="border-bottom border-secondary pb-2 my-3">📊 Rule Satisfaction & Timer</h5>
-          <div class="row g-2 text-center">
-            <div class="col-6">
-              <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Rule Confidence</span>
-                <strong id="diag-pose-conf" class="text-info fs-4">100.0%</strong>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Hold Timer</span>
-                <strong id="diag-pose-timer" class="text-warning fs-4">2.5s</strong>
-              </div>
-            </div>
-            <div class="col-6 mt-2">
-              <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Matched / Failed Rules</span>
-                <span id="diag-pose-rules" class="text-success small fw-bold">3 Matched / 0 Failed</span>
-              </div>
-            </div>
-            <div class="col-6 mt-2">
-              <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Hold State</span>
-                <span id="diag-pose-state" class="text-primary small fw-bold">COMPLETED</span>
-              </div>
-            </div>
-          </div>
+      <!-- Live metrics -->
+      <div class="card bg-dark border-secondary text-white p-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2 text-info">📊 Live Metrics</h6>
+        <div class="row g-2">
+          <div class="col-6"><div class="metric-box">
+            <span class="label">Render FPS</span>
+            <span class="value text-success" id="m-fps">--</span>
+          </div></div>
+          <div class="col-6"><div class="metric-box">
+            <span class="label">Render Latency</span>
+            <span class="value text-info" id="m-lat">-- ms</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Pose Confidence</span>
+            <span class="value text-warning" id="m-conf">--%</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Hold Timer</span>
+            <span class="value text-primary" id="m-hold">--s</span>
+          </div></div>
         </div>
 
-        <div class="mt-4 pt-3 border-top border-secondary text-muted small">
-          <span>Keyboard Shortcut: Press <kbd>CTRL + SHIFT + D</kbd> to open global debug overlay.</span>
+        <!-- Recognized pose badge -->
+        <div class="metric-box mt-2 text-center">
+          <span class="label">Current Pose</span>
+          <div class="value fs-5 text-success" id="m-pose">—</div>
+        </div>
+
+        <!-- Rule evaluation row -->
+        <div class="d-flex justify-content-between mt-2">
+          <span class="small text-success" id="m-matched">✓ -- matched</span>
+          <span class="small text-danger"  id="m-failed">✗ -- failed</span>
+          <span class="small text-muted"   id="m-holdstate">idle</span>
         </div>
       </div>
-    </div>
-  </div>
-</div>
+
+      <!-- Biomechanics snapshot -->
+      <div class="card bg-dark border-secondary text-white p-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2 text-purple" style="color:#a78bfa">📐 Biomechanics</h6>
+        <div class="row g-2">
+          <div class="col-6"><div class="metric-box">
+            <span class="label">L/R Balance</span>
+            <span class="value text-primary" id="b-balance">50/50</span>
+          </div></div>
+          <div class="col-6"><div class="metric-box">
+            <span class="label">Symmetry</span>
+            <span class="value text-success" id="b-symm">--%</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">CoM X / Y</span>
+            <span class="value text-info" id="b-com" style="font-size:13px">--, --</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Forward Lean</span>
+            <span class="value text-warning" id="b-lean">--°</span>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- Visualization toggles -->
+      <div class="card bg-dark border-secondary text-white p-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2 text-secondary">🎛 Visualization Toggles</h6>
+        <div class="d-flex flex-wrap gap-2">
+          <button id="tog-skeleton"   class="btn btn-sm btn-outline-success  toggle-btn active"   data-opt="showSkeleton">Skeleton</button>
+          <button id="tog-angles"     class="btn btn-sm btn-outline-info     toggle-btn active"   data-opt="showJointAngles">Joint Angles</button>
+          <button id="tog-labels"     class="btn btn-sm btn-outline-warning  toggle-btn"          data-opt="showJointLabels">Joint Labels</button>
+          <button id="tog-conf"       class="btn btn-sm btn-outline-success  toggle-btn active"   data-opt="showConfidenceColors">Confidence Colors</button>
+          <button id="tog-com"        class="btn btn-sm btn-outline-warning  toggle-btn active"   data-opt="showCenterOfMass">CoM</button>
+          <button id="tog-balance"    class="btn btn-sm btn-outline-primary  toggle-btn active"   data-opt="showBalance">Balance Bar</button>
+          <button id="tog-pose"       class="btn btn-sm btn-outline-success  toggle-btn active"   data-opt="showPoseLabel">Pose HUD</button>
+          <button id="tog-rules"      class="btn btn-sm btn-outline-info     toggle-btn active"   data-opt="showRuleEvaluation">Rule Panel</button>
+          <button id="tog-symmetry"   class="btn btn-sm btn-outline-secondary toggle-btn"         data-opt="showSymmetry">Symmetry</button>
+          <button id="tog-axes"       class="btn btn-sm btn-outline-secondary toggle-btn"         data-opt="showOrientationAxes">Axes</button>
+          <button id="tog-mirror"     class="btn btn-sm btn-outline-danger    toggle-btn active"  data-opt="mirrorMode">Mirror</button>
+        </div>
+      </div>
+
+    </div><!-- /right panel -->
+  </div><!-- /row -->
+</div><!-- /container -->
 
 <script type="module">
-  import { CameraEngine } from '/static/assets/js/engines/camera_engine.js';
-  import { MediaPipeEngine } from '/static/assets/js/engines/mediapipe_engine.js';
-  import { LandmarkEngine } from '/static/assets/js/engines/landmark_engine.js';
-  import { BiomechanicsEngine } from '/static/assets/js/engines/biomechanics_engine.js';
-  import { PoseRuleEngine } from '/static/assets/js/engines/pose_rule_engine.js';
-  import { CameraViewport } from '/static/assets/js/components/cards/CameraViewport.js';
+import { CameraEngine }       from '/static/assets/js/engines/camera_engine.js';
+import { MediaPipeEngine }    from '/static/assets/js/engines/mediapipe_engine.js';
+import { LandmarkEngine }     from '/static/assets/js/engines/landmark_engine.js';
+import { BiomechanicsEngine } from '/static/assets/js/engines/biomechanics_engine.js';
+import { PoseRuleEngine }     from '/static/assets/js/engines/pose_rule_engine.js';
+import { VisualizationEngine } from '/static/assets/js/engines/visualization_engine.js';
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    const camEngine = new CameraEngine();
-    const mpEngine = new MediaPipeEngine();
-    const lmEngine = new LandmarkEngine();
-    const bioEngine = new BiomechanicsEngine();
-    const poseEngine = new PoseRuleEngine();
-    const viewport = new CameraViewport('camera-viewport-container', camEngine);
+document.addEventListener('DOMContentLoaded', async () => {
 
-    const btnStart = document.getElementById('btn-start-pipeline');
-    const btnPause = document.getElementById('btn-pause-pipeline');
-    const btnStop = document.getElementById('btn-stop-pipeline');
+  // ── Engine instances ─────────────────────────────────────────────────────
+  const eventBus = null; // engines use internal buses in this demo; wire up shared bus in production
+  const camEngine  = new CameraEngine();
+  const mpEngine   = new MediaPipeEngine();
+  const lmEngine   = new LandmarkEngine();
+  const bioEngine  = new BiomechanicsEngine();
+  const poseEngine = new PoseRuleEngine();
+  const vizEngine  = new VisualizationEngine();
 
-    const diagPoseName = document.getElementById('diag-pose-name');
-    const diagConf = document.getElementById('diag-pose-conf');
-    const diagTimer = document.getElementById('diag-pose-timer');
-    const diagRules = document.getElementById('diag-pose-rules');
-    const diagState = document.getElementById('diag-pose-state');
+  // ── DOM refs ─────────────────────────────────────────────────────────────
+  const video       = document.getElementById('viz-video');
+  const canvas      = document.getElementById('viz-canvas');
+  const placeholder = document.getElementById('viz-placeholder');
+  const btnStart    = document.getElementById('btn-start');
+  const btnPause    = document.getElementById('btn-pause');
+  const btnStop     = document.getElementById('btn-stop');
+  const btnFs       = document.getElementById('btn-fs');
 
-    await mpEngine.initialize();
-    await lmEngine.initialize();
-    await bioEngine.initialize();
-    await poseEngine.initialize();
+  // Metric display refs
+  const mFps     = document.getElementById('m-fps');
+  const mLat     = document.getElementById('m-lat');
+  const mConf    = document.getElementById('m-conf');
+  const mHold    = document.getElementById('m-hold');
+  const mPose    = document.getElementById('m-pose');
+  const mMatched = document.getElementById('m-matched');
+  const mFailed  = document.getElementById('m-failed');
+  const mHoldst  = document.getElementById('m-holdstate');
+  const bBal     = document.getElementById('b-balance');
+  const bSymm    = document.getElementById('b-symm');
+  const bCom     = document.getElementById('b-com');
+  const bLean    = document.getElementById('b-lean');
+  const pillFps  = document.getElementById('pill-fps');
 
-    btnStart.addEventListener('click', async () => {
-      try {
-        viewport.setLoading();
-        await camEngine.start(viewport.videoElement);
-        await mpEngine.start();
-        await lmEngine.start();
-        await bioEngine.start();
-        await poseEngine.start();
-        viewport.setLive();
+  // ── Initialize all engines ───────────────────────────────────────────────
+  await mpEngine.initialize();
+  await lmEngine.initialize();
+  await bioEngine.initialize();
+  await poseEngine.initialize();
+  await vizEngine.initialize();
 
-        document.getElementById('cam-status-pill').className = 'badge bg-success me-2';
-        document.getElementById('cam-status-pill').textContent = 'Camera Live';
-        document.getElementById('pose-status-pill').className = 'badge bg-success';
-        document.getElementById('pose-status-pill').textContent = 'Pose Classification Active';
+  // ── Start ────────────────────────────────────────────────────────────────
+  btnStart.addEventListener('click', async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      video.srcObject = stream;
+      await video.play();
+      placeholder.style.display = 'none';
 
-        btnStart.disabled = true;
-        btnPause.disabled = false;
-        btnStop.disabled = false;
-      } catch (e) {
-        viewport.setDenied();
-      }
-    });
+      // Size canvas to match video
+      video.addEventListener('loadedmetadata', () => {
+        canvas.width  = video.videoWidth;
+        canvas.height = video.videoHeight;
+      }, { once: true });
 
-    btnPause.addEventListener('click', () => {
-      if (camEngine.status === 'running') {
-        camEngine.pause();
-        mpEngine.pause();
-        lmEngine.pause();
-        bioEngine.pause();
-        poseEngine.pause();
-        btnPause.textContent = 'Resume';
-      } else {
-        camEngine.resume();
-        mpEngine.resume();
-        lmEngine.resume();
-        bioEngine.resume();
-        poseEngine.resume();
-        btnPause.textContent = 'Pause';
-      }
-    });
+      await mpEngine.start();
+      await lmEngine.start();
+      await bioEngine.start();
+      await poseEngine.start();
+      await vizEngine.start(canvas, video);
 
-    btnStop.addEventListener('click', async () => {
-      await camEngine.stop();
-      await mpEngine.stop();
-      await lmEngine.stop();
-      await bioEngine.stop();
-      await poseEngine.stop();
-      viewport.setStopped();
+      document.getElementById('pill-cam').className = 'badge bg-success';
+      document.getElementById('pill-cam').textContent = 'Camera Live';
+      document.getElementById('pill-viz').className = 'badge bg-success';
+      document.getElementById('pill-viz').textContent = 'Visualization Active';
 
-      document.getElementById('cam-status-pill').className = 'badge bg-secondary me-2';
-      document.getElementById('cam-status-pill').textContent = 'Camera Stopped';
-      document.getElementById('pose-status-pill').className = 'badge bg-secondary';
-      document.getElementById('pose-status-pill').textContent = 'Pose Engine Standby';
-
-      btnStart.disabled = false;
-      btnPause.disabled = true;
-      btnStop.disabled = true;
-    });
-
-    setInterval(() => {
-      const diag = poseEngine.getDiagnostics();
-      diagPoseName.textContent = diag.metrics.currentPoseName;
-      diagConf.textContent = `${diag.metrics.confidenceScore}%`;
-      diagTimer.textContent = `${diag.metrics.holdDurationSeconds}s`;
-      diagRules.textContent = `${diag.metrics.matchedRulesCount} Matched / ${diag.metrics.failedRulesCount} Failed`;
-      diagState.textContent = poseEngine.holdState.toUpperCase();
-      viewport.updateMetrics(camEngine.metrics.fps, camEngine.metrics.resolution);
-    }, 500);
+      btnStart.disabled = true;
+      btnPause.disabled = false;
+      btnStop.disabled  = false;
+    } catch (err) {
+      console.error('[Playground] Pipeline start failed:', err);
+      placeholder.querySelector('span').textContent = 'Camera access denied or not available.';
+    }
   });
+
+  // ── Pause / Resume ───────────────────────────────────────────────────────
+  btnPause.addEventListener('click', () => {
+    const running = vizEngine.status === 'running';
+    if (running) {
+      camEngine.pause(); mpEngine.pause(); lmEngine.pause();
+      bioEngine.pause(); poseEngine.pause(); vizEngine.pause();
+      btnPause.textContent = '▶ Resume';
+      document.getElementById('pill-viz').textContent = 'Visualization Paused';
+    } else {
+      camEngine.resume(); mpEngine.resume(); lmEngine.resume();
+      bioEngine.resume(); poseEngine.resume(); vizEngine.resume();
+      btnPause.textContent = '⏸ Pause';
+      document.getElementById('pill-viz').textContent = 'Visualization Active';
+    }
+  });
+
+  // ── Stop ─────────────────────────────────────────────────────────────────
+  btnStop.addEventListener('click', async () => {
+    await vizEngine.stop();
+    await poseEngine.stop();
+    await bioEngine.stop();
+    await lmEngine.stop();
+    await mpEngine.stop();
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(t => t.stop());
+      video.srcObject = null;
+    }
+    placeholder.style.display = 'flex';
+
+    document.getElementById('pill-cam').className = 'badge bg-secondary';
+    document.getElementById('pill-cam').textContent = 'Camera Stopped';
+    document.getElementById('pill-viz').className = 'badge bg-secondary';
+    document.getElementById('pill-viz').textContent = 'Visualization Standby';
+
+    btnStart.disabled = false;
+    btnPause.disabled = true;
+    btnStop.disabled  = true;
+  });
+
+  // ── Fullscreen ────────────────────────────────────────────────────────────
+  btnFs.addEventListener('click', () => vizEngine.requestFullscreen());
+
+  // ── Toggle buttons ────────────────────────────────────────────────────────
+  document.querySelectorAll('.toggle-btn[data-opt]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const opt = btn.dataset.opt;
+      const next = !vizEngine.config[opt];
+      vizEngine.setOption(opt, next);
+      btn.classList.toggle('active', next);
+      // Mirror also flips the CSS on the video element
+      if (opt === 'mirrorMode') {
+        video.style.transform = next ? 'scaleX(-1)' : 'none';
+      }
+    });
+  });
+
+  // ── Metric polling (500 ms) ───────────────────────────────────────────────
+  setInterval(() => {
+    const vd = vizEngine.getDiagnostics();
+    const pd = poseEngine.getDiagnostics();
+    const bd = bioEngine.getDiagnostics();
+
+    mFps.textContent     = vd.metrics.renderFps;
+    mLat.textContent     = `${vd.metrics.visualizationLatencyMs} ms`;
+    pillFps.textContent  = `${vd.metrics.renderFps} FPS`;
+    mConf.textContent    = `${pd.metrics.confidenceScore}%`;
+    mHold.textContent    = `${pd.metrics.holdDurationSeconds}s`;
+    mPose.textContent    = pd.metrics.currentPoseName || '—';
+    mMatched.textContent = `✓ ${pd.metrics.matchedRulesCount} matched`;
+    mFailed.textContent  = `✗ ${pd.metrics.failedRulesCount} failed`;
+    mHoldst.textContent  = poseEngine.holdState?.toUpperCase() || 'idle';
+
+    bBal.textContent  = `${bd.metrics.leftRightBalanceRatio}/${(100 - bd.metrics.leftRightBalanceRatio).toFixed(0)}`;
+    bSymm.textContent = `${bd.metrics.overallSymmetryScore}%`;
+    bCom.textContent  = `${bd.metrics.centerOfMassX}, ${bd.metrics.centerOfMassY}`;
+    bLean.textContent = `--°`; // populated when orientation data flows in
+  }, 500);
+
+});
 </script>
 {% endblock %}

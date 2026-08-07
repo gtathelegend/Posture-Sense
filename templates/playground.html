@@ -1,34 +1,34 @@
 {% extends "base.html" %}
 
-{% block title %}Developer Playground — MediaPipe Vision & Runtime{% endblock %}
+{% block title %}Developer Playground — Landmark Processing Engine & Runtime{% endblock %}
 
 {% block content %}
 <div class="container py-5" style="margin-top: 80px;">
   <div class="row mb-4">
     <div class="col-lg-12">
       <div class="d-flex justify-content-between align-items-center">
-        <h2>🛠️ MediaPipe Vision Engine & Diagnostics Playground</h2>
-        <span class="badge bg-primary fs-6">MediaPipe Engine v2.0.0</span>
+        <h2>🛠️ Landmark Engine & Quality Gate Playground</h2>
+        <span class="badge bg-primary fs-6">Landmark Engine v2.0.0</span>
       </div>
-      <p class="text-muted">Interactive test harness for WebAssembly MediaPipe Tasks Vision (`PoseLandmarker`), off-main-thread Web Worker inference, and 33-landmark contract publication.</p>
+      <p class="text-muted">Interactive test harness for landmark validation, coordinate normalization, EMA/OneEuro temporal smoothing, interpolation, and quality scoring (0–100).</p>
     </div>
   </div>
 
   <div class="row g-4">
-    <!-- Camera Viewport Card -->
+    <!-- Camera & Pipeline Viewport Card -->
     <div class="col-lg-7">
       <div class="card bg-dark border-secondary text-white p-3 h-100">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="m-0">📷 Camera & MediaPipe Pose Viewport</h5>
+          <h5 class="m-0">📷 Full AI Pipeline Viewport</h5>
           <div>
             <span id="cam-status-pill" class="badge bg-secondary me-2">Camera Stopped</span>
-            <span id="mp-status-pill" class="badge bg-warning text-dark">MediaPipe Standby</span>
+            <span id="lm-status-pill" class="badge bg-warning text-dark">Landmark Engine Ready</span>
           </div>
         </div>
         
         <div id="camera-viewport-container" class="mb-3"></div>
 
-        <!-- Camera & MediaPipe Controls -->
+        <!-- Pipeline Controls -->
         <div class="d-flex flex-wrap gap-2 align-items-center">
           <button id="btn-start-pipeline" class="btn btn-success"><i class="bi bi-play-fill"></i> Start Pipeline</button>
           <button id="btn-pause-pipeline" class="btn btn-warning" disabled><i class="bi bi-pause-fill"></i> Pause</button>
@@ -37,46 +37,45 @@
       </div>
     </div>
 
-    <!-- MediaPipe Diagnostics Panel -->
+    <!-- Landmark Diagnostics Panel -->
     <div class="col-lg-5">
       <div class="card bg-dark border-secondary text-white p-3 h-100 d-flex flex-column justify-content-between">
         <div>
-          <h5 class="border-bottom border-secondary pb-2 mb-3">🧠 MediaPipe Tasks Vision (WASM)</h5>
+          <h5 class="border-bottom border-secondary pb-2 mb-3">🛡️ Landmark Quality Gate</h5>
           
           <div class="mb-3">
-            <label class="form-label text-muted small">Model Status:</label>
-            <span id="diag-mp-model" class="badge bg-success d-block text-start p-2">PoseLandmarker Lite (Float16) Loaded</span>
+            <label class="form-label text-muted small">Smoothing Filter:</label>
+            <select id="select-filter-method" class="form-select bg-dark text-white border-secondary">
+              <option value="ema" selected>Exponential Moving Average (EMA α=0.35)</option>
+              <option value="one_euro">OneEuro Filter (Adaptive Low-Pass)</option>
+              <option value="none">None (Raw Keypoints)</option>
+            </select>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label text-muted small">Inference Thread:</label>
-            <span class="badge bg-info text-dark d-block text-start p-2">Web Worker (Off-Main-Thread)</span>
-          </div>
-
-          <h5 class="border-bottom border-secondary pb-2 my-3">📊 Real-Time Pose Diagnostics</h5>
+          <h5 class="border-bottom border-secondary pb-2 my-3">📊 Quality & Stability Diagnostics</h5>
           <div class="row g-2 text-center">
             <div class="col-6">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Landmark Count</span>
-                <strong id="diag-mp-landmarks" class="text-warning fs-4">33</strong>
+                <span class="text-muted d-block small">Frame Quality Score</span>
+                <strong id="diag-lm-score" class="text-success fs-4">95.0</strong>
               </div>
             </div>
             <div class="col-6">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Inference Latency</span>
-                <strong id="diag-mp-latency" class="text-info fs-4">12.5 ms</strong>
+                <span class="text-muted d-block small">Jitter Score</span>
+                <strong id="diag-lm-jitter" class="text-info fs-4">0.002</strong>
               </div>
             </div>
             <div class="col-6 mt-2">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Tracking Status</span>
-                <span id="diag-mp-tracking" class="text-success small fw-bold">ACTIVE</span>
+                <span class="text-muted d-block small">Accepted / Rejected</span>
+                <span id="diag-lm-accepted" class="text-success small fw-bold">100 / 0</span>
               </div>
             </div>
             <div class="col-6 mt-2">
               <div class="p-2 bg-black rounded border border-secondary">
-                <span class="text-muted d-block small">Detection Confidence</span>
-                <span id="diag-mp-conf" class="text-primary small fw-bold">95.0%</span>
+                <span class="text-muted d-block small">Interpolation Status</span>
+                <span id="diag-lm-interp" class="text-primary small fw-bold">Active (Max 5)</span>
               </div>
             </div>
           </div>
@@ -93,35 +92,40 @@
 <script type="module">
   import { CameraEngine } from '/static/assets/js/engines/camera_engine.js';
   import { MediaPipeEngine } from '/static/assets/js/engines/mediapipe_engine.js';
+  import { LandmarkEngine } from '/static/assets/js/engines/landmark_engine.js';
   import { CameraViewport } from '/static/assets/js/components/cards/CameraViewport.js';
 
   document.addEventListener("DOMContentLoaded", async () => {
     const camEngine = new CameraEngine();
     const mpEngine = new MediaPipeEngine();
+    const lmEngine = new LandmarkEngine();
     const viewport = new CameraViewport('camera-viewport-container', camEngine);
 
     const btnStart = document.getElementById('btn-start-pipeline');
     const btnPause = document.getElementById('btn-pause-pipeline');
     const btnStop = document.getElementById('btn-stop-pipeline');
+    const selectFilter = document.getElementById('select-filter-method');
 
-    const diagLandmarks = document.getElementById('diag-mp-landmarks');
-    const diagLatency = document.getElementById('diag-mp-latency');
-    const diagTracking = document.getElementById('diag-mp-tracking');
-    const diagConf = document.getElementById('diag-mp-conf');
+    const diagScore = document.getElementById('diag-lm-score');
+    const diagJitter = document.getElementById('diag-lm-jitter');
+    const diagAccepted = document.getElementById('diag-lm-accepted');
+    const diagInterp = document.getElementById('diag-lm-interp');
 
     await mpEngine.initialize();
+    await lmEngine.initialize();
 
     btnStart.addEventListener('click', async () => {
       try {
         viewport.setLoading();
         await camEngine.start(viewport.videoElement);
         await mpEngine.start();
+        await lmEngine.start();
         viewport.setLive();
 
         document.getElementById('cam-status-pill').className = 'badge bg-success me-2';
         document.getElementById('cam-status-pill').textContent = 'Camera Live';
-        document.getElementById('mp-status-pill').className = 'badge bg-success';
-        document.getElementById('mp-status-pill').textContent = 'MediaPipe Tracking';
+        document.getElementById('lm-status-pill').className = 'badge bg-success';
+        document.getElementById('lm-status-pill').textContent = 'Landmarks Filtered & Validated';
 
         btnStart.disabled = true;
         btnPause.disabled = false;
@@ -135,10 +139,12 @@
       if (camEngine.status === 'running') {
         camEngine.pause();
         mpEngine.pause();
+        lmEngine.pause();
         btnPause.textContent = 'Resume';
       } else {
         camEngine.resume();
         mpEngine.resume();
+        lmEngine.resume();
         btnPause.textContent = 'Pause';
       }
     });
@@ -146,24 +152,29 @@
     btnStop.addEventListener('click', async () => {
       await camEngine.stop();
       await mpEngine.stop();
+      await lmEngine.stop();
       viewport.setStopped();
 
       document.getElementById('cam-status-pill').className = 'badge bg-secondary me-2';
       document.getElementById('cam-status-pill').textContent = 'Camera Stopped';
-      document.getElementById('mp-status-pill').className = 'badge bg-secondary';
-      document.getElementById('mp-status-pill').textContent = 'MediaPipe Standby';
+      document.getElementById('lm-status-pill').className = 'badge bg-secondary';
+      document.getElementById('lm-status-pill').textContent = 'Landmark Engine Standby';
 
       btnStart.disabled = false;
       btnPause.disabled = true;
       btnStop.disabled = true;
     });
 
+    selectFilter.addEventListener('change', (e) => {
+      lmEngine.config.smoothingMethod = e.target.value;
+    });
+
     setInterval(() => {
-      const diag = mpEngine.getDiagnostics();
-      diagLandmarks.textContent = diag.metrics.landmarkCount;
-      diagLatency.textContent = `${diag.metrics.inferenceLatencyMs.toFixed(1)} ms`;
-      diagTracking.textContent = diag.isTracking ? 'ACTIVE' : 'LOST';
-      diagConf.textContent = `${(diag.metrics.trackingConfidence * 100).toFixed(0)}%`;
+      const diag = lmEngine.getDiagnostics();
+      diagScore.textContent = diag.metrics.averageQualityScore;
+      diagJitter.textContent = diag.metrics.jitterScore;
+      diagAccepted.textContent = `${diag.metrics.framesAccepted} / ${diag.metrics.framesRejected}`;
+      diagInterp.textContent = `Active (${diag.metrics.interpolationCount} Recovered)`;
       viewport.updateMetrics(camEngine.metrics.fps, camEngine.metrics.resolution);
     }, 500);
   });

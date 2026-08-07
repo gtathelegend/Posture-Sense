@@ -11,10 +11,12 @@ class PluginMode(str, Enum):
 class EngineStatus(str, Enum):
     UNINITIALIZED = "uninitialized"
     INITIALIZING = "initializing"
+    INITIALIZED = "initialized"
     READY = "ready"
     RUNNING = "running"
     PAUSED = "paused"
     STOPPED = "stopped"
+    DISPOSED = "disposed"
     ERROR = "error"
 
 

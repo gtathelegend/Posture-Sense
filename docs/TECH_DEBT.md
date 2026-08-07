@@ -14,6 +14,7 @@
 | **TD-08** | Direct HTTP fetch calls embedded in HTML inline scripts | Extracted frontend service layer (`AuthService`, `DashboardService`, `SessionService`, `ContactService`). |
 | **TD-09** | Tight coupling between UI elements and lower event handlers | Introduced `EngineAdapter` and `EngineContext` state architecture. |
 | **TD-10** | Lack of runtime lifecycle state machine & dependency resolution | Implemented `EngineRuntime`, `EngineRegistry`, `LifecycleState`, and `DependencyResolver`. |
+| **TD-11** | Server-side webcam streaming dependency | Implemented browser-native `CameraEngine` with device selection, resolution options, and FPS meter. |
 
 ---
 

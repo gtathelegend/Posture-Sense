@@ -1,0 +1,10 @@
+{
+  "version": "2.0.0",
+  "exercise": "squat",
+  "name": "Barbell / Bodyweight Squat",
+  "phases": ["standing", "descending", "bottom", "ascending"],
+  "thresholds": {
+    "standing_knee_angle": [165, 180],
+    "bottom_knee_angle": [70, 110]
+  }
+}

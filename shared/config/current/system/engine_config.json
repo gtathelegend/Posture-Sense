@@ -1,0 +1,9 @@
+{
+  "version": "2.0.0",
+  "system": {
+    "target_fps": 30,
+    "confidence_threshold": 0.5,
+    "warmup_frames": 30,
+    "max_camera_retries": 4
+  }
+}

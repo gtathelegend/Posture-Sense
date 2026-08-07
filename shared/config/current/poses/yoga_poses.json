@@ -1,0 +1,43 @@
+{
+  "version": "2.0.0",
+  "poses": {
+    "warrior_ii": {
+      "name": "Warrior II Pose",
+      "category": "yoga",
+      "required_angles": {
+        "left_elbow": [165, 195],
+        "right_elbow": [165, 195],
+        "left_shoulder": [80, 110],
+        "right_shoulder": [80, 110]
+      }
+    },
+    "t_pose": {
+      "name": "T Pose",
+      "category": "yoga",
+      "required_angles": {
+        "left_elbow": [165, 195],
+        "right_elbow": [165, 195],
+        "left_shoulder": [80, 110],
+        "right_shoulder": [80, 110],
+        "left_knee": [160, 195],
+        "right_knee": [160, 195]
+      }
+    },
+    "tree_pose": {
+      "name": "Tree Pose",
+      "category": "yoga",
+      "required_angles": {
+        "standing_knee": [165, 195],
+        "bent_knee": [25, 45]
+      }
+    },
+    "cobra_pose": {
+      "name": "Cobra Pose",
+      "category": "yoga",
+      "required_angles": {
+        "left_hip_knee": [160, 200],
+        "right_hip_knee": [160, 200]
+      }
+    }
+  }
+}

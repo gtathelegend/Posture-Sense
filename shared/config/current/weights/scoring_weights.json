@@ -1,0 +1,8 @@
+{
+  "version": "2.0.0",
+  "weights": {
+    "posture_score": 0.4,
+    "alignment_score": 0.3,
+    "stability_score": 0.3
+  }
+}

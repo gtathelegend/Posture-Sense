@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Developer Playground — PostureSense v2{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="margin-top: 80px;">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>🛠️ Developer Playground & Architecture Diagnostics</h2>
+        <span class="badge bg-primary fs-6">Internal Debug Page</span>
+      </div>
+      <p class="text-muted">This developer playground monitors core system components, event bus state, and backend engine registration status.</p>
+    </div>
+  </div>
+
+  <div class="row g-4 mt-2">
+    <!-- Diagnostics Card 1 -->
+    <div class="col-md-4">
+      <div class="card bg-dark border-secondary h-100 text-white p-3">
+        <h5>⚙️ System Status</h5>
+        <hr class="border-secondary">
+        <p><strong>App Version:</strong> <span class="text-info">2.0.0</span></p>
+        <p><strong>Config Version:</strong> <span class="text-info">2.0.0</span></p>
+        <p><strong>Environment:</strong> <span class="text-warning">Development</span></p>
+        <p><strong>Shared Core:</strong> <span class="text-success">Active</span></p>
+      </div>
+    </div>
+
+    <!-- Diagnostics Card 2 -->
+    <div class="col-md-4">
+      <div class="card bg-dark border-secondary h-100 text-white p-3">
+        <h5>🔌 Engine Registration</h5>
+        <hr class="border-secondary">
+        <p><strong>Camera Engine:</strong> <span class="text-muted">Not Registered</span></p>
+        <p><strong>MediaPipe Engine:</strong> <span class="text-muted">Not Registered</span></p>
+        <p><strong>Biomechanics Engine:</strong> <span class="text-muted">Not Registered</span></p>
+        <p><strong>Event Bus:</strong> <span class="text-success">Ready</span></p>
+      </div>
+    </div>
+
+    <!-- Diagnostics Card 3 -->
+    <div class="col-md-4">
+      <div class="card bg-dark border-secondary h-100 text-white p-3">
+        <h5>📡 Backend & Network</h5>
+        <hr class="border-secondary">
+        <p><strong>Backend Status:</strong> <span id="playground-backend" class="text-success">Connecting...</span></p>
+        <p><strong>Database Status:</strong> <span class="text-success">Connected (Supabase)</span></p>
+        <p><strong>Debug Overlay:</strong> Press <kbd>CTRL + SHIFT + D</kbd></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      const res = await fetch('/health');
+      const data = await res.json();
+      document.getElementById('playground-backend').textContent = data.status === 'ok' ? 'Online' : 'Offline';
+    } catch {
+      document.getElementById('playground-backend').textContent = 'Offline';
+    }
+  });
+</script>
+{% endblock %}

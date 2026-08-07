@@ -50,6 +50,7 @@ def create_app(config_class=Config):
         'about': 'main.about',
         'yoga_poses': 'main.yoga_poses',
         'join_now': 'main.join_now',
+        'playground': 'main.playground',
         'login': 'auth.login',
         'logout': 'auth.logout',
         'register': 'auth.register',

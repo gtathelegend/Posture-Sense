@@ -64,3 +64,9 @@ def yoga_poses():
 @main_bp.route('/pricing')
 def join_now():
     return redirect('/#pricing')
+
+
+@main_bp.route('/playground')
+def playground():
+    return render_template('playground.html')
+

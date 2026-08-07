@@ -18,6 +18,7 @@
 | **TD-12** | Main-thread blocking computer vision inference | Implemented `MediaPipeEngine` with WebAssembly (`PoseLandmarker`) running inside a Web Worker. |
 | **TD-13** | Raw keypoint jitter and unvalidated landmarks | Implemented `LandmarkEngine` quality gate with EMA filtering, NaN validation, and interpolation. |
 | **TD-14** | Heuristic 2D joint angle approximations | Implemented `BiomechanicsEngine` 3D vector geometry, CoM estimation, symmetry analysis, and ROM tracking. |
+| **TD-15** | Hardcoded pose classification thresholds | Implemented configuration-driven `PoseRuleEngine` matching 12 poses with hold timers. |
 
 ---
 

@@ -22,3 +22,4 @@
 | **Computer Vision Engine** | ❌ Server-side OpenCV/MediaPipe | ✅ Production Browser MediaPipe Tasks WASM | ✅ Off-Main-Thread Web Worker (33 Keypoints) |
 | **Landmark Processing Engine** | ❌ Unfiltered raw keypoints | ✅ `LandmarkEngine` Quality Gate | ✅ EMA Filtering, Interpolation & Quality Scoring |
 | **Biomechanics Engine** | ❌ Heuristic approximations | ✅ `BiomechanicsEngine` 3D Vector Math | ✅ 10 3D Joint Angles, CoM, Symmetry & ROM |
+| **Pose Rule Engine** | ❌ Hardcoded neural net | ✅ Config-Driven `PoseRuleEngine` | ✅ 12 Rule-Based Poses & Hold Detection |

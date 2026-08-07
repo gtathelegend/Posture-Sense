@@ -1,100 +1,183 @@
 {% extends "base.html" %}
 
-{% block title %}Developer Playground — PostureSense v2 Runtime{% endblock %}
+{% block title %}Developer Playground — Camera Engine & Runtime{% endblock %}
 
 {% block content %}
 <div class="container py-5" style="margin-top: 80px;">
-  <div class="row">
+  <div class="row mb-4">
     <div class="col-lg-12">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>🛠️ Engine Runtime & Diagnostics Playground</h2>
-        <span class="badge bg-primary fs-6">Runtime System v2.0.0</span>
+      <div class="d-flex justify-content-between align-items-center">
+        <h2>🛠️ Camera Engine & Runtime Playground</h2>
+        <span class="badge bg-primary fs-6">Camera Engine v2.0.0</span>
       </div>
-      <p class="text-muted">Monitors engine registration, lifecycle states, topological dependency resolution, health scores, and metrics.</p>
+      <p class="text-muted">Interactive test harness for browser camera capture, resolution scaling, device selection, and frame publishing over EventBus.</p>
     </div>
   </div>
 
-  <div class="row g-4 mt-2">
-    <!-- Diagnostics Card 1 -->
-    <div class="col-md-4">
-      <div class="card bg-dark border-secondary h-100 text-white p-3">
-        <h5>⚙️ Runtime System</h5>
-        <hr class="border-secondary">
-        <p><strong>App Version:</strong> <span class="text-info">2.0.0</span></p>
-        <p><strong>Runtime Version:</strong> <span class="text-info">2.0.0</span></p>
-        <p><strong>Lifecycle State:</strong> <span class="text-success">READY</span></p>
-        <p><strong>Event Bus:</strong> <span class="text-success">Active</span></p>
+  <div class="row g-4">
+    <!-- Camera Viewport Card -->
+    <div class="col-lg-7">
+      <div class="card bg-dark border-secondary text-white p-3 h-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="m-0">📷 Live Camera Viewport</h5>
+          <span id="cam-status-pill" class="badge bg-secondary">Stopped</span>
+        </div>
+        
+        <div id="camera-viewport-container" class="mb-3"></div>
+
+        <!-- Camera Controls -->
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <button id="btn-start-cam" class="btn btn-success"><i class="bi bi-play-fill"></i> Start Camera</button>
+          <button id="btn-pause-cam" class="btn btn-warning" disabled><i class="bi bi-pause-fill"></i> Pause</button>
+          <button id="btn-stop-cam" class="btn btn-danger" disabled><i class="bi bi-stop-fill"></i> Stop</button>
+        </div>
       </div>
     </div>
 
-    <!-- Diagnostics Card 2 -->
-    <div class="col-md-4">
-      <div class="card bg-dark border-secondary h-100 text-white p-3">
-        <h5>🔌 Engine Registry & Graph</h5>
-        <hr class="border-secondary">
-        <p><strong>Registered Engines:</strong> <span class="text-warning">12 Defined</span></p>
-        <p><strong>Dependency Resolver:</strong> <span class="text-success">Kahn's Topological</span></p>
-        <p><strong>Health Monitoring:</strong> <span class="text-success">Active</span></p>
-        <p><strong>Metrics Collector:</strong> <span class="text-success">Active</span></p>
-      </div>
-    </div>
+    <!-- Camera Diagnostics & Configuration Panel -->
+    <div class="col-lg-5">
+      <div class="card bg-dark border-secondary text-white p-3 h-100 d-flex flex-column justify-content-between">
+        <div>
+          <h5 class="border-bottom border-secondary pb-2 mb-3">⚙️ Camera Settings</h5>
+          
+          <div class="mb-3">
+            <label class="form-label text-muted small">Select Input Device:</label>
+            <select id="select-camera-device" class="form-select bg-dark text-white border-secondary">
+              <option value="">Detecting cameras...</option>
+            </select>
+          </div>
 
-    <!-- Diagnostics Card 3 -->
-    <div class="col-md-4">
-      <div class="card bg-dark border-secondary h-100 text-white p-3">
-        <h5>📡 System Health & Debug</h5>
-        <hr class="border-secondary">
-        <p><strong>Backend Status:</strong> <span id="playground-backend" class="text-success">Connecting...</span></p>
-        <p><strong>Database:</strong> <span class="text-success">Connected</span></p>
-        <p><strong>Debug Overlay:</strong> Press <kbd>CTRL + SHIFT + D</kbd></p>
-      </div>
-    </div>
-  </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small">Resolution:</label>
+            <select id="select-camera-res" class="form-select bg-dark text-white border-secondary">
+              <option value="640x480">640 x 480 (SD)</option>
+              <option value="1280x720" selected>1280 x 720 (HD 720p)</option>
+              <option value="1920x1080">1920 x 1080 (FHD 1080p)</option>
+            </select>
+          </div>
 
-  <!-- Dependency Graph Visualization Table -->
-  <div class="row mt-4">
-    <div class="col-12">
-      <div class="card bg-dark border-secondary text-white p-4">
-        <h5>🕸️ Engine Dependency Topology</h5>
-        <div class="table-responsive mt-3">
-          <table class="table table-dark table-striped align-middle">
-            <thead>
-              <tr>
-                <th>Priority</th>
-                <th>Engine ID</th>
-                <th>Category</th>
-                <th>Lifecycle State</th>
-                <th>Dependencies</th>
-                <th>Health Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td>1</td><td>camera_engine</td><td>Vision Input</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>None</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>2</td><td>mediapipe_engine</td><td>Landmark Detection</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>camera_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>3</td><td>landmark_engine</td><td>Landmark Filtering</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>mediapipe_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>4</td><td>biomechanics_engine</td><td>Angle Math</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>landmark_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>5</td><td>pose_rule_engine</td><td>Pose Recognition</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>biomechanics_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>6</td><td>movement_engine</td><td>Rep Counter</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>pose_rule_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>7</td><td>scoring_engine</td><td>Form Scoring</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>movement_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>8</td><td>feedback_engine</td><td>Guidance</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>scoring_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>9</td><td>analytics_engine</td><td>Session Stats</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>feedback_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-            </tbody>
-          </table>
+          <h5 class="border-bottom border-secondary pb-2 my-3">📊 Real-Time Diagnostics</h5>
+          <div class="row g-2 text-center">
+            <div class="col-6">
+              <div class="p-2 bg-black rounded border border-secondary">
+                <span class="text-muted d-block small">FPS</span>
+                <strong id="diag-fps" class="text-warning fs-4">0</strong>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-2 bg-black rounded border border-secondary">
+                <span class="text-muted d-block small">Captured Frames</span>
+                <strong id="diag-frames" class="text-info fs-4">0</strong>
+              </div>
+            </div>
+            <div class="col-6 mt-2">
+              <div class="p-2 bg-black rounded border border-secondary">
+                <span class="text-muted d-block small">Current Resolution</span>
+                <span id="diag-res" class="text-success small fw-bold">1280x720</span>
+              </div>
+            </div>
+            <div class="col-6 mt-2">
+              <div class="p-2 bg-black rounded border border-secondary">
+                <span class="text-muted d-block small">Permission Status</span>
+                <span id="diag-perm" class="text-primary small fw-bold">prompt</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-top border-secondary text-muted small">
+          <span>Keyboard Shortcut: Press <kbd>CTRL + SHIFT + D</kbd> to open global debug overlay.</span>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<script>
+<script type="module">
+  import { CameraEngine } from '/static/assets/js/engines/camera_engine.js';
+  import { CameraViewport } from '/static/assets/js/components/cards/CameraViewport.js';
+
   document.addEventListener("DOMContentLoaded", async () => {
-    try {
-      const res = await fetch('/health');
-      const data = await res.json();
-      document.getElementById('playground-backend').textContent = data.status === 'ok' ? 'Online' : 'Offline';
-    } catch {
-      document.getElementById('playground-backend').textContent = 'Offline';
+    const camEngine = new CameraEngine();
+    const viewport = new CameraViewport('camera-viewport-container', camEngine);
+
+    const btnStart = document.getElementById('btn-start-cam');
+    const btnPause = document.getElementById('btn-pause-cam');
+    const btnStop = document.getElementById('btn-stop-cam');
+    const selectDevice = document.getElementById('select-camera-device');
+    const selectRes = document.getElementById('select-camera-res');
+
+    const diagFps = document.getElementById('diag-fps');
+    const diagFrames = document.getElementById('diag-frames');
+    const diagRes = document.getElementById('diag-res');
+    const diagPerm = document.getElementById('diag-perm');
+
+    // Populate camera devices
+    const devices = await camEngine.enumerateDevices();
+    selectDevice.innerHTML = '';
+    if (devices.length === 0) {
+      selectDevice.innerHTML = '<option value="">Default Camera</option>';
+    } else {
+      devices.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.deviceId;
+        opt.textContent = d.label || `Camera ${selectDevice.options.length + 1}`;
+        selectDevice.appendChild(opt);
+      });
     }
+
+    btnStart.addEventListener('click', async () => {
+      try {
+        viewport.setLoading();
+        await camEngine.start(viewport.videoElement);
+        viewport.setLive();
+
+        btnStart.disabled = true;
+        btnPause.disabled = false;
+        btnStop.disabled = false;
+      } catch (e) {
+        viewport.setDenied();
+      }
+    });
+
+    btnPause.addEventListener('click', () => {
+      if (camEngine.status === 'running') {
+        camEngine.pause();
+        btnPause.textContent = 'Resume';
+      } else {
+        camEngine.resume();
+        btnPause.textContent = 'Pause';
+      }
+    });
+
+    btnStop.addEventListener('click', async () => {
+      await camEngine.stop();
+      viewport.setStopped();
+      btnStart.disabled = false;
+      btnPause.disabled = true;
+      btnStop.disabled = true;
+    });
+
+    selectDevice.addEventListener('change', async (e) => {
+      if (e.target.value) {
+        await camEngine.setDevice(e.target.value);
+      }
+    });
+
+    selectRes.addEventListener('change', async (e) => {
+      const [w, h] = e.target.value.split('x').map(Number);
+      await camEngine.setResolution(w, h);
+    });
+
+    // Update real-time metrics UI
+    setInterval(() => {
+      const diag = camEngine.getDiagnostics();
+      diagFps.textContent = diag.metrics.fps;
+      diagFrames.textContent = diag.metrics.frameCount;
+      diagRes.textContent = diag.metrics.resolution;
+      diagPerm.textContent = diag.metrics.permissionStatus;
+      viewport.updateMetrics(diag.metrics.fps, diag.metrics.resolution);
+    }, 500);
   });
 </script>
 {% endblock %}

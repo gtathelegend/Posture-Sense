@@ -1,6 +1,6 @@
 /**
  * DebugOverlay
- * Floating system diagnostic panel toggled via CTRL + SHIFT + D.
+ * System diagnostic panel toggled via CTRL + SHIFT + D. Includes Camera Engine metrics.
  */
 
 export class DebugOverlay {
@@ -50,7 +50,7 @@ export class DebugOverlay {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 320px;
+            width: 340px;
             background: rgba(10, 15, 30, 0.95);
             border: 1px solid #3b82f6;
             border-radius: 8px;
@@ -64,17 +64,20 @@ export class DebugOverlay {
         `;
         div.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 8px; margin-bottom: 10px;">
-                <span style="font-weight: bold; color: #60a5fa;">🔧 PostureSense Debug</span>
+                <span style="font-weight: bold; color: #60a5fa;">🔧 PostureSense Diagnostics</span>
                 <button id="ps-debug-close" style="background: none; border: none; color: #94a3b8; cursor: pointer;">✕</button>
             </div>
             <div id="ps-debug-content">
                 <div>App Version: <span style="color: #4ade80;">2.0.0</span></div>
                 <div>Current Route: <span id="dbg-route" style="color: #fca5a5;">loading...</span></div>
-                <div>Event Count: <span id="dbg-events" style="color: #fde047;">0</span></div>
-                <div>Memory Usage: <span style="color: #94a3b8;">Not Available</span></div>
                 <div>Backend Status: <span id="dbg-backend" style="color: #4ade80;">Checking...</span></div>
-                <div>Config Version: <span style="color: #c084fc;">2.0.0</span></div>
-                <div>Engine Status: <span style="color: #94a3b8;">Not Available</span></div>
+                <hr style="border-color: #334155; margin: 8px 0;">
+                <div style="color: #60a5fa; font-weight: bold;">📷 Camera Engine</div>
+                <div>Camera Status: <span id="dbg-cam-status" style="color: #fde047;">Offline</span></div>
+                <div>Resolution: <span id="dbg-cam-res" style="color: #38bdf8;">1280x720</span></div>
+                <div>FPS: <span id="dbg-cam-fps" style="color: #4ade80;">0</span></div>
+                <div>Captured Frames: <span id="dbg-cam-frames" style="color: #c084fc;">0</span></div>
+                <div>Permission: <span id="dbg-cam-perm" style="color: #94a3b8;">prompt</span></div>
             </div>
         `;
         document.body.appendChild(div);
@@ -87,7 +90,6 @@ export class DebugOverlay {
         if (!this.overlayElement) return;
 
         document.getElementById('dbg-route').textContent = window.location.pathname;
-        document.getElementById('dbg-events').textContent = this.eventCount;
 
         try {
             const res = await fetch('/health');

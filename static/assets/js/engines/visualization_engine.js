@@ -258,39 +258,46 @@ export class VisualizationEngine {
             ctx.scale(-1, 1);
         }
 
-        // 1. Skeleton
-        if (this.config.showSkeleton && this._latestLandmarks) {
-            this._renderBones(ctx, W, H, this._latestLandmarks.landmarks || []);
-            this._renderJoints(ctx, W, H, this._latestLandmarks.landmarks || []);
-        }
+        const trackingState = this._latestLandmarks?.tracking_state || 'NO_TRACKING';
+        const coveragePct = this._latestLandmarks?.body_coverage_pct ?? 0.0;
 
-        // 2. Joint angle labels
-        if (this.config.showJointAngles && this._latestBiomechanics) {
-            this._renderJointAngles(ctx, W, H, this._latestLandmarks?.landmarks || [], this._latestBiomechanics.joint_angles || []);
-        }
+        // 1. Skeleton & Joint Overlays (only if tracking is active)
+        if (trackingState !== 'NO_TRACKING') {
+            if (this.config.showSkeleton && this._latestLandmarks) {
+                this._renderBones(ctx, W, H, this._latestLandmarks.landmarks || []);
+                this._renderJoints(ctx, W, H, this._latestLandmarks.landmarks || []);
+            }
 
-        // 3. Joint name labels
-        if (this.config.showJointLabels && this._latestLandmarks) {
-            this._renderJointLabels(ctx, W, H, this._latestLandmarks.landmarks || []);
+            // 2. Joint angle labels
+            if (this.config.showJointAngles && this._latestBiomechanics) {
+                this._renderJointAngles(ctx, W, H, this._latestLandmarks?.landmarks || [], this._latestBiomechanics.joint_angles || []);
+            }
+
+            // 3. Joint name labels
+            if (this.config.showJointLabels && this._latestLandmarks) {
+                this._renderJointLabels(ctx, W, H, this._latestLandmarks.landmarks || []);
+            }
         }
 
         // 4. Biomechanics overlays — do NOT mirror CoM/balance visuals (world-space)
         if (this.config.mirrorMode) { ctx.restore(); ctx.save(); ctx.scale(this.devicePixelRatio, this.devicePixelRatio); }
 
-        if (this.config.showCenterOfMass && this._latestBiomechanics?.center_of_mass) {
-            this._renderCenterOfMass(ctx, W, H, this._latestBiomechanics);
-        }
+        if (trackingState !== 'NO_TRACKING') {
+            if (this.config.showCenterOfMass && this._latestBiomechanics?.center_of_mass) {
+                this._renderCenterOfMass(ctx, W, H, this._latestBiomechanics);
+            }
 
-        if (this.config.showBalance && this._latestBiomechanics?.balance) {
-            this._renderBalanceBar(ctx, W, H, this._latestBiomechanics.balance);
-        }
+            if (this.config.showBalance && this._latestBiomechanics?.balance) {
+                this._renderBalanceBar(ctx, W, H, this._latestBiomechanics.balance);
+            }
 
-        if (this.config.showSymmetry && this._latestBiomechanics?.symmetry) {
-            this._renderSymmetryIndicator(ctx, W, H, this._latestBiomechanics.symmetry);
-        }
+            if (this.config.showSymmetry && this._latestBiomechanics?.symmetry) {
+                this._renderSymmetryIndicator(ctx, W, H, this._latestBiomechanics.symmetry);
+            }
 
-        if (this.config.showOrientationAxes && this._latestBiomechanics?.orientation) {
-            this._renderOrientationAxes(ctx, W, H, this._latestBiomechanics.orientation);
+            if (this.config.showOrientationAxes && this._latestBiomechanics?.orientation) {
+                this._renderOrientationAxes(ctx, W, H, this._latestBiomechanics.orientation);
+            }
         }
 
         // 5. Pose overlay (top-left HUD)
@@ -301,6 +308,11 @@ export class VisualizationEngine {
         // 6. Rule evaluation overlay (bottom panel)
         if (this.config.showRuleEvaluation && this._latestPose) {
             this._renderRulePanel(ctx, W, H, this._latestPose);
+        }
+
+        // 7. Tracking Quality State Banner (Top Center Warning)
+        if (trackingState !== 'FULL_BODY') {
+            this._renderTrackingStateBanner(ctx, W, H, trackingState, coveragePct);
         }
 
         ctx.restore();
@@ -636,6 +648,38 @@ export class VisualizationEngine {
         if (this.canvas?.requestFullscreen) {
             this.canvas.requestFullscreen();
         }
+    }
+
+    _renderTrackingStateBanner(ctx, W, H, trackingState, coveragePct) {
+        ctx.save();
+        const boxW = 340;
+        const boxH = 56;
+        const boxX = (W - boxW) / 2;
+        const boxY = 16;
+
+        ctx.fillStyle = trackingState === 'NO_TRACKING' ? 'rgba(220, 38, 38, 0.92)' : 'rgba(217, 119, 6, 0.92)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 1.5;
+
+        _roundRect(ctx, boxX, boxY, boxW, boxH, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'center';
+
+        if (trackingState === 'PARTIAL_BODY') {
+            ctx.font = 'bold 14px "Inter", sans-serif';
+            ctx.fillText('⚠️ Move farther away', W / 2, boxY + 22);
+            ctx.font = '12px "Inter", sans-serif';
+            ctx.fillText(`Full body not visible — Body visibility: ${coveragePct}%`, W / 2, boxY + 42);
+        } else {
+            ctx.font = 'bold 14px "Inter", sans-serif';
+            ctx.fillText('🚫 No person detected', W / 2, boxY + 22);
+            ctx.font = '12px "Inter", sans-serif';
+            ctx.fillText('Step into frame or adjust camera angle', W / 2, boxY + 42);
+        }
+        ctx.restore();
     }
 
     // ─── Diagnostics & Publishing ─────────────────────────────────────────────

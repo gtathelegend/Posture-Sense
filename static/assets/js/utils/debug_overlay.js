@@ -82,7 +82,8 @@ export class DebugOverlay {
 
             <!-- Landmark Engine -->
             <div style="color:#38bdf8;font-weight:700;margin-bottom:3px;">🗺️ Landmark Engine  <span style="color:#64748b;font-size:10px;">Priority 3</span></div>
-            <div>Quality Score: <span style="color:#4ade80;">92.0</span> &nbsp; Tracking: <span style="color:#4ade80;">stable</span></div>
+            <div>Quality Score: <span id="dbg-lm-qual" style="color:#4ade80;">—</span> &nbsp; State: <span id="dbg-lm-state" style="color:#fde047;">NO_TRACKING</span></div>
+            <div>Body Coverage: <span id="dbg-lm-coverage" style="color:#38bdf8;">0%</span> &nbsp; Visible: <span id="dbg-lm-vis" style="color:#4ade80;">0</span> &nbsp; Missing: <span id="dbg-lm-miss" style="color:#f87171;">0</span></div>
             <hr style="border-color:#1e293b;margin:6px 0;">
 
             <!-- Biomechanics Engine -->
@@ -201,6 +202,16 @@ export class DebugOverlay {
         } catch {
             const el = this.overlayElement.querySelector('#dbg-backend');
             if (el) { el.textContent = 'Offline ✗'; el.style.color = '#f87171'; }
+        }
+
+        // Landmark Engine metrics
+        if (window.landmarkEngine) {
+            const ld = window.landmarkEngine.getDiagnostics();
+            this._set('dbg-lm-qual',     ld.metrics.averageQualityScore);
+            this._set('dbg-lm-state',    ld.metrics.trackingState);
+            this._set('dbg-lm-coverage', `${ld.metrics.bodyCoveragePct}%`);
+            this._set('dbg-lm-vis',      ld.metrics.visibleLandmarksCount);
+            this._set('dbg-lm-miss',     ld.metrics.missingLandmarksCount);
         }
 
         // Visualization Engine metrics — pulled from window.vizEngine if available

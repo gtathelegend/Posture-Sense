@@ -34,8 +34,13 @@ Every contract inherits from `BaseContract` and includes four mandatory metadata
 9. `FeedbackResult`: Actionable, evidence-based feedback payload (`feedback_id`, `category`, `type`, `severity`, `message`, `evidence`, `metric_source`, `confidence`, `exercise_id`, `rule_triggered`, `template_key`, `variables`).
 10. `FeedbackSessionSummary`: Aggregate session assessment summary (`session_id`, `exercise_id`, `strengths`, `weak_areas`, `common_mistakes`, `improvement_areas`).
 11. `AnalyticsSnapshot`: Session interval statistics (`session_id`, `current_score`, `frame_rate`, `elapsed_seconds`).
-12. `SessionSummary`: Completed session metrics (`session_id`, `user_id`, `pose_label`, `duration`, `avg_accuracy`, `total_reps`).
-13. `UserProfile`: User settings and preference payload (`user_id`, `username`, `email`, `preferred_mode`).
+12. `SessionAnalytics`: Detailed single-session performance record (`session_id`, `user_id`, `start_time`, `end_time`, `duration`, `exercise_id`, `completed_reps`, `valid_reps`, `invalid_reps`, `average_score`, `best_score`, `worst_score`, `consistency`, `tracking_quality`).
+13. `ExerciseAnalytics`: Historical performance aggregation per exercise (`exercise_id`, `total_sessions`, `total_repetitions`, `best_score`, `average_score`, `best_rom`, `average_rom`, `average_stability`, `average_symmetry`, `average_form`, `last_performed`, `improvement_percentage`).
+14. `TrendMetric`: Statistical trend evaluation (`metric_name`, `timeframe`, `trend_direction`, `observation_count`, `slope`, `percentage_change`, `sample_values`).
+15. `PersonalRecord`: Milestone record payload (`record_type`, `exercise_id`, `value`, `unit`, `achieved_at`, `previous_value`).
+16. `AnalyticsSummary`: Aggregate user progress payload (`user_id`, `total_sessions`, `total_duration`, `overall_average_score`, `streak_days`, `recent_sessions`, `exercise_history`, `active_trends`, `personal_records`, `comparison`).
+17. `SessionSummary`: Completed session metrics (`session_id`, `user_id`, `pose_label`, `duration`, `avg_accuracy`, `total_reps`).
+18. `UserProfile`: User settings and preference payload (`user_id`, `username`, `email`, `preferred_mode`).
 
 ---
 

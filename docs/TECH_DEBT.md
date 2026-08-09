@@ -23,6 +23,8 @@
 | **TD-17** | No dynamic rep counting, phase detection, or exercise hold tracking | Implemented `MovementEngine` (Priority 7) with 11-state FSM, sequential phase ordering, debounced rep counter, ROM gate, tempo analyzer, and 10 YAML exercise configs. |
 | **TD-21** | No explainable or multi-dimension performance scoring | Implemented `ScoringEngine` (Priority 8) with 8 configurable scoring dimensions, versioned weights, score confidence, score bands, quality gates, rep/hold/session scoring, and explainability breakdown. |
 | **TD-22** | Hardcoded text strings & lack of evidence-based coaching guidance | Implemented `FeedbackEngine` (Priority 9) with rule-based evaluation, empirical evidence models, severity ranking, deduplication, cooldown timers, and multi-language template keys. |
+| **TD-23** | Lack of longitudinal trend analytics and personal record tracking | Implemented `AnalyticsEngine` (Priority 10) with deterministic statistical trend classification, exercise performance history, personal records, calendar streaks, session comparisons, user isolation, and REST APIs. |
+
 
 
 

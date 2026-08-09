@@ -27,6 +27,8 @@
 | **Movement Engine** | ❌ No rep counting or phase detection | ✅ Config-Driven `MovementEngine` (Priority 7) | ✅ 10 Exercises, FSM, Rep Counter, Tempo, Hold Timer |
 | **Scoring Engine** | ❌ Heuristic static scores | ✅ Config-Driven `ScoringEngine` (Priority 8) | ✅ 8 Dimensions, Deterministic Normalization, Rep/Hold/Session Scores, Score Confidence, Quality Gates |
 | **Feedback Engine** | ❌ Hardcoded feedback text | ✅ Config-Driven `FeedbackEngine` (Priority 9) | ✅ Rule-Based Guidance, Measurable Evidence, Severity Ranking, Cooldown Deduplication, Session Summaries |
+| **Analytics Engine** | ❌ Basic session counter | ✅ `AnalyticsEngine` (Priority 10) | ✅ Longitudinal Progress, Deterministic Trends, Exercise Histories, Personal Records, Streaks, Comparisons, User Isolation |
+
 
 
 

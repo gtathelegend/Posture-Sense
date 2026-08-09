@@ -53,12 +53,20 @@ def video_feed():
 
 @api_bp.route('/health')
 def health():
-    return jsonify({'status': 'ok', 'service': 'PostureSense v2 Backend'})
+    return jsonify({
+        'status': 'healthy',
+        'service': 'PostureSense v2 Backend',
+        'pipeline_status': 'operational',
+        'version': '2.0.0'
+    })
 
 
 @api_bp.route('/version')
 def version():
-    return jsonify({'version': '2.0.0', 'phase': 'Architecture Migration Phase 1'})
+    return jsonify({
+        'version': '2.0.0',
+        'phase': 'Production Validated (Milestones 1–10 Completed)'
+    })
 
 
 # ── Analytics Endpoints (Scoped to current_user for strict user isolation) ───

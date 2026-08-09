@@ -19,7 +19,8 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
 
     # Initialize Extensions
-    CORS(app)
+    origins = app.config.get('ALLOWED_ORIGINS', ['http://localhost:5000', 'http://127.0.0.1:5000'])
+    CORS(app, origins=origins, supports_credentials=True)
     bcrypt.init_app(app)
     login_manager.init_app(app)
 
@@ -36,7 +37,7 @@ def create_app(config_class=Config):
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(contact_bp)
-    app.register_blueprint(api_bp)
+    app.register_blueprint(api_bp, url_prefix='/api')
 
     # Alias map for backward compatibility with templates and legacy url_for calls
     endpoint_aliases = {

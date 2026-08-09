@@ -38,14 +38,15 @@
 <div class="container-fluid py-4" style="margin-top: 72px;">
   <div class="row mb-3 align-items-center">
     <div class="col">
-      <h4 class="mb-0 text-white fw-bold">🦴 Visualization + Movement Engine — Developer Playground</h4>
-      <p class="text-muted small mb-0">Real-time skeleton, biomechanics, pose recognition, rep counting, and hold tracking. Priority 1–7 pipeline.</p>
+      <h4 class="mb-0 text-white fw-bold">🏆 PostureSense AI Pipeline — Developer Playground</h4>
+      <p class="text-muted small mb-0">Real-time perception, biomechanics, pose recognition, movement tracking, and scoring engine (Priority 1–8).</p>
     </div>
     <div class="col-auto d-flex gap-2 align-items-center">
-      <span id="pill-cam"  class="badge bg-secondary">Camera Stopped</span>
-      <span id="pill-viz"  class="badge bg-secondary">Visualization Standby</span>
-      <span id="pill-mv"   class="badge bg-secondary">Movement Standby</span>
-      <span id="pill-fps"  class="badge bg-dark border border-secondary text-info">-- FPS</span>
+      <span id="pill-cam"   class="badge bg-secondary">Camera Stopped</span>
+      <span id="pill-viz"   class="badge bg-secondary">Visualization Standby</span>
+      <span id="pill-mv"    class="badge bg-secondary">Movement Standby</span>
+      <span id="pill-score" class="badge bg-secondary">Scoring Standby</span>
+      <span id="pill-fps"   class="badge bg-dark border border-secondary text-info">-- FPS</span>
     </div>
   </div>
 
@@ -229,6 +230,68 @@
         </div>
       </div>
 
+      <!-- Scoring Engine Card -->
+      <div class="card bg-dark border-secondary text-white p-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2 text-warning d-flex justify-content-between align-items-center">
+          <span>🏆 Scoring Engine — Live Performance Scores</span>
+          <span class="badge bg-warning text-dark fs-6" id="sc-band">Standby</span>
+        </h6>
+        
+        <div class="row g-2">
+          <div class="col-8">
+            <div class="metric-box bg-dark border-warning p-2">
+              <span class="label text-warning fw-bold">OVERALL PERFORMANCE SCORE</span>
+              <span class="value text-warning fw-bold display-6" id="sc-overall">--</span>
+              <span class="small text-muted d-block mt-1">Confidence: <span id="sc-conf" class="text-info">--%</span></span>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="metric-box p-2 h-100 d-flex flex-column justify-content-center">
+              <span class="label">Quality Gate</span>
+              <span class="badge bg-success" id="sc-gate">PASS</span>
+              <span class="label mt-1">Latency</span>
+              <span class="value text-success small" id="sc-lat">-- ms</span>
+            </div>
+          </div>
+
+          <div class="col-4 mt-2"><div class="metric-box">
+            <span class="label">Form Quality</span>
+            <span class="value text-info" id="sc-form">--</span>
+          </div></div>
+          <div class="col-4 mt-2"><div class="metric-box">
+            <span class="label">Range of Motion</span>
+            <span class="value text-success" id="sc-rom">--</span>
+          </div></div>
+          <div class="col-4 mt-2"><div class="metric-box">
+            <span class="label">Stability</span>
+            <span class="value text-primary" id="sc-stab">--</span>
+          </div></div>
+          <div class="col-4 mt-1"><div class="metric-box">
+            <span class="label">Symmetry</span>
+            <span class="value text-info" id="sc-symm">--</span>
+          </div></div>
+          <div class="col-4 mt-1"><div class="metric-box">
+            <span class="label">Control</span>
+            <span class="value text-warning" id="sc-ctrl">--</span>
+          </div></div>
+          <div class="col-4 mt-1"><div class="metric-box">
+            <span class="label">Tempo / Cadence</span>
+            <span class="value text-light" id="sc-tempo">--</span>
+          </div></div>
+        </div>
+
+        <div class="mt-2 pt-2 border-top border-secondary small">
+          <div class="d-flex justify-content-between text-muted mb-1">
+            <span>Unavailable Metrics:</span>
+            <span id="sc-missing" class="text-danger fw-semibold">None</span>
+          </div>
+          <div class="d-flex justify-content-between text-muted">
+            <span>Top Contributors:</span>
+            <span id="sc-top" class="text-info fw-semibold">--</span>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /right panel -->
   </div><!-- /row -->
 </div><!-- /container -->
@@ -241,11 +304,20 @@ import { BiomechanicsEngine }  from '/static/assets/js/engines/biomechanics_engi
 import { PoseRuleEngine }      from '/static/assets/js/engines/pose_rule_engine.js';
 import { VisualizationEngine } from '/static/assets/js/engines/visualization_engine.js';
 import { MovementEngine }      from '/static/assets/js/engines/movement_engine.js';
+import { ScoringEngine }       from '/static/assets/js/engines/scoring_engine.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
+  // Simple event bus wrapper for demo pipeline wiring
+  class SharedDemoBus {
+    constructor() { this.listeners = {}; }
+    subscribe(name, fn) { (this.listeners[name] = this.listeners[name] || []).push(fn); }
+    publish(name, data) { (this.listeners[name] || []).forEach(fn => fn({ name, data })); }
+  }
+
+  const bus = new SharedDemoBus();
+
   // ── Engine instances ─────────────────────────────────────────────────────
-  const eventBus = null; // engines use internal buses in this demo; wire up shared bus in production
   const camEngine  = new CameraEngine();
   const mpEngine   = new MediaPipeEngine();
   const lmEngine   = new LandmarkEngine();
@@ -253,12 +325,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   const poseEngine = new PoseRuleEngine();
   const vizEngine  = new VisualizationEngine();
   const mvEngine   = new MovementEngine();
+  const scoreEngine= new ScoringEngine(bus);
+
+  // Wire event bus notifications for browser demo
+  const origBioProc = bioEngine.processBiomechanics.bind(bioEngine);
+  bioEngine.processBiomechanics = function(lms) {
+    const snap = origBioProc(lms);
+    bus.publish('biomechanics.updated', snap);
+    return snap;
+  };
+
+  const origPoseEval = poseEngine.evaluateRules.bind(poseEngine);
+  poseEngine.evaluateRules = function(snap) {
+    const res = origPoseEval(snap);
+    bus.publish('pose.detected', res);
+    return res;
+  };
 
   // Expose to debug overlay
   window.bioEngine      = bioEngine;
   window.poseEngine     = poseEngine;
   window.vizEngine      = vizEngine;
   window.movementEngine = mvEngine;
+  window.scoringEngine  = scoreEngine;
 
   // ── DOM refs ─────────────────────────────────────────────────────────────
   const video       = document.getElementById('viz-video');
@@ -291,6 +380,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await poseEngine.initialize();
   await vizEngine.initialize();
   await mvEngine.initialize();
+  await scoreEngine.initialize();
 
   // ── Start ────────────────────────────────────────────────────────────────
   btnStart.addEventListener('click', async () => {
@@ -312,9 +402,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       await poseEngine.start();
       await vizEngine.start(canvas, video);
       await mvEngine.start();
+      await scoreEngine.start();
 
-      document.getElementById('pill-mv').className  = 'badge bg-success';
-      document.getElementById('pill-mv').textContent = 'Movement Active';
+      document.getElementById('pill-mv').className    = 'badge bg-success';
+      document.getElementById('pill-mv').textContent   = 'Movement Active';
+      document.getElementById('pill-score').className = 'badge bg-success';
+      document.getElementById('pill-score').textContent= 'Scoring Active';
 
       document.getElementById('pill-cam').className = 'badge bg-success';
       document.getElementById('pill-cam').textContent = 'Camera Live';
@@ -335,21 +428,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const running = vizEngine.status === 'running';
     if (running) {
       camEngine.pause(); mpEngine.pause(); lmEngine.pause();
-      bioEngine.pause(); poseEngine.pause(); vizEngine.pause(); mvEngine.pause();
+      bioEngine.pause(); poseEngine.pause(); vizEngine.pause(); mvEngine.pause(); scoreEngine.pause();
       btnPause.textContent = '▶ Resume';
-      document.getElementById('pill-viz').textContent = 'Visualization Paused';
-      document.getElementById('pill-mv').textContent  = 'Movement Paused';
+      document.getElementById('pill-viz').textContent   = 'Visualization Paused';
+      document.getElementById('pill-mv').textContent    = 'Movement Paused';
+      document.getElementById('pill-score').textContent = 'Scoring Paused';
     } else {
       camEngine.resume(); mpEngine.resume(); lmEngine.resume();
-      bioEngine.resume(); poseEngine.resume(); vizEngine.resume(); mvEngine.resume();
+      bioEngine.resume(); poseEngine.resume(); vizEngine.resume(); mvEngine.resume(); scoreEngine.resume();
       btnPause.textContent = '⏸ Pause';
-      document.getElementById('pill-viz').textContent = 'Visualization Active';
-      document.getElementById('pill-mv').textContent  = 'Movement Active';
+      document.getElementById('pill-viz').textContent   = 'Visualization Active';
+      document.getElementById('pill-mv').textContent    = 'Movement Active';
+      document.getElementById('pill-score').textContent = 'Scoring Active';
     }
   });
 
   // ── Stop ─────────────────────────────────────────────────────────────────
   btnStop.addEventListener('click', async () => {
+    await scoreEngine.stop();
     await mvEngine.stop();
     await vizEngine.stop();
     await poseEngine.stop();
@@ -362,12 +458,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     placeholder.style.display = 'flex';
 
-    document.getElementById('pill-cam').className = 'badge bg-secondary';
+    document.getElementById('pill-cam').className   = 'badge bg-secondary';
     document.getElementById('pill-cam').textContent = 'Camera Stopped';
-    document.getElementById('pill-viz').className = 'badge bg-secondary';
+    document.getElementById('pill-viz').className   = 'badge bg-secondary';
     document.getElementById('pill-viz').textContent = 'Visualization Standby';
-    document.getElementById('pill-mv').className = 'badge bg-secondary';
-    document.getElementById('pill-mv').textContent = 'Movement Standby';
+    document.getElementById('pill-mv').className    = 'badge bg-secondary';
+    document.getElementById('pill-mv').textContent   = 'Movement Standby';
+    document.getElementById('pill-score').className = 'badge bg-secondary';
+    document.getElementById('pill-score').textContent= 'Scoring Standby';
 
     btnStart.disabled = false;
     btnPause.disabled = true;
@@ -384,7 +482,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       const next = !vizEngine.config[opt];
       vizEngine.setOption(opt, next);
       btn.classList.toggle('active', next);
-      // Mirror also flips the CSS on the video element
       if (opt === 'mirrorMode') {
         video.style.transform = next ? 'scaleX(-1)' : 'none';
       }
@@ -403,6 +500,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const pd = poseEngine.getDiagnostics();
     const bd = bioEngine.getDiagnostics();
     const md = mvEngine.getDiagnostics();
+    const sd = scoreEngine.getDiagnostics();
 
     mFps.textContent     = vd.metrics.renderFps;
     mLat.textContent     = `${vd.metrics.visualizationLatencyMs} ms`;
@@ -430,6 +528,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('mv-hold').textContent     = `${m.holdTime ?? 0}s`;
     document.getElementById('mv-duration').textContent = `${m.exerciseDuration ?? 0}s`;
     document.getElementById('mv-lat').textContent      = `${m.recognitionLatencyMs ?? 0} ms`;
+
+    // Scoring Engine metrics
+    const rep = scoreEngine._lastScoreReport;
+    document.getElementById('sc-overall').textContent = sd.metrics.overallScore !== undefined ? sd.metrics.overallScore : '--';
+    document.getElementById('sc-band').textContent    = sd.metrics.scoreBand || 'Standby';
+    document.getElementById('sc-conf').textContent    = `${(sd.metrics.scoreConfidence * 100).toFixed(0)}%`;
+    document.getElementById('sc-lat').textContent     = `${sd.metrics.processingTimeMs} ms`;
+    
+    if (rep && rep.quality_gate_passed) {
+      document.getElementById('sc-gate').className = 'badge bg-success';
+      document.getElementById('sc-gate').textContent = 'PASS';
+    } else {
+      document.getElementById('sc-gate').className = 'badge bg-warning text-dark';
+      document.getElementById('sc-gate').textContent = rep?.quality_warning || 'GATE FAIL';
+    }
+
+    if (rep && rep.components) {
+      document.getElementById('sc-form').textContent  = rep.components.form?.score !== null && rep.components.form?.score !== undefined ? `${rep.components.form.score}` : '--';
+      document.getElementById('sc-rom').textContent   = rep.components.rom?.score !== null && rep.components.rom?.score !== undefined ? `${rep.components.rom.score}` : '--';
+      document.getElementById('sc-stab').textContent  = rep.components.stability?.score !== null && rep.components.stability?.score !== undefined ? `${rep.components.stability.score}` : '--';
+      document.getElementById('sc-symm').textContent  = rep.components.symmetry?.score !== null && rep.components.symmetry?.score !== undefined ? `${rep.components.symmetry.score}` : '--';
+      document.getElementById('sc-ctrl').textContent  = rep.components.control?.score !== null && rep.components.control?.score !== undefined ? `${rep.components.control.score}` : '--';
+      document.getElementById('sc-tempo').textContent = rep.components.tempo?.score !== null && rep.components.tempo?.score !== undefined ? `${rep.components.tempo.score}` : '--';
+      
+      const missing = rep.missing_metrics || [];
+      document.getElementById('sc-missing').textContent = missing.length > 0 ? missing.join(', ') : 'None';
+
+      const topContribs = Object.entries(rep.components)
+        .filter(([_, c]) => c.status !== 'UNAVAILABLE' && c.contribution > 0)
+        .sort((a, b) => b[1].contribution - a[1].contribution)
+        .slice(0, 2)
+        .map(([k, c]) => `${k.toUpperCase()} (+${c.contribution})`);
+      document.getElementById('sc-top').textContent = topContribs.length > 0 ? topContribs.join(', ') : '--';
+    }
   }, 500);
 
 });

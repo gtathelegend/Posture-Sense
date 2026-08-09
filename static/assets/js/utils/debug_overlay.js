@@ -119,6 +119,20 @@ export class DebugOverlay {
                  &nbsp; Cadence: <span id="dbg-mv-cadence" style="color:#fde047;">—</span> rpm</div>
             <div>Direction: <span id="dbg-mv-dir" style="color:#c084fc;">—</span>
                  &nbsp; Latency: <span id="dbg-mv-lat" style="color:#4ade80;">—</span> ms</div>
+            <hr style="border-color:#1e293b;margin:6px 0;">
+
+            <!-- Scoring Engine -->
+            <div style="color:#eab308;font-weight:700;margin-bottom:3px;">🏆 Scoring Engine  <span style="color:#64748b;font-size:10px;">Priority 8</span></div>
+            <div>Overall Score: <span id="dbg-score-overall" style="color:#4ade80;font-weight:700;font-size:14px;">—</span>
+                 &nbsp; Band: <span id="dbg-score-band" style="color:#60a5fa;">—</span></div>
+            <div>Confidence: <span id="dbg-score-conf" style="color:#fde047;">—</span>
+                 &nbsp; Latency: <span id="dbg-score-lat" style="color:#4ade80;">—</span> ms</div>
+            <div>Exercise: <span id="dbg-score-ex" style="color:#f9a8d4;">—</span>
+                 &nbsp; Rep: <span id="dbg-score-rep" style="color:#c084fc;">0</span></div>
+            <div>Form: <span id="dbg-score-form" style="color:#38bdf8;">—</span>
+                 &nbsp; ROM: <span id="dbg-score-rom" style="color:#38bdf8;">—</span></div>
+            <div>Stability: <span id="dbg-score-stab" style="color:#a78bfa;">—</span>
+                 &nbsp; Symmetry: <span id="dbg-score-symm" style="color:#a78bfa;">—</span></div>
 
             <div style="margin-top:10px;color:#475569;font-size:10px;text-align:right;">
                 Press CTRL+SHIFT+D to close
@@ -200,6 +214,22 @@ export class DebugOverlay {
             this._set('dbg-mv-cadence',  md.metrics.currentCadence ?? '—');
             this._set('dbg-mv-dir',      md.metrics.movementDirection || '—');
             this._set('dbg-mv-lat',      md.metrics.recognitionLatencyMs ?? '—');
+        }
+
+        // Scoring Engine metrics
+        if (window.scoringEngine) {
+            const sd = window.scoringEngine.getDiagnostics();
+            const rep = window.scoringEngine._lastScoreReport;
+            this._set('dbg-score-overall', `${sd.metrics.overallScore}/100`);
+            this._set('dbg-score-band',    sd.metrics.scoreBand);
+            this._set('dbg-score-conf',    `${(sd.metrics.scoreConfidence * 100).toFixed(0)}%`);
+            this._set('dbg-score-lat',     `${sd.metrics.processingTimeMs} ms`);
+            this._set('dbg-score-ex',      sd.metrics.activeExerciseName);
+            this._set('dbg-score-rep',     sd.metrics.completedReps);
+            this._set('dbg-score-form',    rep?.components?.form?.score !== undefined ? `${rep.components.form.score}%` : '—');
+            this._set('dbg-score-rom',     rep?.components?.rom?.score !== undefined ? `${rep.components.rom.score}%` : '—');
+            this._set('dbg-score-stab',    rep?.components?.stability?.score !== undefined ? `${rep.components.stability.score}%` : '—');
+            this._set('dbg-score-symm',    rep?.components?.symmetry?.score !== undefined ? `${rep.components.symmetry.score}%` : '—');
         }
     }
 

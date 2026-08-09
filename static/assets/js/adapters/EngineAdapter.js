@@ -58,6 +58,15 @@ export class EngineAdapter {
             });
         });
 
+        // Translate Analytics Events
+        this._subscribe('analytics.progress_updated', (event) => {
+            const data = event.data || event || {};
+            this.engineContext.updateState({
+                sessionsProcessed: data.sessions_processed || 0,
+                activeTrendsCount: data.trends_count || 0
+            });
+        });
+
         // Translate Error Events
         this._subscribe('camera.error', (event) => {
             this.engineContext.updateState({ status: 'error' });

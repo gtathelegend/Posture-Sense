@@ -39,7 +39,7 @@
   <div class="row mb-3 align-items-center">
     <div class="col">
       <h4 class="mb-0 text-white fw-bold">🏆 PostureSense AI Pipeline — Developer Playground</h4>
-      <p class="text-muted small mb-0">Real-time perception, biomechanics, pose recognition, movement tracking, scoring, and feedback engine (Priority 1–9).</p>
+      <p class="text-muted small mb-0">Real-time perception, biomechanics, pose recognition, movement tracking, scoring, feedback, and analytics engine (Priority 1–10).</p>
     </div>
     <div class="col-auto d-flex gap-2 align-items-center">
       <span id="pill-cam"   class="badge bg-secondary">Camera Stopped</span>
@@ -47,6 +47,7 @@
       <span id="pill-mv"    class="badge bg-secondary">Movement Standby</span>
       <span id="pill-score" class="badge bg-secondary">Scoring Standby</span>
       <span id="pill-fb"    class="badge bg-secondary">Feedback Standby</span>
+      <span id="pill-an"    class="badge bg-secondary">Analytics Standby</span>
       <span id="pill-fps"   class="badge bg-dark border border-secondary text-info">-- FPS</span>
     </div>
   </div>
@@ -331,6 +332,41 @@
         </div>
       </div>
 
+      <!-- Analytics & Progress Card -->
+      <div class="card bg-dark border-secondary text-white p-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2 text-info d-flex justify-content-between align-items-center">
+          <span>📊 Analytics & Progress Engine</span>
+          <span class="badge bg-info text-dark" id="an-streak">🔥 0 Day Streak</span>
+        </h6>
+
+        <div class="row g-2 small text-muted">
+          <div class="col-6">
+            <div class="metric-box p-2">
+              <span class="label">Total Sessions</span>
+              <span class="value text-light fw-bold" id="an-sessions">0</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="metric-box p-2">
+              <span class="label">Overall Avg Score</span>
+              <span class="value text-success fw-bold" id="an-avg-score">--</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="metric-box p-2">
+              <span class="label">Personal Records</span>
+              <span class="value text-warning fw-bold" id="an-records">0</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="metric-box p-2">
+              <span class="label">Trend Direction</span>
+              <span class="value text-info fw-bold" id="an-trend">STABLE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /right panel -->
   </div><!-- /row -->
 </div><!-- /container -->
@@ -345,6 +381,7 @@ import { VisualizationEngine } from '/static/assets/js/engines/visualization_eng
 import { MovementEngine }      from '/static/assets/js/engines/movement_engine.js';
 import { ScoringEngine }       from '/static/assets/js/engines/scoring_engine.js';
 import { FeedbackEngine }      from '/static/assets/js/engines/feedback_engine.js';
+import { AnalyticsEngine }     from '/static/assets/js/engines/analytics_engine.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -367,6 +404,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const mvEngine   = new MovementEngine();
   const scoreEngine= new ScoringEngine(bus);
   const fbEngine   = new FeedbackEngine(bus);
+  const anEngine   = new AnalyticsEngine(bus);
 
   // Wire event bus notifications for browser demo
   const origBioProc = bioEngine.processBiomechanics.bind(bioEngine);
@@ -390,6 +428,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.movementEngine = mvEngine;
   window.scoringEngine  = scoreEngine;
   window.feedbackEngine = fbEngine;
+  window.analyticsEngine= anEngine;
 
   // ── DOM refs ─────────────────────────────────────────────────────────────
   const video       = document.getElementById('viz-video');
@@ -424,6 +463,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await mvEngine.initialize();
   await scoreEngine.initialize();
   await fbEngine.initialize();
+  await anEngine.initialize();
 
   // ── Start ────────────────────────────────────────────────────────────────
   btnStart.addEventListener('click', async () => {
@@ -447,6 +487,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       await mvEngine.start();
       await scoreEngine.start();
       await fbEngine.start();
+      await anEngine.start();
 
       document.getElementById('pill-mv').className    = 'badge bg-success';
       document.getElementById('pill-mv').textContent   = 'Movement Active';
@@ -454,6 +495,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('pill-score').textContent= 'Scoring Active';
       document.getElementById('pill-fb').className    = 'badge bg-success';
       document.getElementById('pill-fb').textContent   = 'Feedback Active';
+      document.getElementById('pill-an').className    = 'badge bg-success';
+      document.getElementById('pill-an').textContent   = 'Analytics Active';
 
       document.getElementById('pill-cam').className = 'badge bg-success';
       document.getElementById('pill-cam').textContent = 'Camera Live';
@@ -474,25 +517,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     const running = vizEngine.status === 'running';
     if (running) {
       camEngine.pause(); mpEngine.pause(); lmEngine.pause();
-      bioEngine.pause(); poseEngine.pause(); vizEngine.pause(); mvEngine.pause(); scoreEngine.pause(); fbEngine.pause();
+      bioEngine.pause(); poseEngine.pause(); vizEngine.pause(); mvEngine.pause(); scoreEngine.pause(); fbEngine.pause(); anEngine.pause();
       btnPause.textContent = '▶ Resume';
       document.getElementById('pill-viz').textContent   = 'Visualization Paused';
       document.getElementById('pill-mv').textContent    = 'Movement Paused';
       document.getElementById('pill-score').textContent = 'Scoring Paused';
       document.getElementById('pill-fb').textContent    = 'Feedback Paused';
+      document.getElementById('pill-an').textContent    = 'Analytics Paused';
     } else {
       camEngine.resume(); mpEngine.resume(); lmEngine.resume();
-      bioEngine.resume(); poseEngine.resume(); vizEngine.resume(); mvEngine.resume(); scoreEngine.resume(); fbEngine.resume();
+      bioEngine.resume(); poseEngine.resume(); vizEngine.resume(); mvEngine.resume(); scoreEngine.resume(); fbEngine.resume(); anEngine.resume();
       btnPause.textContent = '⏸ Pause';
       document.getElementById('pill-viz').textContent   = 'Visualization Active';
       document.getElementById('pill-mv').textContent    = 'Movement Active';
       document.getElementById('pill-score').textContent = 'Scoring Active';
       document.getElementById('pill-fb').textContent    = 'Feedback Active';
+      document.getElementById('pill-an').textContent    = 'Analytics Active';
     }
   });
 
   // ── Stop ─────────────────────────────────────────────────────────────────
   btnStop.addEventListener('click', async () => {
+    await anEngine.stop();
     await fbEngine.stop();
     await scoreEngine.stop();
     await mvEngine.stop();
@@ -517,6 +563,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('pill-score').textContent= 'Scoring Standby';
     document.getElementById('pill-fb').className    = 'badge bg-secondary';
     document.getElementById('pill-fb').textContent   = 'Feedback Standby';
+    document.getElementById('pill-an').className    = 'badge bg-secondary';
+    document.getElementById('pill-an').textContent   = 'Analytics Standby';
 
     btnStart.disabled = false;
     btnPause.disabled = true;
@@ -553,6 +601,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const md = mvEngine.getDiagnostics();
     const sd = scoreEngine.getDiagnostics();
     const fd = fbEngine.getDiagnostics();
+    const ad = anEngine.getDiagnostics();
 
     mFps.textContent     = vd.metrics.renderFps;
     mLat.textContent     = `${vd.metrics.visualizationLatencyMs} ms`;
@@ -641,6 +690,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('fb-rule').textContent = '—';
       document.getElementById('fb-src').textContent = '—';
       document.getElementById('fb-evidence').textContent = 'No active issues detected';
+    }
+
+    // Analytics Engine metrics
+    const summary = anEngine.getSummary();
+    document.getElementById('an-sessions').textContent = summary.total_sessions;
+    document.getElementById('an-avg-score').textContent = summary.overall_average_score > 0 ? `${summary.overall_average_score}/100` : '--';
+    document.getElementById('an-records').textContent = summary.personal_records.length;
+    document.getElementById('an-streak').textContent = `🔥 ${summary.streak_days} Day Streak`;
+
+    const tr = summary.active_trends?.overall_score;
+    if (tr) {
+      document.getElementById('an-trend').textContent = `${tr.trend_direction} (${tr.percentage_change >= 0 ? '+' : ''}${tr.percentage_change}%)`;
+      document.getElementById('an-trend').className = `value fw-bold ${tr.trend_direction === 'IMPROVING' ? 'text-success' : tr.trend_direction === 'DECLINING' ? 'text-danger' : 'text-info'}`;
     }
   }, 500);
 

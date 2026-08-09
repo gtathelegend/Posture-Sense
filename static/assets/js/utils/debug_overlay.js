@@ -143,6 +143,15 @@ export class DebugOverlay {
                  &nbsp; Latency: <span id="dbg-fb-lat" style="color:#4ade80;">—</span> ms</div>
             <div>Last Feedback: <span id="dbg-fb-last" style="color:#fde047;font-size:11px;">None</span></div>
             <div>Active Rules: <span id="dbg-fb-rules" style="color:#c084fc;">0</span></div>
+            <hr style="border-color:#1e293b;margin:6px 0;">
+
+            <!-- Analytics Engine -->
+            <div style="color:#38bdf8;font-weight:700;margin-bottom:3px;">📊 Analytics Engine  <span style="color:#64748b;font-size:10px;">Priority 10</span></div>
+            <div>Sessions: <span id="dbg-an-sessions" style="color:#4ade80;">0</span>
+                 &nbsp; Records Broken: <span id="dbg-an-records" style="color:#fde047;">0</span></div>
+            <div>Latest Score: <span id="dbg-an-score" style="color:#38bdf8;">0.0</span>
+                 &nbsp; Trends: <span id="dbg-an-trends" style="color:#c084fc;">0</span></div>
+            <div>Latency: <span id="dbg-an-lat" style="color:#4ade80;">—</span> ms</div>
 
             <div style="margin-top:10px;color:#475569;font-size:10px;text-align:right;">
                 Press CTRL+SHIFT+D to close
@@ -251,6 +260,16 @@ export class DebugOverlay {
             this._set('dbg-fb-lat',    `${fd.metrics.generationLatencyMs} ms`);
             this._set('dbg-fb-last',   fd.metrics.lastFeedbackMessage);
             this._set('dbg-fb-rules',  fd.metrics.activeRulesCount);
+        }
+
+        // Analytics Engine metrics
+        if (window.analyticsEngine) {
+            const ad = window.analyticsEngine.getDiagnostics();
+            this._set('dbg-an-sessions', ad.metrics.sessionsProcessedCount);
+            this._set('dbg-an-records',  ad.metrics.recordsBrokenCount);
+            this._set('dbg-an-score',    ad.metrics.latestScore);
+            this._set('dbg-an-trends',   ad.metrics.trendCount);
+            this._set('dbg-an-lat',      `${ad.metrics.analyticsLatencyMs} ms`);
         }
     }
 

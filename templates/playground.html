@@ -39,7 +39,7 @@
   <div class="row mb-3 align-items-center">
     <div class="col">
       <h4 class="mb-0 text-white fw-bold">🏆 PostureSense AI Pipeline — Developer Playground</h4>
-      <p class="text-muted small mb-0">Real-time perception, biomechanics, pose recognition, movement tracking, scoring, feedback, and analytics engine (Priority 1–10).</p>
+      <p class="text-muted small mb-0">Real-time perception, biomechanics, pose recognition, movement tracking, scoring, feedback, analytics, and reporting engine (Priority 1–11).</p>
     </div>
     <div class="col-auto d-flex gap-2 align-items-center">
       <span id="pill-cam"   class="badge bg-secondary">Camera Stopped</span>
@@ -48,6 +48,7 @@
       <span id="pill-score" class="badge bg-secondary">Scoring Standby</span>
       <span id="pill-fb"    class="badge bg-secondary">Feedback Standby</span>
       <span id="pill-an"    class="badge bg-secondary">Analytics Standby</span>
+      <span id="pill-rp"    class="badge bg-secondary">Reports Standby</span>
       <span id="pill-fps"   class="badge bg-dark border border-secondary text-info">-- FPS</span>
     </div>
   </div>
@@ -367,6 +368,21 @@
         </div>
       </div>
 
+      <!-- Reports & Export Card -->
+      <div class="card bg-dark border-secondary text-white p-3 mt-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2 text-warning d-flex justify-content-between align-items-center">
+          <span>📑 Reports & Export Engine</span>
+          <span class="badge bg-warning text-dark" id="rp-fmt-pill">JSON / PDF / CSV</span>
+        </h6>
+
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          <button id="btn-view-report" class="btn btn-outline-info btn-sm flex-fill">👁️ View Report</button>
+          <button id="btn-export-pdf"   class="btn btn-outline-danger btn-sm flex-fill">📄 PDF</button>
+          <button id="btn-export-json"  class="btn btn-outline-warning btn-sm flex-fill">📋 JSON</button>
+          <button id="btn-export-csv"   class="btn btn-outline-success btn-sm flex-fill">📊 CSV</button>
+        </div>
+      </div>
+
     </div><!-- /right panel -->
   </div><!-- /row -->
 </div><!-- /container -->
@@ -382,6 +398,7 @@ import { MovementEngine }      from '/static/assets/js/engines/movement_engine.j
 import { ScoringEngine }       from '/static/assets/js/engines/scoring_engine.js';
 import { FeedbackEngine }      from '/static/assets/js/engines/feedback_engine.js';
 import { AnalyticsEngine }     from '/static/assets/js/engines/analytics_engine.js';
+import { ReportEngine }        from '/static/assets/js/engines/report_engine.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -405,6 +422,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const scoreEngine= new ScoringEngine(bus);
   const fbEngine   = new FeedbackEngine(bus);
   const anEngine   = new AnalyticsEngine(bus);
+  const rpEngine   = new ReportEngine(bus);
 
   // Wire event bus notifications for browser demo
   const origBioProc = bioEngine.processBiomechanics.bind(bioEngine);
@@ -429,6 +447,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.scoringEngine  = scoreEngine;
   window.feedbackEngine = fbEngine;
   window.analyticsEngine= anEngine;
+  window.reportEngine   = rpEngine;
 
   // ── DOM refs ─────────────────────────────────────────────────────────────
   const video       = document.getElementById('viz-video');
@@ -464,6 +483,34 @@ document.addEventListener('DOMContentLoaded', async () => {
   await scoreEngine.initialize();
   await fbEngine.initialize();
   await anEngine.initialize();
+  await rpEngine.initialize();
+
+  // Export & View Report Buttons
+  document.getElementById('btn-view-report')?.addEventListener('click', () => {
+    const rep = rpEngine.generateSessionReport(anEngine.getSummary());
+    alert(`[PostureSense Session Report]\nType: ${rep.metadata.report_type}\nScore: ${rep.performance.overall_score}\nQuality: ${rep.data_quality.tracking_quality}%`);
+  });
+
+  document.getElementById('btn-export-pdf')?.addEventListener('click', () => {
+    const rep = rpEngine.generateSessionReport(anEngine.getSummary());
+    const res = rpEngine.exportPdf(rep);
+    const blob = new Blob([res.content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  });
+
+  document.getElementById('btn-export-json')?.addEventListener('click', () => {
+    const rep = rpEngine.generateSessionReport(anEngine.getSummary());
+    const res = rpEngine.exportJson(rep);
+    const blob = new Blob([res.content], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = res.filename; a.click();
+  });
+
+  document.getElementById('btn-export-csv')?.addEventListener('click', () => {
+    const res = rpEngine.exportCsv(anEngine.getSummary().recent_sessions || []);
+    const blob = new Blob([res.content], { type: 'text/csv' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = res.filename; a.click();
+  });
 
   // ── Start ────────────────────────────────────────────────────────────────
   btnStart.addEventListener('click', async () => {
@@ -488,6 +535,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       await scoreEngine.start();
       await fbEngine.start();
       await anEngine.start();
+      await rpEngine.start();
 
       document.getElementById('pill-mv').className    = 'badge bg-success';
       document.getElementById('pill-mv').textContent   = 'Movement Active';
@@ -497,6 +545,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('pill-fb').textContent   = 'Feedback Active';
       document.getElementById('pill-an').className    = 'badge bg-success';
       document.getElementById('pill-an').textContent   = 'Analytics Active';
+      document.getElementById('pill-rp').className    = 'badge bg-success';
+      document.getElementById('pill-rp').textContent   = 'Reports Active';
 
       document.getElementById('pill-cam').className = 'badge bg-success';
       document.getElementById('pill-cam').textContent = 'Camera Live';
@@ -517,27 +567,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     const running = vizEngine.status === 'running';
     if (running) {
       camEngine.pause(); mpEngine.pause(); lmEngine.pause();
-      bioEngine.pause(); poseEngine.pause(); vizEngine.pause(); mvEngine.pause(); scoreEngine.pause(); fbEngine.pause(); anEngine.pause();
+      bioEngine.pause(); poseEngine.pause(); vizEngine.pause(); mvEngine.pause(); scoreEngine.pause(); fbEngine.pause(); anEngine.pause(); rpEngine.pause();
       btnPause.textContent = '▶ Resume';
       document.getElementById('pill-viz').textContent   = 'Visualization Paused';
       document.getElementById('pill-mv').textContent    = 'Movement Paused';
       document.getElementById('pill-score').textContent = 'Scoring Paused';
       document.getElementById('pill-fb').textContent    = 'Feedback Paused';
       document.getElementById('pill-an').textContent    = 'Analytics Paused';
+      document.getElementById('pill-rp').textContent    = 'Reports Paused';
     } else {
       camEngine.resume(); mpEngine.resume(); lmEngine.resume();
-      bioEngine.resume(); poseEngine.resume(); vizEngine.resume(); mvEngine.resume(); scoreEngine.resume(); fbEngine.resume(); anEngine.resume();
+      bioEngine.resume(); poseEngine.resume(); vizEngine.resume(); mvEngine.resume(); scoreEngine.resume(); fbEngine.resume(); anEngine.resume(); rpEngine.resume();
       btnPause.textContent = '⏸ Pause';
       document.getElementById('pill-viz').textContent   = 'Visualization Active';
       document.getElementById('pill-mv').textContent    = 'Movement Active';
       document.getElementById('pill-score').textContent = 'Scoring Active';
       document.getElementById('pill-fb').textContent    = 'Feedback Active';
       document.getElementById('pill-an').textContent    = 'Analytics Active';
+      document.getElementById('pill-rp').textContent    = 'Reports Active';
     }
   });
 
   // ── Stop ─────────────────────────────────────────────────────────────────
   btnStop.addEventListener('click', async () => {
+    await rpEngine.stop();
     await anEngine.stop();
     await fbEngine.stop();
     await scoreEngine.stop();
@@ -565,6 +618,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('pill-fb').textContent   = 'Feedback Standby';
     document.getElementById('pill-an').className    = 'badge bg-secondary';
     document.getElementById('pill-an').textContent   = 'Analytics Standby';
+    document.getElementById('pill-rp').className    = 'badge bg-secondary';
+    document.getElementById('pill-rp').textContent   = 'Reports Standby';
 
     btnStart.disabled = false;
     btnPause.disabled = true;

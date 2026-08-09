@@ -67,6 +67,14 @@ export class EngineAdapter {
             });
         });
 
+        // Translate Report Events
+        this._subscribe('report.generated', (event) => {
+            const data = event.data || event || {};
+            this.engineContext.updateState({
+                lastReportType: data.metadata?.report_type || 'session'
+            });
+        });
+
         // Translate Error Events
         this._subscribe('camera.error', (event) => {
             this.engineContext.updateState({ status: 'error' });

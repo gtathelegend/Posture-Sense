@@ -152,6 +152,13 @@ export class DebugOverlay {
             <div>Latest Score: <span id="dbg-an-score" style="color:#38bdf8;">0.0</span>
                  &nbsp; Trends: <span id="dbg-an-trends" style="color:#c084fc;">0</span></div>
             <div>Latency: <span id="dbg-an-lat" style="color:#4ade80;">—</span> ms</div>
+            <hr style="border-color:#1e293b;margin:6px 0;">
+
+            <!-- Report Engine -->
+            <div style="color:#c084fc;font-weight:700;margin-bottom:3px;">📑 Report Engine  <span style="color:#64748b;font-size:10px;">Priority 11</span></div>
+            <div>Generated: <span id="dbg-rp-count" style="color:#4ade80;">0</span>
+                 &nbsp; Last Format: <span id="dbg-rp-fmt" style="color:#fde047;">JSON</span></div>
+            <div>Latency: <span id="dbg-rp-lat" style="color:#38bdf8;">—</span> ms</div>
 
             <div style="margin-top:10px;color:#475569;font-size:10px;text-align:right;">
                 Press CTRL+SHIFT+D to close
@@ -270,6 +277,14 @@ export class DebugOverlay {
             this._set('dbg-an-score',    ad.metrics.latestScore);
             this._set('dbg-an-trends',   ad.metrics.trendCount);
             this._set('dbg-an-lat',      `${ad.metrics.analyticsLatencyMs} ms`);
+        }
+
+        // Report Engine metrics
+        if (window.reportEngine) {
+            const rd = window.reportEngine.getDiagnostics();
+            this._set('dbg-rp-count', rd.metrics.reportsGeneratedCount);
+            this._set('dbg-rp-fmt',   rd.metrics.lastExportFormat.toUpperCase());
+            this._set('dbg-rp-lat',   `${rd.metrics.processingLatencyMs} ms`);
         }
     }
 

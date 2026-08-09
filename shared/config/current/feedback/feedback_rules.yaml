@@ -1,0 +1,150 @@
+version: "2.0.0"
+
+settings:
+  default_cooldown_seconds: 4.0
+  high_severity_cooldown_seconds: 2.5
+  critical_severity_cooldown_seconds: 1.0
+  max_active_feedback_queue: 5
+
+rules:
+  # ---------------------------------------------------------------------------
+  # Form & Alignment Rules
+  # ---------------------------------------------------------------------------
+  - id: rule_form_quality_low
+    category: Form
+    type: correction
+    severity: high
+    metric: form
+    condition: below
+    threshold: 60.0
+    message: "Maintain upright torso and proper alignment."
+    template_key: "feedback.form.low_quality"
+    cooldown_seconds: 4.0
+
+  - id: rule_form_quality_excellent
+    category: Form
+    type: positive
+    severity: info
+    metric: form
+    condition: above
+    threshold: 88.0
+    message: "Excellent body posture and execution!"
+    template_key: "feedback.form.excellent"
+    cooldown_seconds: 8.0
+
+  # ---------------------------------------------------------------------------
+  # Range of Motion (ROM) Rules
+  # ---------------------------------------------------------------------------
+  - id: rule_rom_shallow
+    category: Range of Motion
+    type: correction
+    severity: medium
+    metric: rom
+    condition: below
+    threshold: 70.0
+    message: "Increase your range of motion to reach recommended depth."
+    template_key: "feedback.rom.shallow"
+    cooldown_seconds: 4.0
+
+  - id: rule_rom_excellent
+    category: Range of Motion
+    type: positive
+    severity: low
+    metric: rom
+    condition: above
+    threshold: 90.0
+    message: "Great depth and complete range of motion achieved!"
+    template_key: "feedback.rom.excellent"
+    cooldown_seconds: 8.0
+
+  # ---------------------------------------------------------------------------
+  # Stability & Balance Rules
+  # ---------------------------------------------------------------------------
+  - id: rule_stability_unstable
+    category: Stability
+    type: correction
+    severity: high
+    metric: stability
+    condition: below
+    threshold: 65.0
+    message: "Engage your core to stabilize balance."
+    template_key: "feedback.stability.unstable"
+    cooldown_seconds: 3.5
+
+  - id: rule_stability_solid
+    category: Stability
+    type: positive
+    severity: info
+    metric: stability
+    condition: above
+    threshold: 90.0
+    message: "Rock solid stability maintained."
+    template_key: "feedback.stability.solid"
+    cooldown_seconds: 8.0
+
+  # ---------------------------------------------------------------------------
+  # Symmetry & Alignment Rules
+  # ---------------------------------------------------------------------------
+  - id: rule_symmetry_asymmetric
+    category: Symmetry
+    type: correction
+    severity: medium
+    metric: symmetry
+    condition: below
+    threshold: 75.0
+    message: "Keep both sides aligned symmetrically."
+    template_key: "feedback.symmetry.asymmetric"
+    cooldown_seconds: 4.0
+
+  # ---------------------------------------------------------------------------
+  # Tempo & Control Rules
+  # ---------------------------------------------------------------------------
+  - id: rule_tempo_too_fast
+    category: Tempo
+    type: correction
+    severity: medium
+    metric: tempo
+    condition: below
+    threshold: 50.0
+    message: "Slow down your cadence for better control."
+    template_key: "feedback.tempo.too_fast"
+    cooldown_seconds: 5.0
+
+  - id: rule_control_jerky
+    category: Control
+    type: correction
+    severity: medium
+    metric: control
+    condition: below
+    threshold: 60.0
+    message: "Smooth out movement transitions without bouncing."
+    template_key: "feedback.control.jerky"
+    cooldown_seconds: 4.0
+
+  # ---------------------------------------------------------------------------
+  # Tracking Quality & Warning Rules
+  # ---------------------------------------------------------------------------
+  - id: rule_tracking_quality_low
+    category: Tracking Quality
+    type: warning
+    severity: critical
+    metric: tracking_quality
+    condition: below
+    threshold: 50.0
+    message: "Tracking confidence is low. Ensure clear camera view."
+    template_key: "feedback.tracking.low_quality"
+    cooldown_seconds: 3.0
+
+  # ---------------------------------------------------------------------------
+  # Achievement Rules
+  # ---------------------------------------------------------------------------
+  - id: rule_achievement_high_score
+    category: Form
+    type: achievement
+    severity: high
+    metric: overall_score
+    condition: above
+    threshold: 92.0
+    message: "Outstanding performance! Peak form achieved."
+    template_key: "feedback.achievement.high_score"
+    cooldown_seconds: 15.0

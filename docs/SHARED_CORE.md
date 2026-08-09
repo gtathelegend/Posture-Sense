@@ -31,10 +31,11 @@ Every contract inherits from `BaseContract` and includes four mandatory metadata
 6. `PoseResult`: Recognized static pose (`pose_name`, `confidence`, `is_recognized`).
 7. `ExerciseResult`: Dynamic exercise tracking (`exercise_name`, `rep_count`, `current_phase`, `form_score`).
 8. `ScoreReport`: Multi-component explainable evaluation (`overall_score`, `score_confidence`, `category`, `components`, `exercise_id`, `rep_scores`, `hold_score`, `session_summary`, `missing_metrics`, `quality_gate_passed`, `quality_warning`).
-9. `FeedbackMessage`: Corrective advice (`message`, `severity`, `target_joint`, `correction_angle`).
-10. `AnalyticsSnapshot`: Session interval statistics (`session_id`, `current_score`, `frame_rate`, `elapsed_seconds`).
-11. `SessionSummary`: Completed session metrics (`session_id`, `user_id`, `pose_label`, `duration`, `avg_accuracy`, `total_reps`).
-12. `UserProfile`: User settings and preference payload (`user_id`, `username`, `email`, `preferred_mode`).
+9. `FeedbackResult`: Actionable, evidence-based feedback payload (`feedback_id`, `category`, `type`, `severity`, `message`, `evidence`, `metric_source`, `confidence`, `exercise_id`, `rule_triggered`, `template_key`, `variables`).
+10. `FeedbackSessionSummary`: Aggregate session assessment summary (`session_id`, `exercise_id`, `strengths`, `weak_areas`, `common_mistakes`, `improvement_areas`).
+11. `AnalyticsSnapshot`: Session interval statistics (`session_id`, `current_score`, `frame_rate`, `elapsed_seconds`).
+12. `SessionSummary`: Completed session metrics (`session_id`, `user_id`, `pose_label`, `duration`, `avg_accuracy`, `total_reps`).
+13. `UserProfile`: User settings and preference payload (`user_id`, `username`, `email`, `preferred_mode`).
 
 ---
 

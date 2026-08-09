@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="100%" height="100%">
+  <defs>
+    <linearGradient id="camBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090d16"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+    <filter id="neon" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#camBg)"/>
+
+  <!-- Camera Viewport Box -->
+  <rect x="40" y="40" width="760" height="595" rx="16" fill="#1e293b" fill-opacity="0.4" stroke="#38bdf8" stroke-width="2"/>
+  <text x="65" y="75" font-family="Segoe UI, sans-serif" font-weight="700" font-size="14" fill="#38bdf8">LIVE STREAM // WASM MEDIA PIPE LANDMARKER ENGINE (30 FPS - 12ms INFERENCE)</text>
+
+  <!-- 33-Landmark Wireframe Skeleton Rendering -->
+  <g stroke="#38bdf8" stroke-width="3" stroke-linecap="round" filter="url(#neon)">
+    <!-- Spine / Torso -->
+    <line x1="420" y1="170" x2="420" y2="230"/>
+    <line x1="370" y1="230" x2="470" y2="230"/>
+    <line x1="370" y1="230" x2="385" y2="390"/>
+    <line x1="470" y1="230" x2="455" y2="390"/>
+    <line x1="385" y1="390" x2="455" y2="390"/>
+
+    <!-- Arms -->
+    <line x1="370" y1="230" x2="310" y2="310"/>
+    <line x1="310" y1="310" x2="270" y2="380"/>
+    <line x1="470" y1="230" x2="530" y2="310"/>
+    <line x1="530" y1="310" x2="570" y2="380"/>
+
+    <!-- Legs -->
+    <line x1="385" y1="390" x2="375" y2="490"/>
+    <line x1="375" y1="490" x2="370" y2="580"/>
+    <line x1="455" y1="390" x2="465" y2="490"/>
+    <line x1="465" y1="490" x2="470" y2="580"/>
+  </g>
+
+  <!-- Face Wireframe -->
+  <circle cx="420" cy="170" r="28" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="2"/>
+  <circle cx="410" cy="165" r="4" fill="#38bdf8"/>
+  <circle cx="430" cy="165" r="4" fill="#38bdf8"/>
+  <circle cx="420" cy="175" r="3" fill="#fbbf24"/>
+
+  <!-- Key Joints (33 Keypoints) -->
+  <g fill="#60a5fa" filter="url(#neon)">
+    <circle cx="370" cy="230" r="7"/> <!-- Left Shoulder -->
+    <circle cx="470" cy="230" r="7"/> <!-- Right Shoulder -->
+    <circle cx="310" cy="310" r="6"/> <!-- Left Elbow -->
+    <circle cx="530" cy="310" r="6"/> <!-- Right Elbow -->
+    <circle cx="270" cy="380" r="6"/> <!-- Left Wrist -->
+    <circle cx="570" cy="380" r="6"/> <!-- Right Wrist -->
+    <circle cx="385" cy="390" r="7"/> <!-- Left Hip -->
+    <circle cx="455" cy="390" r="7"/> <!-- Right Hip -->
+    <circle cx="375" cy="490" r="6"/> <!-- Left Knee -->
+    <circle cx="465" cy="490" r="6"/> <!-- Right Knee -->
+    <circle cx="370" cy="580" r="6"/> <!-- Left Ankle -->
+    <circle cx="470" cy="580" r="6"/> <!-- Right Ankle -->
+  </g>
+
+  <!-- Side Control & Metrics Panel -->
+  <rect x="820" y="40" width="340" height="595" rx="16" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="845" y="75" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#ffffff">BIOMECHANICS REAL-TIME</text>
+
+  <!-- Metric Card 1: Neck Angle -->
+  <rect x="845" y="100" width="290" height="75" rx="10" fill="#0f172a" stroke="#334155"/>
+  <text x="865" y="125" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">Neck Flexion Angle</text>
+  <text x="865" y="155" font-family="Segoe UI, sans-serif" font-size="24" font-weight="800" fill="#10b981">14.2° <tspan font-size="14" font-weight="400" fill="#34d399">(Optimal &lt;15°)</tspan></text>
+
+  <!-- Metric Card 2: Shoulder Alignment -->
+  <rect x="845" y="190" width="290" height="75" rx="10" fill="#0f172a" stroke="#334155"/>
+  <text x="865" y="215" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">Shoulder Asymmetry</text>
+  <text x="865" y="245" font-family="Segoe UI, sans-serif" font-size="24" font-weight="800" fill="#38bdf8">1.8° <tspan font-size="14" font-weight="400" fill="#818cf8">(Balanced)</tspan></text>
+
+  <!-- Metric Card 3: Trunk Incline -->
+  <rect x="845" y="280" width="290" height="75" rx="10" fill="#0f172a" stroke="#334155"/>
+  <text x="865" y="305" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">Torso Incline Angle</text>
+  <text x="865" y="335" font-family="Segoe UI, sans-serif" font-size="24" font-weight="800" fill="#fbbf24">8.5° <tspan font-size="14" font-weight="400" fill="#fde047">(Slight Lean)</tspan></text>
+
+  <!-- Active Pose Rule Status -->
+  <rect x="845" y="375" width="290" height="150" rx="10" fill="#0f172a" stroke="#6366f1"/>
+  <text x="865" y="405" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#818cf8">CLASSIFIED POSE RULE</text>
+  <text x="865" y="435" font-family="Segoe UI, sans-serif" font-size="20" font-weight="800" fill="#ffffff">Upright Ergonomic</text>
+  <text x="865" y="465" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">Match Confidence: 96.4%</text>
+
+  <!-- Confidence Bar -->
+  <rect x="865" y="480" width="250" height="10" rx="5" fill="#1e293b"/>
+  <rect x="865" y="480" width="240" height="10" rx="5" fill="#10b981"/>
+
+  <rect x="845" y="545" width="290" height="70" rx="10" fill="#10b981" fill-opacity="0.15" stroke="#10b981"/>
+  <text x="865" y="575" font-family="Segoe UI, sans-serif" font-size="13" font-weight="600" fill="#34d399">✓ Privacy Guard Active: On-Device WASM</text>
+  <text x="865" y="595" font-family="Segoe UI, sans-serif" font-size="11" fill="#94a3b8">Zero video frames leave local browser memory.</text>
+</svg>

@@ -13,6 +13,14 @@ from shared.contracts.analytics import (
     PersonalRecord,
     AnalyticsSummary,
 )
+from shared.contracts.report import (
+    ReportMetadata,
+    SessionReport,
+    ExerciseReport,
+    ProgressReport,
+    ComprehensiveReport,
+    ExportResult,
+)
 from shared.contracts.user import UserProfile
 
 __all__ = [
@@ -35,5 +43,11 @@ __all__ = [
     'TrendMetric',
     'PersonalRecord',
     'AnalyticsSummary',
+    'ReportMetadata',
+    'SessionReport',
+    'ExerciseReport',
+    'ProgressReport',
+    'ComprehensiveReport',
+    'ExportResult',
     'UserProfile',
 ]

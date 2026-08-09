@@ -4,6 +4,62 @@
 {% block title %}Live Demo &mdash; Posture Sense{% endblock %}
 {% block meta_desc %}Experience real-time posture detection and form correction with PostureSense. AI-powered smart mirror using computer vision and MediaPipe technology.{% endblock %}
 
+{% block extra_css %}
+<style>
+  .camera-feed-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #090d16;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+  .camera-feed-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+    display: none;
+  }
+  .camera-feed-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    display: none;
+  }
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+    font-size: 13px;
+  }
+  .metric-tile {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .metric-tile-label {
+    color: var(--ps-text-muted, #94a3b8);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .metric-tile-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 15px;
+    margin-top: 2px;
+    color: var(--ps-text-main, #f8fafc);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <!-- Page hero -->
@@ -11,7 +67,7 @@
   <div class="wrap">
     <p class="eyebrow">live demo</p>
     <h1>PostureSense Live</h1>
-    <p>Real-time AI posture detection. Point your camera and get instant form feedback.</p>
+    <p>Real-time AI posture detection. Point your browser camera and get instant biomechanical form feedback.</p>
   </div>
 </div>
 
@@ -22,11 +78,12 @@
 
       <!-- Camera card -->
       <div class="camera-card">
-        <div class="camera-feed-wrapper">
-          <img id="video_feed" alt="Live Camera Feed">
+        <div class="camera-feed-wrapper camera-feed-container">
+          <video id="cameraVideo" class="camera-feed-video" autoplay playsinline muted></video>
+          <canvas id="skeletonCanvas" class="camera-feed-canvas"></canvas>
           <div class="camera-placeholder" id="cameraPlaceholder">
             <div class="camera-placeholder-icon">&#127902;</div>
-            <p>Camera feed will appear here</p>
+            <p id="placeholderText">Camera feed will appear here</p>
           </div>
         </div>
         <div class="camera-controls-bar">
@@ -41,7 +98,7 @@
         <h3>Detection Status</h3>
 
         <div class="status-row">
-          <span class="status-label">Current</span>
+          <span class="status-label">Current Pose</span>
           <span style="display:flex;align-items:center;gap:8px">
             <span id="pose_status" class="status-value">{{ pose_status if pose_status else 'Unknown' }}</span>
             <span id="statusDot" class="status-dot"></span>
@@ -49,38 +106,54 @@
         </div>
 
         <div class="status-row">
-          <span class="status-label">Last</span>
+          <span class="status-label">Last Pose</span>
           <span style="display:flex;align-items:center;gap:8px">
             <span id="last_pose_status" class="status-value">{{ last_status if last_status else 'Unknown' }}</span>
             <span id="lastStatusDot" class="status-dot"></span>
           </span>
         </div>
 
-        <div class="feedback-card">
+        <div class="feedback-card" style="margin-top: 14px;">
           <p id="feedbackText" style="margin:0;line-height:1.5">Start the camera to begin posture detection and receive real-time feedback on your form.</p>
         </div>
 
-        <div class="how-to-steps" style="margin-top:28px">
+        <!-- Real-Time Biomechanics & Pipeline Telemetry -->
+        <div class="metrics-grid">
+          <div class="metric-tile">
+            <div class="metric-tile-label">Camera FPS</div>
+            <div class="metric-tile-value" id="cameraFps">0 FPS</div>
+          </div>
+          <div class="metric-tile">
+            <div class="metric-tile-label">Form Score</div>
+            <div class="metric-tile-value" id="formScore">--</div>
+          </div>
+          <div class="metric-tile">
+            <div class="metric-tile-label">Keypoints</div>
+            <div class="metric-tile-value" id="landmarkStatus">0 / 33</div>
+          </div>
+          <div class="metric-tile">
+            <div class="metric-tile-label">Symmetry</div>
+            <div class="metric-tile-value" id="symmetryScore">--</div>
+          </div>
+        </div>
+
+        <div class="how-to-steps" style="margin-top:24px">
           <p class="eyebrow" style="margin-bottom:12px">How to use</p>
           <div class="how-to-step">
             <span class="how-to-step-num">1</span>
-            <span>Click &ldquo;Start Camera&rdquo; to begin</span>
+            <span>Click &ldquo;Start Camera&rdquo; to grant browser permission</span>
           </div>
           <div class="how-to-step">
             <span class="how-to-step-num">2</span>
-            <span>Stand in front of the camera</span>
+            <span>Stand in clear view of your webcam</span>
           </div>
           <div class="how-to-step">
             <span class="how-to-step-num">3</span>
-            <span>Follow the on-screen feedback</span>
+            <span>Perform yoga or posture exercises</span>
           </div>
           <div class="how-to-step">
             <span class="how-to-step-num">4</span>
-            <span>Use &ldquo;Pause&rdquo; to temporarily stop</span>
-          </div>
-          <div class="how-to-step">
-            <span class="how-to-step-num">5</span>
-            <span>Click &ldquo;Close&rdquo; when finished</span>
+            <span>Observe real-time 33-landmark skeleton &amp; feedback</span>
           </div>
         </div>
       </div>
@@ -92,163 +165,226 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var baseUrl = window.location.protocol + '//' + window.location.host;
+<script type="module">
+  import { PosePipelineController } from '/static/assets/js/controllers/pose_pipeline_controller.js';
 
-    var startButton = document.getElementById('startCameraButton');
-    var stopButton = document.getElementById('stopCameraButton');
-    var closeButton = document.getElementById('closeCameraButton');
-    var videoFeed = document.getElementById('video_feed');
-    var placeholder = document.getElementById('cameraPlaceholder');
-    var statusDot = document.getElementById('statusDot');
-    var lastStatusDot = document.getElementById('lastStatusDot');
-    var feedbackText = document.getElementById('feedbackText');
-    var poseStatus = document.getElementById('pose_status');
-    var lastPoseStatus = document.getElementById('last_pose_status');
-    var statusInterval = null;
+  document.addEventListener('DOMContentLoaded', async function() {
+    const startButton = document.getElementById('startCameraButton');
+    const stopButton = document.getElementById('stopCameraButton');
+    const closeButton = document.getElementById('closeCameraButton');
+    const videoElement = document.getElementById('cameraVideo');
+    const canvasElement = document.getElementById('skeletonCanvas');
+    const placeholder = document.getElementById('cameraPlaceholder');
+    const placeholderText = document.getElementById('placeholderText');
+    const feedbackText = document.getElementById('feedbackText');
+    const poseStatus = document.getElementById('pose_status');
+    const lastPoseStatus = document.getElementById('last_pose_status');
+    const statusDot = document.getElementById('statusDot');
+    const lastStatusDot = document.getElementById('lastStatusDot');
 
-    var currentPose = null;
-    var poseStartTime = null;
-    var poseAccuracyScore = 0;
+    // Telemetry UI elements
+    const cameraFpsEl = document.getElementById('cameraFps');
+    const formScoreEl = document.getElementById('formScore');
+    const landmarkStatusEl = document.getElementById('landmarkStatus');
+    const symmetryScoreEl = document.getElementById('symmetryScore');
 
-    var initialStatus = poseStatus.textContent.trim();
-    updateStatusDots(initialStatus);
-    updateFeedbackMessage(initialStatus);
+    let controller = null;
+    let currentPoseName = 'Unknown';
+    let lastPoseName = 'Unknown';
+    let poseStartTime = null;
+    let currentOverallScore = 0;
+
+    async function initPipeline() {
+      try {
+        controller = new PosePipelineController();
+        await controller.initialize({
+          videoElement: videoElement,
+          canvasElement: canvasElement
+        });
+
+        // Wire EventBus events to UI updates
+        controller.eventBus.subscribe('camera.started', (e) => {
+          console.log('[PostureSense][Camera] Stream active:', e.data);
+          videoElement.style.display = 'block';
+          canvasElement.style.display = 'block';
+          if (placeholder) placeholder.style.display = 'none';
+          startButton.style.display = 'none';
+          stopButton.style.display = 'inline-flex';
+          closeButton.style.display = 'inline-flex';
+          feedbackText.textContent = 'Camera active. Point yourself towards the webcam to detect posture.';
+        });
+
+        controller.eventBus.subscribe('frame.captured', (e) => {
+          if (cameraFpsEl) {
+            cameraFpsEl.textContent = `${e.data.fps || 0} FPS`;
+          }
+        });
+
+        controller.eventBus.subscribe('landmarks.validated', (e) => {
+          const count = e.data.landmarks ? e.data.landmarks.length : 0;
+          if (landmarkStatusEl) {
+            landmarkStatusEl.textContent = `${count} / 33`;
+          }
+        });
+
+        controller.eventBus.subscribe('biomechanics.updated', (e) => {
+          if (symmetryScoreEl && e.data.symmetry_score !== undefined) {
+            symmetryScoreEl.textContent = `${Math.round(e.data.symmetry_score)}%`;
+          }
+        });
+
+        controller.eventBus.subscribe('pose.detected', (e) => {
+          const detectedName = e.data.pose_name || 'Scanning...';
+          if (detectedName !== currentPoseName) {
+            if (currentPoseName !== 'Unknown' && currentPoseName !== 'Scanning...' && poseStartTime) {
+              saveSession(currentPoseName, Date.now() - poseStartTime, currentOverallScore);
+            }
+            lastPoseName = currentPoseName;
+            currentPoseName = detectedName;
+            poseStartTime = Date.now();
+
+            if (poseStatus) poseStatus.textContent = currentPoseName;
+            if (lastPoseStatus) lastPoseStatus.textContent = lastPoseName;
+            updateStatusDots(currentPoseName, lastPoseName);
+          }
+        });
+
+        controller.eventBus.subscribe('score.updated', (e) => {
+          const score = e.data.overall_score !== undefined ? Math.round(e.data.overall_score) : 0;
+          currentOverallScore = score;
+          if (formScoreEl) {
+            formScoreEl.textContent = `${score}/100`;
+          }
+        });
+
+        controller.eventBus.subscribe('feedback.generated', (e) => {
+          if (e.data && e.data.message) {
+            feedbackText.textContent = e.data.message;
+          }
+        });
+
+        controller.eventBus.subscribe('camera.error', (e) => {
+          handleCameraError(e.data);
+        });
+
+      } catch (err) {
+        console.error('[PostureSense][Pipeline] Pipeline init failed:', err);
+        handleCameraError(err);
+      }
+    }
 
     async function startCamera() {
       try {
-        feedbackText.textContent = 'Initializing camera...';
-        videoFeed.src = baseUrl + '/api/video_feed?' + new Date().getTime();
-        videoFeed.style.display = 'block';
-        if (placeholder) placeholder.style.display = 'none';
-        startButton.style.display = 'none';
-        stopButton.style.display = 'inline-flex';
-        closeButton.style.display = 'inline-flex';
-        startStatusUpdates();
+        feedbackText.textContent = 'Requesting browser camera permission...';
+        if (!controller) {
+          await initPipeline();
+        }
+        await controller.start();
       } catch (err) {
-        console.error('Error starting camera:', err);
-        feedbackText.textContent = 'Error: Could not access camera. Please check your camera connection and permissions.';
-        videoFeed.style.display = 'none';
-        if (placeholder) placeholder.style.display = 'flex';
-        startButton.style.display = 'inline-flex';
-        stopButton.style.display = 'none';
-        closeButton.style.display = 'none';
+        console.error('[PostureSense][Camera] Start error:', err);
+        handleCameraError(err);
       }
     }
 
     async function stopCamera() {
+      if (!controller) return;
       try {
-        if (currentPose && poseStartTime) await savePoseSession();
-        var response = await fetch(baseUrl + '/api/stop_camera', { method: 'GET', headers: { 'Accept': 'application/json' } });
-        if (!response.ok) throw new Error('Failed to stop camera');
-        videoFeed.style.display = 'none';
-        videoFeed.src = '';
-        if (placeholder) placeholder.style.display = 'flex';
-        stopButton.style.display = 'none';
+        if (currentPoseName && poseStartTime) {
+          await saveSession(currentPoseName, Date.now() - poseStartTime, currentOverallScore);
+        }
+        controller.pause();
+        feedbackText.textContent = 'Camera paused. Click “Start Camera” to resume.';
         startButton.style.display = 'inline-flex';
-        feedbackText.textContent = "Camera paused. Click “Start Camera” to resume.";
-        stopStatusUpdates();
+        stopButton.style.display = 'none';
       } catch (err) {
-        console.error('Error stopping camera:', err);
-        feedbackText.textContent = 'Error stopping camera. Please try again.';
+        console.error('[PostureSense][Camera] Pause error:', err);
       }
     }
 
     async function closeCamera() {
+      if (!controller) return;
       try {
-        if (currentPose && poseStartTime) await savePoseSession();
-        var response = await fetch(baseUrl + '/api/stop_camera', { method: 'GET', headers: { 'Accept': 'application/json' } });
-        if (!response.ok) throw new Error('Failed to close camera');
-        videoFeed.style.display = 'none';
-        videoFeed.src = '';
+        if (currentPoseName && poseStartTime) {
+          await saveSession(currentPoseName, Date.now() - poseStartTime, currentOverallScore);
+        }
+        await controller.stop();
+        videoElement.style.display = 'none';
+        canvasElement.style.display = 'none';
         if (placeholder) placeholder.style.display = 'flex';
         startButton.style.display = 'inline-flex';
         stopButton.style.display = 'none';
         closeButton.style.display = 'none';
         feedbackText.textContent = 'Start the camera to begin posture detection and receive real-time feedback on your form.';
-        stopStatusUpdates();
+        
+        // Reset metrics UI
+        if (cameraFpsEl) cameraFpsEl.textContent = '0 FPS';
+        if (formScoreEl) formScoreEl.textContent = '--';
+        if (landmarkStatusEl) landmarkStatusEl.textContent = '0 / 33';
+        if (symmetryScoreEl) symmetryScoreEl.textContent = '--';
       } catch (err) {
-        console.error('Error closing camera:', err);
-        feedbackText.textContent = 'Error closing camera. Please try again.';
+        console.error('[PostureSense][Camera] Close error:', err);
       }
     }
 
-    function startStatusUpdates() {
-      if (!statusInterval) statusInterval = setInterval(updateStatus, 500);
-    }
-
-    function stopStatusUpdates() {
-      if (statusInterval) { clearInterval(statusInterval); statusInterval = null; }
-    }
-
-    async function updateStatus() {
-      try {
-        var response = await fetch(baseUrl + '/api/get_status', { method: 'GET', headers: { 'Accept': 'application/json' } });
-        if (!response.ok) throw new Error('Failed to get status');
-        var data = await response.json();
-        if (data.current_status && data.current_status !== poseStatus.textContent) {
-          var newPose = data.current_status;
-          if (newPose !== currentPose && newPose !== 'Unknown' && newPose !== 'Scanning ...') {
-            if (currentPose && poseStartTime) await savePoseSession();
-            currentPose = newPose;
-            poseStartTime = Date.now();
-            poseAccuracyScore = 85 + Math.random() * 15;
-          }
-          poseStatus.textContent = data.current_status;
-          lastPoseStatus.textContent = data.last_status;
-          updateStatusDots(data.current_status);
-          updateFeedbackMessage(data.current_status);
-        }
-      } catch (err) {
-        console.error('Error updating status:', err);
+    function handleCameraError(error) {
+      let message = 'Error: Could not access camera.';
+      const errName = error ? (error.name || error.reason) : '';
+      
+      if (errName === 'NotAllowedError' || errName === 'PermissionDeniedError') {
+        message = 'Camera permission denied. Please allow camera access in your browser settings.';
+      } else if (errName === 'NotFoundError' || errName === 'DevicesNotFoundError') {
+        message = 'No camera device detected. Please connect a webcam and try again.';
+      } else if (errName === 'NotReadableError' || errName === 'TrackStartError') {
+        message = 'Camera is currently in use by another application.';
+      } else if (errName === 'OverconstrainedError') {
+        message = 'Camera constraints unavailable for your camera device.';
+      } else if (errName === 'SecurityError') {
+        message = 'Camera access requires HTTPS or a secure context.';
+      } else if (errName === 'TypeError') {
+        message = 'Camera API unavailable on this browser or origin.';
       }
+
+      feedbackText.textContent = message;
+      if (placeholderText) placeholderText.textContent = message;
+      videoElement.style.display = 'none';
+      canvasElement.style.display = 'none';
+      if (placeholder) placeholder.style.display = 'flex';
+      startButton.style.display = 'inline-flex';
+      stopButton.style.display = 'none';
+      closeButton.style.display = 'none';
     }
 
-    async function savePoseSession() {
-      if (!currentPose || !poseStartTime) return;
-      var duration = (Date.now() - poseStartTime) / 1000;
-      if (duration < 2) { currentPose = null; poseStartTime = null; return; }
+    async function saveSession(poseLabel, durationMs, accuracy) {
+      const durationSec = durationMs / 1000;
+      if (durationSec < 2.0) return;
       try {
-        var response = await fetch(baseUrl + '/api/save_pose_session', {
+        const response = await fetch('/api/save_pose_session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ pose_label: currentPose, duration: duration, accuracy: poseAccuracyScore })
+          body: JSON.stringify({
+            pose_label: poseLabel,
+            duration: durationSec,
+            accuracy: accuracy
+          })
         });
-        if (response.ok) console.log('Pose session saved:', currentPose, duration.toFixed(1) + 's');
+        if (response.ok) {
+          console.log(`[PostureSense][Session] Pose session saved: ${poseLabel} (${durationSec.toFixed(1)}s, Score: ${accuracy})`);
+        }
       } catch (err) {
-        console.error('Error saving pose session:', err);
-      }
-      currentPose = null;
-      poseStartTime = null;
-      poseAccuracyScore = 0;
-    }
-
-    function updateFeedbackMessage(status) {
-      if (!status) return;
-      switch (status.toLowerCase()) {
-        case 'warrior ii pose': feedbackText.textContent = "Great job! You're in the Warrior II pose."; break;
-        case 't pose':          feedbackText.textContent = "Perfect! You're in the T pose."; break;
-        case 'tree pose':       feedbackText.textContent = "Excellent! You're in the Tree pose."; break;
-        case 'cobra pose':      feedbackText.textContent = "Well done! You're in the Cobra pose."; break;
-        case 'unknown':         feedbackText.textContent = 'Please try to match one of the target poses.'; break;
-        default:
-          if (videoFeed.style.display === 'block') feedbackText.textContent = 'Camera is active. You can now start your exercises.';
+        console.error('[PostureSense][Session] Error saving pose session:', err);
       }
     }
 
-    function updateStatusDots(status) {
-      if (!status) return;
-      statusDot.className = 'status-dot ' + getStatusClass(status);
-      lastStatusDot.className = 'status-dot ' + getStatusClass(lastPoseStatus.textContent);
+    function updateStatusDots(current, last) {
+      if (statusDot) statusDot.className = 'status-dot ' + getStatusClass(current);
+      if (lastStatusDot) lastStatusDot.className = 'status-dot ' + getStatusClass(last);
     }
 
     function getStatusClass(status) {
       if (!status) return '';
-      status = status.toLowerCase();
-      if (status.includes('pose') && status !== 'unknown pose') return 'active';
-      if (status === 'unknown') return 'warning';
-      return '';
+      const s = status.toLowerCase();
+      if (s.includes('pose') || s !== 'unknown') return 'active';
+      return 'warning';
     }
 
     startButton.addEventListener('click', startCamera);

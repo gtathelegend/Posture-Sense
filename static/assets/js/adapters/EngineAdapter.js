@@ -39,6 +39,16 @@ export class EngineAdapter {
             });
         });
 
+        // Translate Score Events
+        this._subscribe('score.updated', (event) => {
+            const data = event.data || event || {};
+            this.engineContext.updateState({
+                overallScore: data.overall_score ?? 0.0,
+                scoreConfidence: data.score_confidence ?? 1.0,
+                scoreBand: data.category || 'Standby'
+            });
+        });
+
         // Translate Error Events
         this._subscribe('camera.error', (event) => {
             this.engineContext.updateState({ status: 'error' });

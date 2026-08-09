@@ -13,6 +13,7 @@ from shared.engines.interfaces import (
     ReportEngineInterface,
 )
 from shared.engines.movement_engine import MovementEngine, MovementState
+from shared.engines.scoring_engine import ScoringEngine
 
 __all__ = [
     'CameraEngineInterface',
@@ -29,4 +30,5 @@ __all__ = [
     'ReportEngineInterface',
     'MovementEngine',
     'MovementState',
+    'ScoringEngine',
 ]

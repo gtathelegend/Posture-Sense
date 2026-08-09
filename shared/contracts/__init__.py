@@ -4,7 +4,15 @@ from shared.contracts.biomechanics import JointAngle, BiomechanicsSnapshot
 from shared.contracts.pose import PoseResult, ExerciseResult
 from shared.contracts.scoring import ScoreReport, FeedbackMessage
 from shared.contracts.feedback import FeedbackResult, FeedbackSessionSummary
-from shared.contracts.analytics import AnalyticsSnapshot, SessionSummary
+from shared.contracts.analytics import (
+    AnalyticsSnapshot,
+    SessionSummary,
+    SessionAnalytics,
+    ExerciseAnalytics,
+    TrendMetric,
+    PersonalRecord,
+    AnalyticsSummary,
+)
 from shared.contracts.user import UserProfile
 
 __all__ = [
@@ -22,5 +30,10 @@ __all__ = [
     'FeedbackSessionSummary',
     'AnalyticsSnapshot',
     'SessionSummary',
+    'SessionAnalytics',
+    'ExerciseAnalytics',
+    'TrendMetric',
+    'PersonalRecord',
+    'AnalyticsSummary',
     'UserProfile',
 ]

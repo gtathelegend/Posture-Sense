@@ -24,6 +24,8 @@
 | **TD-21** | No explainable or multi-dimension performance scoring | Implemented `ScoringEngine` (Priority 8) with 8 configurable scoring dimensions, versioned weights, score confidence, score bands, quality gates, rep/hold/session scoring, and explainability breakdown. |
 | **TD-22** | Hardcoded text strings & lack of evidence-based coaching guidance | Implemented `FeedbackEngine` (Priority 9) with rule-based evaluation, empirical evidence models, severity ranking, deduplication, cooldown timers, and multi-language template keys. |
 | **TD-23** | Lack of longitudinal trend analytics and personal record tracking | Implemented `AnalyticsEngine` (Priority 10) with deterministic statistical trend classification, exercise performance history, personal records, calendar streaks, session comparisons, user isolation, and REST APIs. |
+| **TD-24** | Lack of exportable performance reports and multi-format document generators | Implemented `ReportEngine` (Priority 11) with session, exercise, progress, and comprehensive report composition, PDF rendering, JSON serialization, CSV export, user isolation, and REST APIs. |
+
 
 
 

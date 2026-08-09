@@ -39,8 +39,14 @@ Every contract inherits from `BaseContract` and includes four mandatory metadata
 14. `TrendMetric`: Statistical trend evaluation (`metric_name`, `timeframe`, `trend_direction`, `observation_count`, `slope`, `percentage_change`, `sample_values`).
 15. `PersonalRecord`: Milestone record payload (`record_type`, `exercise_id`, `value`, `unit`, `achieved_at`, `previous_value`).
 16. `AnalyticsSummary`: Aggregate user progress payload (`user_id`, `total_sessions`, `total_duration`, `overall_average_score`, `streak_days`, `recent_sessions`, `exercise_history`, `active_trends`, `personal_records`, `comparison`).
-17. `SessionSummary`: Completed session metrics (`session_id`, `user_id`, `pose_label`, `duration`, `avg_accuracy`, `total_reps`).
-18. `UserProfile`: User settings and preference payload (`user_id`, `username`, `email`, `preferred_mode`).
+17. `ReportMetadata`: Audit metadata container for generated reports (`report_type`, `user_id`, `generated_at`, `source_data_version`, `application_version`, `schema_version`).
+18. `SessionReport`: Single-session report payload (`metadata`, `session_info`, `performance`, `assessment`, `data_quality`).
+19. `ExerciseReport`: Historical exercise performance report (`metadata`, `exercise_info`, `performance_summary`, `recent_history`).
+20. `ProgressReport`: Longitudinal user progress report (`metadata`, `overall_summary`, `trends`, `personal_records`, `comparison`).
+21. `ComprehensiveReport`: Master all-in-one user evaluation report (`metadata`, `progress_summary`, `session_reports`, `exercise_reports`, `personal_records`).
+22. `ExportResult`: Downloadable export container (`report_type`, `format`, `filename`, `content`, `content_type`).
+23. `SessionSummary`: Completed session metrics (`session_id`, `user_id`, `pose_label`, `duration`, `avg_accuracy`, `total_reps`).
+24. `UserProfile`: User settings and preference payload (`user_id`, `username`, `email`, `preferred_mode`).
 
 ---
 

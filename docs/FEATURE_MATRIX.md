@@ -28,6 +28,8 @@
 | **Scoring Engine** | ❌ Heuristic static scores | ✅ Config-Driven `ScoringEngine` (Priority 8) | ✅ 8 Dimensions, Deterministic Normalization, Rep/Hold/Session Scores, Score Confidence, Quality Gates |
 | **Feedback Engine** | ❌ Hardcoded feedback text | ✅ Config-Driven `FeedbackEngine` (Priority 9) | ✅ Rule-Based Guidance, Measurable Evidence, Severity Ranking, Cooldown Deduplication, Session Summaries |
 | **Analytics Engine** | ❌ Basic session counter | ✅ `AnalyticsEngine` (Priority 10) | ✅ Longitudinal Progress, Deterministic Trends, Exercise Histories, Personal Records, Streaks, Comparisons, User Isolation |
+| **Report Engine** | ❌ Static unformatted text | ✅ `ReportEngine` (Priority 11) | ✅ Session/Exercise/Progress/Comprehensive Reports, PDF Export, JSON Export, CSV Export, User Isolation |
+
 
 
 

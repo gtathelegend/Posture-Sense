@@ -25,4 +25,6 @@
 | **Pose Rule Engine** | ❌ Hardcoded neural net | ✅ Config-Driven `PoseRuleEngine` | ✅ 12 Rule-Based Poses & Hold Detection |
 | **Visualization Engine** | ❌ No real-time rendering | ✅ Canvas `VisualizationEngine` | ✅ 33-Landmark Skeleton, CoM, Balance, Pose HUD, 60 FPS |
 | **Movement Engine** | ❌ No rep counting or phase detection | ✅ Config-Driven `MovementEngine` (Priority 7) | ✅ 10 Exercises, FSM, Rep Counter, Tempo, Hold Timer |
+| **Scoring Engine** | ❌ Heuristic static scores | ✅ Config-Driven `ScoringEngine` (Priority 8) | ✅ 8 Dimensions, Deterministic Normalization, Rep/Hold/Session Scores, Score Confidence, Quality Gates |
+
 

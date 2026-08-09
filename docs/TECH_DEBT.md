@@ -21,6 +21,8 @@
 | **TD-15** | Hardcoded pose classification thresholds | Implemented configuration-driven `PoseRuleEngine` matching 12 poses with hold timers. |
 | **TD-16** | No real-time skeleton or biomechanics visualization | Implemented `VisualizationEngine` Canvas renderer with 11 configurable overlays, 60 FPS target, High-DPI support, and mirror mode. |
 | **TD-17** | No dynamic rep counting, phase detection, or exercise hold tracking | Implemented `MovementEngine` (Priority 7) with 11-state FSM, sequential phase ordering, debounced rep counter, ROM gate, tempo analyzer, and 10 YAML exercise configs. |
+| **TD-21** | No explainable or multi-dimension performance scoring | Implemented `ScoringEngine` (Priority 8) with 8 configurable scoring dimensions, versioned weights, score confidence, score bands, quality gates, rep/hold/session scoring, and explainability breakdown. |
+
 
 ---
 

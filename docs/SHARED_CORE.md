@@ -30,7 +30,7 @@ Every contract inherits from `BaseContract` and includes four mandatory metadata
 5. `BiomechanicsSnapshot`: Collection of joint angles, `symmetry_score`, and `balance_score`.
 6. `PoseResult`: Recognized static pose (`pose_name`, `confidence`, `is_recognized`).
 7. `ExerciseResult`: Dynamic exercise tracking (`exercise_name`, `rep_count`, `current_phase`, `form_score`).
-8. `ScoreReport`: Multi-component evaluation (`overall_score`, `posture_score`, `alignment_score`, `stability_score`, `category`).
+8. `ScoreReport`: Multi-component explainable evaluation (`overall_score`, `score_confidence`, `category`, `components`, `exercise_id`, `rep_scores`, `hold_score`, `session_summary`, `missing_metrics`, `quality_gate_passed`, `quality_warning`).
 9. `FeedbackMessage`: Corrective advice (`message`, `severity`, `target_joint`, `correction_angle`).
 10. `AnalyticsSnapshot`: Session interval statistics (`session_id`, `current_score`, `frame_rate`, `elapsed_seconds`).
 11. `SessionSummary`: Completed session metrics (`session_id`, `user_id`, `pose_label`, `duration`, `avg_accuracy`, `total_reps`).

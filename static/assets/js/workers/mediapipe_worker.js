@@ -1,6 +1,7 @@
 /**
  * MediaPipe Tasks Vision Web Worker
  * Performs off-main-thread 33-landmark pose detection using PoseLandmarker.
+ * Preserves x, y, z, visibility, and presence metadata with safe fallbacks.
  */
 
 try {
@@ -8,6 +9,15 @@ try {
 } catch (error) {
     console.error('[MediaPipeWorker] Failed to import vision_bundle.js script:', error);
 }
+
+const LANDMARK_NAMES = [
+    'nose', 'left_eye_inner', 'left_eye', 'left_eye_outer', 'right_eye_inner', 'right_eye',
+    'right_eye_outer', 'left_ear', 'right_ear', 'mouth_left', 'mouth_right', 'left_shoulder',
+    'right_shoulder', 'left_elbow', 'right_elbow', 'left_wrist', 'right_wrist', 'left_pinky',
+    'right_pinky', 'left_index', 'right_index', 'left_thumb', 'right_thumb', 'left_hip',
+    'right_hip', 'left_knee', 'right_knee', 'left_ankle', 'right_ankle', 'left_heel',
+    'right_heel', 'left_foot_index', 'right_foot_index'
+];
 
 let poseLandmarker = null;
 
@@ -50,7 +60,18 @@ self.onmessage = async (e) => {
             const result = poseLandmarker.detect(payload.imageBitmap);
             const latency = performance.now() - startTime;
 
-            const landmarks = result.landmarks && result.landmarks[0] ? result.landmarks[0] : [];
+            const rawLandmarks = result.landmarks && result.landmarks[0] ? result.landmarks[0] : [];
+            const landmarks = rawLandmarks.map((lm, i) => ({
+                id: i,
+                index: i,
+                name: LANDMARK_NAMES[i] || `landmark_${i}`,
+                x: lm.x,
+                y: lm.y,
+                z: lm.z !== undefined && lm.z !== null ? lm.z : 0.0,
+                visibility: lm.visibility !== undefined && lm.visibility !== null ? lm.visibility : 0.0,
+                presence: lm.presence !== undefined && lm.presence !== null ? lm.presence : 0.0
+            }));
+
             self.postMessage({
                 action: 'FRAME_PROCESSED',
                 landmarks: landmarks,

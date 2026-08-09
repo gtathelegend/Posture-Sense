@@ -202,12 +202,14 @@ export class MediaPipeEngine {
         ];
 
         return landmarkNames.map((name, i) => ({
+            id: i,
             index: i,
             name: name,
             x: 0.5 + (Math.sin(i) * 0.1),
             y: 0.5 + (Math.cos(i) * 0.1),
             z: 0.0,
-            visibility: 0.99
+            visibility: 0.99,
+            presence: 0.99
         }));
     }
 

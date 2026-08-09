@@ -12,6 +12,7 @@ from shared.engines.interfaces import (
     NotificationEngineInterface,
     ReportEngineInterface,
 )
+from shared.engines.movement_engine import MovementEngine, MovementState
 
 __all__ = [
     'CameraEngineInterface',
@@ -26,4 +27,6 @@ __all__ = [
     'PersistenceEngineInterface',
     'NotificationEngineInterface',
     'ReportEngineInterface',
+    'MovementEngine',
+    'MovementState',
 ]

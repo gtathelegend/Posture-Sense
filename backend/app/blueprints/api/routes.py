@@ -102,3 +102,68 @@ def get_analytics_records():
     records = AnalyticsRepository.get_personal_records(current_user.id)
     return jsonify({'user_id': str(current_user.id), 'records': records})
 
+
+# ── Reports & Export Endpoints (Scoped to current_user for strict user isolation) ──
+
+@api_bp.route('/reports/session/<session_id>', methods=['GET'])
+@login_required
+def get_session_report(session_id):
+    from backend.app.services.report_service import ReportService
+    rep = ReportService.generate_session_report(current_user.id, session_id)
+    return jsonify(rep)
+
+
+@api_bp.route('/reports/exercise/<exercise_id>', methods=['GET'])
+@login_required
+def get_exercise_report(exercise_id):
+    from backend.app.services.report_service import ReportService
+    rep = ReportService.generate_exercise_report(current_user.id, exercise_id)
+    return jsonify(rep)
+
+
+@api_bp.route('/reports/progress', methods=['GET'])
+@login_required
+def get_progress_report():
+    from backend.app.services.report_service import ReportService
+    rep = ReportService.generate_progress_report(current_user.id)
+    return jsonify(rep)
+
+
+@api_bp.route('/reports/comprehensive', methods=['GET'])
+@login_required
+def get_comprehensive_report():
+    from backend.app.services.report_service import ReportService
+    rep = ReportService.generate_comprehensive_report(current_user.id)
+    return jsonify(rep)
+
+
+@api_bp.route('/reports/session/<session_id>/pdf', methods=['GET'])
+@login_required
+def get_session_report_pdf(session_id):
+    from backend.app.services.report_service import ReportService
+    export_res = ReportService.export_session_pdf(current_user.id, session_id)
+    return Response(export_res['content'], mimetype='text/html', headers={
+        'Content-Disposition': f'inline; filename="{export_res["filename"]}"'
+    })
+
+
+@api_bp.route('/reports/session/<session_id>/json', methods=['GET'])
+@login_required
+def get_session_report_json(session_id):
+    from backend.app.services.report_service import ReportService
+    export_res = ReportService.export_session_json(current_user.id, session_id)
+    return Response(export_res['content'], mimetype='application/json', headers={
+        'Content-Disposition': f'attachment; filename="{export_res["filename"]}"'
+    })
+
+
+@api_bp.route('/reports/progress.csv', methods=['GET'])
+@login_required
+def get_progress_csv():
+    from backend.app.services.report_service import ReportService
+    export_res = ReportService.export_progress_csv(current_user.id)
+    return Response(export_res['content'], mimetype='text/csv', headers={
+        'Content-Disposition': f'attachment; filename="{export_res["filename"]}"'
+    })
+
+

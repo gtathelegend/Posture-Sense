@@ -26,6 +26,8 @@
 | **TD-23** | Lack of longitudinal trend analytics and personal record tracking | Implemented `AnalyticsEngine` (Priority 10) with deterministic statistical trend classification, exercise performance history, personal records, calendar streaks, session comparisons, user isolation, and REST APIs. |
 | **TD-24** | Lack of exportable performance reports and multi-format document generators | Implemented `ReportEngine` (Priority 11) with session, exercise, progress, and comprehensive report composition, PDF rendering, JSON serialization, CSV export, user isolation, and REST APIs. |
 | **TD-25** | Unvalidated end-to-end browser pipeline latency & worker backpressure | Validated complete 11-engine pipeline, added worker backpressure (`isInferenceBusy` gate), verified $< 50$ms inference latency, tracking loss recovery, 107 unit tests passed. |
+| **TD-26** | Lack of production security hardening, CORS policies, & secret guards | Added production secret validation guard, CORS restriction, secure cookies, security headers, zero raw video/landmark persistence, and 111 unit & security tests passed. |
+
 
 
 

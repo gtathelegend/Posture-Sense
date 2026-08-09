@@ -108,11 +108,23 @@ export class DebugOverlay {
                  &nbsp; Latency: <span id="dbg-rlat" style="color:#4ade80;">—</span></div>
             <div>Dropped Frames: <span id="dbg-drop" style="color:#4ade80;">0</span>
                  &nbsp; Total Frames: <span id="dbg-total" style="color:#64748b;">—</span></div>
+            <hr style="border-color:#1e293b;margin:6px 0;">
+
+            <!-- Movement Engine -->
+            <div style="color:#f472b6;font-weight:700;margin-bottom:3px;">🏋️ Movement Engine  <span style="color:#64748b;font-size:10px;">Priority 7</span></div>
+            <div>Exercise: <span id="dbg-mv-exercise" style="color:#f9a8d4;">—</span></div>
+            <div>Phase: <span id="dbg-mv-phase" style="color:#fb923c;">—</span>
+                 &nbsp; FSM: <span id="dbg-mv-fsm" style="color:#38bdf8;">—</span></div>
+            <div>Reps: <span id="dbg-mv-reps" style="color:#4ade80;">0</span>
+                 &nbsp; Cadence: <span id="dbg-mv-cadence" style="color:#fde047;">—</span> rpm</div>
+            <div>Direction: <span id="dbg-mv-dir" style="color:#c084fc;">—</span>
+                 &nbsp; Latency: <span id="dbg-mv-lat" style="color:#4ade80;">—</span> ms</div>
 
             <div style="margin-top:10px;color:#475569;font-size:10px;text-align:right;">
                 Press CTRL+SHIFT+D to close
             </div>
         `;
+
         document.body.appendChild(div);
         this.overlayElement = div;
         div.querySelector('#ps-debug-close').addEventListener('click', () => this.hide());
@@ -177,7 +189,20 @@ export class DebugOverlay {
             this._set('dbg-com',     `(${bd.metrics.centerOfMassX}, ${bd.metrics.centerOfMassY})`);
             this._set('dbg-bio-lat', `${bd.metrics.processingTimeMs ?? 0} ms`);
         }
+
+        // Movement Engine metrics
+        if (window.movementEngine) {
+            const md = window.movementEngine.getDiagnostics();
+            this._set('dbg-mv-exercise', md.metrics.activeExercise || '—');
+            this._set('dbg-mv-phase',    md.metrics.currentPhase || '—');
+            this._set('dbg-mv-fsm',      md.metrics.fsmState || '—');
+            this._set('dbg-mv-reps',     md.metrics.repCount ?? 0);
+            this._set('dbg-mv-cadence',  md.metrics.currentCadence ?? '—');
+            this._set('dbg-mv-dir',      md.metrics.movementDirection || '—');
+            this._set('dbg-mv-lat',      md.metrics.recognitionLatencyMs ?? '—');
+        }
     }
+
 
     _set(id, text) {
         const el = this.overlayElement?.querySelector(`#${id}`);

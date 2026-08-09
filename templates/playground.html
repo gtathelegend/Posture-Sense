@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Developer Playground — Skeleton Visualization & Full Pipeline{% endblock %}
+{% block title %}Developer Playground — Visualization & Movement Engine{% endblock %}
 
 {% block content %}
 <style>
@@ -38,12 +38,13 @@
 <div class="container-fluid py-4" style="margin-top: 72px;">
   <div class="row mb-3 align-items-center">
     <div class="col">
-      <h4 class="mb-0 text-white fw-bold">🦴 Skeleton Visualization Engine — Developer Playground</h4>
-      <p class="text-muted small mb-0">Real-time skeleton, joint angles, CoM, balance, and pose overlay. No AI logic — pure rendering.</p>
+      <h4 class="mb-0 text-white fw-bold">🦴 Visualization + Movement Engine — Developer Playground</h4>
+      <p class="text-muted small mb-0">Real-time skeleton, biomechanics, pose recognition, rep counting, and hold tracking. Priority 1–7 pipeline.</p>
     </div>
     <div class="col-auto d-flex gap-2 align-items-center">
       <span id="pill-cam"  class="badge bg-secondary">Camera Stopped</span>
       <span id="pill-viz"  class="badge bg-secondary">Visualization Standby</span>
+      <span id="pill-mv"   class="badge bg-secondary">Movement Standby</span>
       <span id="pill-fps"  class="badge bg-dark border border-secondary text-info">-- FPS</span>
     </div>
   </div>
@@ -164,17 +165,82 @@
         </div>
       </div>
 
+      <!-- ── Movement Engine panel ─────────────────────────────── -->
+      <div class="card bg-dark border-secondary text-white p-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2" style="color:#f472b6;">🏋️ Movement Engine</h6>
+
+        <!-- Exercise selector -->
+        <div class="mb-2">
+          <label class="form-label text-muted small mb-1" for="mv-exercise-select">Active Exercise</label>
+          <select id="mv-exercise-select" class="form-select form-select-sm bg-dark text-white border-secondary">
+            <option value="">— Select Exercise —</option>
+            <option value="bodyweight_squat">Bodyweight Squat</option>
+            <option value="push_up">Push-Up</option>
+            <option value="lunge">Lunge</option>
+            <option value="jumping_jack">Jumping Jack</option>
+            <option value="plank">Plank (Hold)</option>
+            <option value="wall_sit">Wall Sit (Hold)</option>
+            <option value="chair_pose_hold">Chair Pose Hold</option>
+            <option value="tree_pose_hold">Tree Pose Hold</option>
+            <option value="warrior_ii_hold">Warrior II Hold</option>
+            <option value="bridge_hold">Bridge Hold</option>
+          </select>
+        </div>
+
+        <!-- Rep Counter (large) -->
+        <div class="metric-box mb-2 text-center" style="background:#1a1035;border-color:#7c3aed;">
+          <span class="label">Rep Count</span>
+          <div id="mv-reps" style="font-size:42px;font-weight:900;color:#c084fc;line-height:1.1;">0</div>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-6"><div class="metric-box">
+            <span class="label">Current Phase</span>
+            <span class="value text-warning" id="mv-phase" style="font-size:13px;">idle</span>
+          </div></div>
+          <div class="col-6"><div class="metric-box">
+            <span class="label">FSM State</span>
+            <span class="value text-info" id="mv-fsm" style="font-size:13px;">idle</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">ROM %</span>
+            <span class="value text-success" id="mv-rom">--%</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Cadence</span>
+            <span class="value text-primary" id="mv-cadence">-- rpm</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Movement Dir</span>
+            <span class="value" id="mv-dir" style="color:#c084fc;font-size:13px;">—</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Hold Timer</span>
+            <span class="value text-warning" id="mv-hold">0.0s</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Exercise Timer</span>
+            <span class="value text-muted" id="mv-duration">0.0s</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Latency</span>
+            <span class="value text-success" id="mv-lat">-- ms</span>
+          </div></div>
+        </div>
+      </div>
+
     </div><!-- /right panel -->
   </div><!-- /row -->
 </div><!-- /container -->
 
 <script type="module">
-import { CameraEngine }       from '/static/assets/js/engines/camera_engine.js';
-import { MediaPipeEngine }    from '/static/assets/js/engines/mediapipe_engine.js';
-import { LandmarkEngine }     from '/static/assets/js/engines/landmark_engine.js';
-import { BiomechanicsEngine } from '/static/assets/js/engines/biomechanics_engine.js';
-import { PoseRuleEngine }     from '/static/assets/js/engines/pose_rule_engine.js';
+import { CameraEngine }        from '/static/assets/js/engines/camera_engine.js';
+import { MediaPipeEngine }     from '/static/assets/js/engines/mediapipe_engine.js';
+import { LandmarkEngine }      from '/static/assets/js/engines/landmark_engine.js';
+import { BiomechanicsEngine }  from '/static/assets/js/engines/biomechanics_engine.js';
+import { PoseRuleEngine }      from '/static/assets/js/engines/pose_rule_engine.js';
 import { VisualizationEngine } from '/static/assets/js/engines/visualization_engine.js';
+import { MovementEngine }      from '/static/assets/js/engines/movement_engine.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -186,6 +252,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const bioEngine  = new BiomechanicsEngine();
   const poseEngine = new PoseRuleEngine();
   const vizEngine  = new VisualizationEngine();
+  const mvEngine   = new MovementEngine();
+
+  // Expose to debug overlay
+  window.bioEngine      = bioEngine;
+  window.poseEngine     = poseEngine;
+  window.vizEngine      = vizEngine;
+  window.movementEngine = mvEngine;
 
   // ── DOM refs ─────────────────────────────────────────────────────────────
   const video       = document.getElementById('viz-video');
@@ -217,6 +290,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await bioEngine.initialize();
   await poseEngine.initialize();
   await vizEngine.initialize();
+  await mvEngine.initialize();
 
   // ── Start ────────────────────────────────────────────────────────────────
   btnStart.addEventListener('click', async () => {
@@ -237,6 +311,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       await bioEngine.start();
       await poseEngine.start();
       await vizEngine.start(canvas, video);
+      await mvEngine.start();
+
+      document.getElementById('pill-mv').className  = 'badge bg-success';
+      document.getElementById('pill-mv').textContent = 'Movement Active';
 
       document.getElementById('pill-cam').className = 'badge bg-success';
       document.getElementById('pill-cam').textContent = 'Camera Live';
@@ -257,19 +335,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     const running = vizEngine.status === 'running';
     if (running) {
       camEngine.pause(); mpEngine.pause(); lmEngine.pause();
-      bioEngine.pause(); poseEngine.pause(); vizEngine.pause();
+      bioEngine.pause(); poseEngine.pause(); vizEngine.pause(); mvEngine.pause();
       btnPause.textContent = '▶ Resume';
       document.getElementById('pill-viz').textContent = 'Visualization Paused';
+      document.getElementById('pill-mv').textContent  = 'Movement Paused';
     } else {
       camEngine.resume(); mpEngine.resume(); lmEngine.resume();
-      bioEngine.resume(); poseEngine.resume(); vizEngine.resume();
+      bioEngine.resume(); poseEngine.resume(); vizEngine.resume(); mvEngine.resume();
       btnPause.textContent = '⏸ Pause';
       document.getElementById('pill-viz').textContent = 'Visualization Active';
+      document.getElementById('pill-mv').textContent  = 'Movement Active';
     }
   });
 
   // ── Stop ─────────────────────────────────────────────────────────────────
   btnStop.addEventListener('click', async () => {
+    await mvEngine.stop();
     await vizEngine.stop();
     await poseEngine.stop();
     await bioEngine.stop();
@@ -285,6 +366,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('pill-cam').textContent = 'Camera Stopped';
     document.getElementById('pill-viz').className = 'badge bg-secondary';
     document.getElementById('pill-viz').textContent = 'Visualization Standby';
+    document.getElementById('pill-mv').className = 'badge bg-secondary';
+    document.getElementById('pill-mv').textContent = 'Movement Standby';
 
     btnStart.disabled = false;
     btnPause.disabled = true;
@@ -308,11 +391,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  // ── Exercise selector ─────────────────────────────────────────────────────
+  document.getElementById('mv-exercise-select').addEventListener('change', (e) => {
+    const id = e.target.value;
+    if (id) mvEngine.setActiveExercise(id);
+  });
+
   // ── Metric polling (500 ms) ───────────────────────────────────────────────
   setInterval(() => {
     const vd = vizEngine.getDiagnostics();
     const pd = poseEngine.getDiagnostics();
     const bd = bioEngine.getDiagnostics();
+    const md = mvEngine.getDiagnostics();
 
     mFps.textContent     = vd.metrics.renderFps;
     mLat.textContent     = `${vd.metrics.visualizationLatencyMs} ms`;
@@ -327,7 +417,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     bBal.textContent  = `${bd.metrics.leftRightBalanceRatio}/${(100 - bd.metrics.leftRightBalanceRatio).toFixed(0)}`;
     bSymm.textContent = `${bd.metrics.overallSymmetryScore}%`;
     bCom.textContent  = `${bd.metrics.centerOfMassX}, ${bd.metrics.centerOfMassY}`;
-    bLean.textContent = `--°`; // populated when orientation data flows in
+    bLean.textContent = `--°`;
+
+    // Movement Engine metrics
+    const m = md.metrics;
+    document.getElementById('mv-reps').textContent     = m.repCount ?? 0;
+    document.getElementById('mv-phase').textContent    = m.currentPhase || 'idle';
+    document.getElementById('mv-fsm').textContent      = m.fsmState || 'idle';
+    document.getElementById('mv-rom').textContent      = `${m.romPercentage ?? 0}%`;
+    document.getElementById('mv-cadence').textContent  = `${m.currentCadence ?? 0} rpm`;
+    document.getElementById('mv-dir').textContent      = m.movementDirection || '—';
+    document.getElementById('mv-hold').textContent     = `${m.holdTime ?? 0}s`;
+    document.getElementById('mv-duration').textContent = `${m.exerciseDuration ?? 0}s`;
+    document.getElementById('mv-lat').textContent      = `${m.recognitionLatencyMs ?? 0} ms`;
   }, 500);
 
 });

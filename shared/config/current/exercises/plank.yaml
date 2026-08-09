@@ -1,0 +1,49 @@
+schema_version: "2.0.0"
+id: plank
+name: Plank
+category: static_hold
+description: Forearm or straight-arm plank hold — maintain horizontal body alignment.
+
+entry_conditions:
+  joint_constraints:
+    spine: [0, 25]
+    left_hip: [155, 185]
+    right_hip: [155, 185]
+  min_tracking_quality: 60.0
+  required_joints: [spine, left_hip, right_hip]
+
+exit_conditions:
+  tracking_quality_below: 40.0
+  joint_violation:
+    spine: [0, 35]
+  inactivity_timeout_ms: 10000
+
+phases:
+  - id: hold
+    name: Holding
+    type: hold
+    trigger_joints: [spine, left_hip]
+    trigger_ranges:
+      spine: [0, 30]
+      left_hip: [150, 190]
+    min_duration_ms: 0
+    max_duration_ms: 300000   # 5 minutes max
+
+rep_completion:
+  required_phases: []
+  final_phase: null
+  return_to: null
+  min_rom_percentage: 0.0
+  prevent_bounce: false
+  debounce_ms: 0
+
+hold_config:
+  min_seconds: 10.0
+  milestone_seconds: [15, 30, 45, 60, 90, 120]
+  count_unit: seconds
+
+tempo_limits:
+  min_cadence_rpm: 0
+  max_cadence_rpm: 0
+
+diagnostics_label: Plank

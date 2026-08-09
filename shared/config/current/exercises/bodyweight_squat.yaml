@@ -1,0 +1,81 @@
+schema_version: "2.0.0"
+id: bodyweight_squat
+name: Bodyweight Squat
+category: dynamic
+description: Classic bilateral squat — descend until knees reach ~90°, return to standing.
+
+entry_conditions:
+  joint_constraints:
+    left_knee: [155, 180]
+    right_knee: [155, 180]
+  min_tracking_quality: 60.0
+  required_joints: [left_knee, right_knee, left_hip, right_hip]
+
+exit_conditions:
+  tracking_quality_below: 40.0
+  inactivity_timeout_ms: 5000
+
+phases:
+  - id: top
+    name: Standing
+    type: top
+    trigger_joints: [left_knee, right_knee]
+    trigger_ranges:
+      left_knee: [155, 180]
+      right_knee: [155, 180]
+    min_duration_ms: 200
+    max_duration_ms: 5000
+
+  - id: concentric
+    name: Descending
+    type: concentric
+    trigger_joints: [left_knee, right_knee]
+    trigger_ranges:
+      left_knee: [70, 155]
+      right_knee: [70, 155]
+    direction: decreasing
+    primary_joint: left_knee
+    min_duration_ms: 300
+    max_duration_ms: 6000
+
+  - id: bottom
+    name: Bottom
+    type: bottom
+    trigger_joints: [left_knee, right_knee]
+    trigger_ranges:
+      left_knee: [60, 115]
+      right_knee: [60, 115]
+    min_duration_ms: 100
+    max_duration_ms: 4000
+
+  - id: eccentric
+    name: Ascending
+    type: eccentric
+    trigger_joints: [left_knee, right_knee]
+    trigger_ranges:
+      left_knee: [115, 180]
+      right_knee: [115, 180]
+    direction: increasing
+    primary_joint: left_knee
+    min_duration_ms: 300
+    max_duration_ms: 6000
+
+rep_completion:
+  required_phases: [top, concentric, bottom, eccentric]
+  final_phase: eccentric
+  return_to: top
+  min_rom_percentage: 50.0
+  rom_joint: left_knee
+  rom_reference_top: 170.0
+  rom_reference_bottom: 90.0
+  prevent_bounce: true
+  debounce_ms: 400
+  min_bottom_depth_deg: 115.0
+
+hold_config: null
+
+tempo_limits:
+  min_cadence_rpm: 4
+  max_cadence_rpm: 40
+
+diagnostics_label: Squat

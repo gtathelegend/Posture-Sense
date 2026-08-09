@@ -1,0 +1,51 @@
+schema_version: "2.0.0"
+id: warrior_ii_hold
+name: Warrior II Hold
+category: static_hold
+description: Yoga Warrior II (Virabhadrasana II) — front knee bent ~90°, arms extended.
+
+entry_conditions:
+  joint_constraints:
+    left_knee: [80, 110]
+    right_knee: [160, 180]
+    left_shoulder: [80, 105]
+    right_shoulder: [80, 105]
+  min_tracking_quality: 55.0
+  required_joints: [left_knee, right_knee, left_shoulder, right_shoulder]
+
+exit_conditions:
+  tracking_quality_below: 35.0
+  joint_violation:
+    left_knee: [65, 130]
+  inactivity_timeout_ms: 10000
+
+phases:
+  - id: hold
+    name: Warrior II Hold
+    type: hold
+    trigger_joints: [left_knee, right_knee, left_shoulder]
+    trigger_ranges:
+      left_knee: [75, 115]
+      right_knee: [155, 180]
+      left_shoulder: [75, 110]
+    min_duration_ms: 0
+    max_duration_ms: 300000
+
+rep_completion:
+  required_phases: []
+  final_phase: null
+  return_to: null
+  min_rom_percentage: 0.0
+  prevent_bounce: false
+  debounce_ms: 0
+
+hold_config:
+  min_seconds: 5.0
+  milestone_seconds: [10, 20, 30, 45, 60]
+  count_unit: seconds
+
+tempo_limits:
+  min_cadence_rpm: 0
+  max_cadence_rpm: 0
+
+diagnostics_label: Warrior II

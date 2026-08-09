@@ -1,0 +1,81 @@
+schema_version: "2.0.0"
+id: push_up
+name: Push-Up
+category: dynamic
+description: Standard floor push-up — lower chest toward ground, return to plank.
+
+entry_conditions:
+  joint_constraints:
+    left_elbow: [155, 180]
+    right_elbow: [155, 180]
+  min_tracking_quality: 60.0
+  required_joints: [left_elbow, right_elbow, left_shoulder, right_shoulder]
+
+exit_conditions:
+  tracking_quality_below: 40.0
+  inactivity_timeout_ms: 5000
+
+phases:
+  - id: top
+    name: Arms Extended
+    type: top
+    trigger_joints: [left_elbow, right_elbow]
+    trigger_ranges:
+      left_elbow: [155, 180]
+      right_elbow: [155, 180]
+    min_duration_ms: 200
+    max_duration_ms: 5000
+
+  - id: concentric
+    name: Lowering
+    type: concentric
+    trigger_joints: [left_elbow, right_elbow]
+    trigger_ranges:
+      left_elbow: [70, 155]
+      right_elbow: [70, 155]
+    direction: decreasing
+    primary_joint: left_elbow
+    min_duration_ms: 300
+    max_duration_ms: 6000
+
+  - id: bottom
+    name: Bottom
+    type: bottom
+    trigger_joints: [left_elbow, right_elbow]
+    trigger_ranges:
+      left_elbow: [60, 100]
+      right_elbow: [60, 100]
+    min_duration_ms: 100
+    max_duration_ms: 3000
+
+  - id: eccentric
+    name: Pushing Up
+    type: eccentric
+    trigger_joints: [left_elbow, right_elbow]
+    trigger_ranges:
+      left_elbow: [100, 180]
+      right_elbow: [100, 180]
+    direction: increasing
+    primary_joint: left_elbow
+    min_duration_ms: 300
+    max_duration_ms: 6000
+
+rep_completion:
+  required_phases: [top, concentric, bottom, eccentric]
+  final_phase: eccentric
+  return_to: top
+  min_rom_percentage: 50.0
+  rom_joint: left_elbow
+  rom_reference_top: 170.0
+  rom_reference_bottom: 80.0
+  prevent_bounce: true
+  debounce_ms: 400
+  min_bottom_depth_deg: 100.0
+
+hold_config: null
+
+tempo_limits:
+  min_cadence_rpm: 4
+  max_cadence_rpm: 45
+
+diagnostics_label: Push-Up

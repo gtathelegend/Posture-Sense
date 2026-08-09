@@ -32,6 +32,8 @@
 | **TD-24** | Lack of exportable performance reports | Implemented `ReportEngine` with session, exercise, progress, and comprehensive report composition, PDF rendering, CSV/JSON serializers, and REST APIs. |
 | **TD-25** | Unvalidated end-to-end browser pipeline latency | Validated complete 11-engine pipeline, added worker backpressure (`isInferenceBusy` gate), verified $< 50$ms inference latency, tracking loss recovery, 107+ unit tests passed. |
 | **TD-26** | Lack of production security hardening | Added production secret validation guard, CORS restriction, secure cookies, security headers, zero raw video/landmark persistence, and 111 unit & security tests passed. |
+| **TD-31** | Legacy `/video_feed` server-side streaming on Live Demo | Integrated browser-native `CameraEngine` (`getUserMedia`) and `PosePipelineController` into `templates/app.html`, eliminating server-side OpenCV dependencies. |
+
 
 ---
 

@@ -54,3 +54,5 @@ flowchart TD
 - **Contracts**: All contract schemas (`Frame`, `LandmarkSet`, `BiomechanicsSnapshot`, `PoseResult`, `ExerciseResult`, `ScoreReport`, `FeedbackResult`, `AnalyticsSummary`, `SessionReport`, `ExportResult`) share version `"2.0.0"`.
 - **Event Bus Wiring**: Verified 100% subscription binding in both Python EventBus (`shared/events/event_bus.py`) and Browser JS EventBus.
 - **Production Path Audit**: Removed simulated raw landmark loops in production paths; live browser execution delegates to off-main-thread Web Worker inference (`static/assets/js/workers/mediapipe_worker.js`).
+- **Live Demo Browser Pipeline**: `templates/app.html` integrated with `PosePipelineController` and `CameraEngine` (`getUserMedia`), eliminating legacy server-side `/video_feed` stream dependencies. Verified end-to-end 33-landmark skeleton canvas overlay, biomechanics calculations, pose recognition, scoring, and corrective feedback.
+

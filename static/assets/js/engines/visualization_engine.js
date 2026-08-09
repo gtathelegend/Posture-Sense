@@ -322,9 +322,14 @@ export class VisualizationEngine {
             const lmA = landmarks[a];
             const lmB = landmarks[b];
             if (!lmA || !lmB) continue;
-            const visMin = Math.min(lmA.visibility || 0, lmB.visibility || 0);
-            if (visMin < 0.1) continue;
+            const visA = lmA.visibility ?? 1.0;
+            const visB = lmB.visibility ?? 1.0;
+            const presA = lmA.presence ?? 1.0;
+            const presB = lmB.presence ?? 1.0;
 
+            if (visA < 0.6 || visB < 0.6 || presA < 0.6 || presB < 0.6) continue;
+
+            const visMin = Math.min(visA, visB);
             ctx.globalAlpha = Math.min(1, 0.3 + visMin * 0.7);
             ctx.beginPath();
             ctx.moveTo(lmA.x * W, lmA.y * H);
@@ -337,8 +342,9 @@ export class VisualizationEngine {
     _renderJoints(ctx, W, H, landmarks) {
         for (const lm of landmarks) {
             if (lm.x == null || lm.y == null) continue;
-            const vis = lm.visibility ?? 0;
-            if (vis < 0.1) continue;
+            const vis = lm.visibility ?? 1.0;
+            const pres = lm.presence ?? 1.0;
+            if (vis < 0.6 || pres < 0.6) continue;
 
             const color = this._visibilityColor(vis);
             ctx.beginPath();
@@ -361,7 +367,10 @@ export class VisualizationEngine {
         ctx.font = `${this.config.labelFontSize}px "Inter", monospace`;
         ctx.textAlign = 'left';
         for (const lm of landmarks) {
-            if (!lm.name || (lm.visibility ?? 0) < 0.4) continue;
+            if (!lm.name) continue;
+            const vis = lm.visibility ?? 1.0;
+            const pres = lm.presence ?? 1.0;
+            if (vis < 0.6 || pres < 0.6) continue;
             const x = lm.x * W + 8;
             const y = lm.y * H - 4;
             this._drawLabelBox(ctx, lm.name, x, y, this.config.labelFontSize);

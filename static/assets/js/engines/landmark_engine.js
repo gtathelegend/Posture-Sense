@@ -15,8 +15,8 @@ export class LandmarkEngine {
 
         // Configuration Parameters
         this.config = {
-            visibilityThreshold: 0.5,
-            presenceThreshold: 0.5,
+            visibilityThreshold: 0.6,
+            presenceThreshold: 0.6,
             qualityThreshold: 60.0,
             maxInterpolationFrames: 5,
             smoothingMethod: 'ema', // 'ema', 'one_euro', 'none'
@@ -160,6 +160,12 @@ export class LandmarkEngine {
                 continue;
             }
             if (lm.x < -0.5 || lm.x > 1.5 || lm.y < -0.5 || lm.y > 1.5) {
+                continue;
+            }
+            if (lm.visibility !== undefined && lm.visibility < this.config.visibilityThreshold) {
+                continue;
+            }
+            if (lm.presence !== undefined && lm.presence < this.config.presenceThreshold) {
                 continue;
             }
             validLandmarks.push(lm);

@@ -36,6 +36,8 @@ class BiomechanicsSnapshot(BaseContract):
         joint_angles: List[JointAngle],
         symmetry_score: float = 100.0,
         balance_score: float = 100.0,
+        landmarks: Optional[List[Any]] = None,
+        tracking_quality: float = 100.0,
         id: Optional[str] = None,
         timestamp: Optional[str] = None,
         schema_version: str = "2.0.0",
@@ -45,24 +47,30 @@ class BiomechanicsSnapshot(BaseContract):
         self.joint_angles = joint_angles
         self.symmetry_score = symmetry_score
         self.balance_score = balance_score
+        self.landmarks = landmarks or []
+        self.tracking_quality = tracking_quality
 
     def to_dict(self) -> Dict[str, Any]:
         data = super().to_dict()
         data.update({
-            "joint_angles": [ja.to_dict() for ja in self.joint_angles],
+            "joint_angles": [ja.to_dict() if hasattr(ja, "to_dict") else ja for ja in self.joint_angles],
             "symmetry_score": self.symmetry_score,
-            "balance_score": self.balance_score
+            "balance_score": self.balance_score,
+            "landmarks": self.landmarks,
+            "tracking_quality": self.tracking_quality
         })
         return data
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'BiomechanicsSnapshot':
         raw_jas = data.get("joint_angles", [])
-        jas = [JointAngle.from_dict(ja) for ja in raw_jas]
+        jas = [JointAngle.from_dict(ja) if isinstance(ja, dict) else ja for ja in raw_jas]
         return cls(
             joint_angles=jas,
             symmetry_score=float(data.get("symmetry_score", 100.0)),
             balance_score=float(data.get("balance_score", 100.0)),
+            landmarks=data.get("landmarks", []),
+            tracking_quality=float(data.get("tracking_quality", 100.0)),
             id=data.get("id"),
             timestamp=data.get("timestamp"),
             schema_version=data.get("schema_version", "2.0.0"),

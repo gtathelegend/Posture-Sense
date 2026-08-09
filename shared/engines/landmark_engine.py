@@ -14,8 +14,8 @@ class LandmarkEngine(LandmarkEngineInterface):
         self.priority = 3
         self.dependencies = ["mediapipe_engine"]
         self.config = {
-            "visibility_threshold": 0.5,
-            "presence_threshold": 0.5,
+            "visibility_threshold": 0.6,
+            "presence_threshold": 0.6,
             "quality_threshold": 60.0,
             "max_interpolation_frames": 5,
             "smoothing_method": "ema",

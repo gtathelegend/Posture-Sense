@@ -16,7 +16,7 @@ export class BiomechanicsEngine {
         // Configuration Parameters
         this.config = {
             jointSmoothing: 0.3,
-            minVisibility: 0.5,
+            minVisibility: 0.6,
             orientationThreshold: 15.0,
             balanceThreshold: 10.0,
             romWindowSize: 30
@@ -131,6 +131,7 @@ export class BiomechanicsEngine {
             balance: balance,
             symmetry: symmetry,
             rom: romMetrics,
+            landmarks: landmarks,
             tracking_quality: landmarkSet.quality_score || 100.0
         };
 

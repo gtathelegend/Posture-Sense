@@ -5,6 +5,22 @@ from shared.types.enums import EngineStatus
 from shared.contracts.pose import PoseResult
 from shared.contracts.biomechanics import BiomechanicsSnapshot
 
+LANDMARK_NAME_TO_INDEX = {
+    "left_shoulder": 11,
+    "right_shoulder": 12,
+    "left_elbow": 13,
+    "right_elbow": 14,
+    "left_wrist": 15,
+    "right_wrist": 16,
+    "left_hip": 23,
+    "right_hip": 24,
+    "left_knee": 25,
+    "right_knee": 26,
+    "left_ankle": 27,
+    "right_ankle": 28,
+    "nose": 0
+}
+
 
 class PoseRuleEngine(PoseRuleEngineInterface):
     """Python Pose Rule Engine implementation for PostureSense server-side Engine Runtime."""
@@ -18,6 +34,7 @@ class PoseRuleEngine(PoseRuleEngineInterface):
             "min_confidence": 60.0,
             "min_tracking_quality": 50.0,
             "min_valid_landmarks": 10,
+            "min_body_coverage_threshold": 0.70,
             "hold_threshold_seconds": 3.0
         }
         self._evaluations_count = 0
@@ -26,7 +43,8 @@ class PoseRuleEngine(PoseRuleEngineInterface):
         self._matched_rules_count = 0
         self._failed_rules_count = 0
         self._required_landmarks_count = 0
-        self._available_landmarks_count = 0
+        self._visible_landmarks_list = []
+        self._missing_landmarks_list = []
         self._body_coverage_pct = 0.0
         self._pose_rejection_reason = "None"
 
@@ -36,8 +54,10 @@ class PoseRuleEngine(PoseRuleEngineInterface):
                 "id": "standing_neutral",
                 "name": "Standing Neutral",
                 "min_hold_time": 2.0,
-                "requires_full_body": True,
-                "required_regions": ["head", "shoulders", "hips", "knees", "ankles"],
+                "required_landmarks": [
+                    "left_shoulder", "right_shoulder", "left_hip", "right_hip",
+                    "left_knee", "right_knee", "left_ankle", "right_ankle"
+                ],
                 "constraints": {
                     "left_knee": [160, 180],
                     "right_knee": [160, 180],
@@ -48,8 +68,10 @@ class PoseRuleEngine(PoseRuleEngineInterface):
                 "id": "tree_pose",
                 "name": "Tree Pose",
                 "min_hold_time": 3.0,
-                "requires_full_body": True,
-                "required_regions": ["head", "shoulders", "hips", "knees", "ankles"],
+                "required_landmarks": [
+                    "left_shoulder", "right_shoulder", "left_hip", "right_hip",
+                    "left_knee", "right_knee", "left_ankle", "right_ankle"
+                ],
                 "constraints": {
                     "left_knee": [160, 180],
                     "right_knee": [30, 90]
@@ -59,8 +81,10 @@ class PoseRuleEngine(PoseRuleEngineInterface):
                 "id": "warrior_ii",
                 "name": "Warrior II",
                 "min_hold_time": 3.0,
-                "requires_full_body": True,
-                "required_regions": ["head", "shoulders", "hips", "knees", "ankles"],
+                "required_landmarks": [
+                    "left_shoulder", "right_shoulder", "left_hip", "right_hip",
+                    "left_knee", "right_knee", "left_ankle", "right_ankle"
+                ],
                 "constraints": {
                     "left_knee": [80, 110],
                     "right_knee": [160, 180],
@@ -72,8 +96,10 @@ class PoseRuleEngine(PoseRuleEngineInterface):
                 "id": "cobra",
                 "name": "Cobra Pose",
                 "min_hold_time": 3.0,
-                "requires_full_body": True,
-                "required_regions": ["head", "shoulders", "hips", "knees", "ankles"],
+                "required_landmarks": [
+                    "left_shoulder", "right_shoulder", "left_hip", "right_hip",
+                    "left_knee", "right_knee", "left_ankle", "right_ankle"
+                ],
                 "constraints": {
                     "spine": [10, 45],
                     "left_hip": [150, 180],
@@ -86,8 +112,10 @@ class PoseRuleEngine(PoseRuleEngineInterface):
                 "id": "seated_neutral",
                 "name": "Seated Neutral",
                 "min_hold_time": 2.0,
-                "requires_full_body": False,
-                "required_regions": ["head", "shoulders", "hips"],
+                "required_landmarks": [
+                    "left_shoulder", "right_shoulder", "left_hip", "right_hip",
+                    "left_knee", "right_knee"
+                ],
                 "constraints": {
                     "spine": [0, 25]
                 }
@@ -132,19 +160,11 @@ class PoseRuleEngine(PoseRuleEngineInterface):
 
         tracking_quality = snapshot_dict.get("tracking_quality", 100.0)
         joint_angles = snapshot_dict.get("joint_angles", [])
+        landmarks = snapshot_dict.get("landmarks", [])
 
-        # Quality Gate 1: Minimum tracking quality check
+        # Quality Gate 1: Tracking Quality Check (< 50%)
         if tracking_quality < self.config.get("min_tracking_quality", 50.0):
             return self._return_unknown_state("Low Tracking Quality (< 50%)")
-
-        # Body Coverage Analysis
-        body_coverage = self._check_body_coverage(snapshot_dict)
-        self._available_landmarks_count = body_coverage["valid_count"]
-        self._body_coverage_pct = body_coverage["coverage_pct"]
-
-        # Quality Gate 2: Insufficient valid keypoints check
-        if body_coverage["valid_count"] < self.config.get("min_valid_landmarks", 10):
-            return self._return_unknown_state("Insufficient Valid Landmarks (< 10)")
 
         angles_map = {}
         for ja in joint_angles:
@@ -159,9 +179,14 @@ class PoseRuleEngine(PoseRuleEngineInterface):
 
         best_match = None
         highest_confidence = 0.0
+        last_rejection_reason = "No pose matched confidence threshold"
 
         for pid, rule in self.pose_rules.items():
-            eval_res = self._evaluate_pose_rule(rule, angles_map, body_coverage)
+            eval_res = self._evaluate_pose_rule(rule, angles_map, landmarks, joint_angles)
+            if eval_res["rejected"]:
+                last_rejection_reason = eval_res["rejection_reason"]
+                continue
+
             if eval_res["confidence"] > highest_confidence and eval_res["confidence"] >= self.config.get("min_confidence", 60.0):
                 highest_confidence = eval_res["confidence"]
                 best_match = {"id": pid, "rule": rule, **eval_res}
@@ -171,7 +196,10 @@ class PoseRuleEngine(PoseRuleEngineInterface):
             self._confidence = round(best_match["confidence"], 1)
             self._matched_rules_count = best_match["matched_rules"]
             self._failed_rules_count = best_match["failed_rules"]
-            self._required_landmarks_count = best_match["total_required"]
+            self._required_landmarks_count = best_match["total_required_landmarks"]
+            self._visible_landmarks_list = best_match["visible_landmarks"]
+            self._missing_landmarks_list = best_match["missing_landmarks"]
+            self._body_coverage_pct = best_match["coverage_pct"]
             self._pose_rejection_reason = "None"
 
             result = PoseResult(
@@ -183,97 +211,102 @@ class PoseRuleEngine(PoseRuleEngineInterface):
             self.publish("pose.detected", result.to_dict())
             return result
         else:
-            return self._return_unknown_state(body_coverage.get("rejection_reason", "No pose matched confidence threshold"))
+            return self._return_unknown_state(last_rejection_reason)
 
-    def _evaluate_pose_rule(self, rule: dict, angles_map: dict, body_coverage: dict) -> dict:
-        matched = 0
+    def _evaluate_pose_rule(self, rule: dict, angles_map: dict, landmarks: list, joint_angles: list) -> dict:
+        required_landmarks = rule.get("required_landmarks", [])
         constraints = rule.get("constraints", {})
-        required_regions = rule.get("required_regions", [])
 
+        total_required_landmarks = len(required_landmarks)
         total_joint_constraints = len(constraints)
-        total_required_regions = len(required_regions)
+        total_required = total_joint_constraints + total_required_landmarks
 
-        # FORMULA REQUIREMENT: total_required_rules = total_joint_constraints + total_required_landmarks
-        total_required = total_joint_constraints + total_required_regions
+        visible_landmarks = []
+        missing_landmarks = []
 
-        for joint, (min_a, max_a) in constraints.items():
-            angle = angles_map.get(joint)
-            if angle is not None and min_a <= angle <= max_a:
-                matched += 1
+        if landmarks:
+            lm_map = {}
+            for lm in landmarks:
+                if isinstance(lm, dict):
+                    name = lm.get("name")
+                    idx = lm.get("index")
+                    vis = lm.get("visibility", 1.0)
+                    pres = lm.get("presence", 1.0)
+                else:
+                    name = getattr(lm, "name", None)
+                    idx = getattr(lm, "index", None)
+                    vis = getattr(lm, "visibility", 1.0)
+                    pres = getattr(lm, "presence", 1.0)
 
-        for region in required_regions:
-            if region in body_coverage.get("available_regions", []):
-                matched += 1
+                if vis >= 0.6 and pres >= 0.6:
+                    if name:
+                        lm_map[name.lower()] = True
+                    if idx is not None:
+                        for req_n, req_i in LANDMARK_NAME_TO_INDEX.items():
+                            if req_i == idx:
+                                lm_map[req_n.lower()] = True
 
-        if rule.get("requires_full_body", False) and not body_coverage.get("has_full_body", False):
-            return {
-                "confidence": 0.0,
-                "matched_rules": matched,
-                "failed_rules": total_required - matched,
-                "total_required": total_required,
-                "rejection_reason": "Requires full body tracking (lower body keypoints missing)"
-            }
-
-        confidence = (matched / total_required * 100.0) if total_required > 0 else 0.0
-        return {
-            "confidence": round(confidence, 1),
-            "matched_rules": matched,
-            "failed_rules": total_required - matched,
-            "total_required": total_required,
-            "rejection_reason": "None"
-        }
-
-    def _check_body_coverage(self, snapshot_dict: dict) -> dict:
-        landmarks = snapshot_dict.get("landmarks", [])
-        joint_angles = snapshot_dict.get("joint_angles", [])
-
-        if not landmarks:
+            for req_n in required_landmarks:
+                if lm_map.get(req_n.lower(), False):
+                    visible_landmarks.append(req_n)
+                else:
+                    missing_landmarks.append(req_n)
+        else:
             available_joints = set()
             for ja in joint_angles:
                 jname = ja.get("joint_name") if isinstance(ja, dict) else getattr(ja, "joint_name", None)
                 if jname:
                     available_joints.add(jname)
 
-            has_legs = "left_knee" in available_joints or "right_knee" in available_joints
-            has_upper = "left_shoulder" in available_joints or "right_shoulder" in available_joints
-            regions = []
-            if has_upper:
-                regions.extend(["head", "shoulders", "hips"])
-            if has_legs:
-                regions.extend(["knees", "ankles"])
+            for req_n in required_landmarks:
+                if "knee" in req_n and ("left_knee" in available_joints or "right_knee" in available_joints):
+                    visible_landmarks.append(req_n)
+                elif "shoulder" in req_n and ("left_shoulder" in available_joints or "right_shoulder" in available_joints):
+                    visible_landmarks.append(req_n)
+                elif "hip" in req_n and ("left_hip" in available_joints or "right_hip" in available_joints):
+                    visible_landmarks.append(req_n)
+                elif "ankle" in req_n and ("left_knee" in available_joints or "right_knee" in available_joints):
+                    # Ankle inferable if knee present
+                    visible_landmarks.append(req_n)
+                else:
+                    missing_landmarks.append(req_n)
 
+        visible_count = len(visible_landmarks)
+        coverage = (visible_count / total_required_landmarks) if total_required_landmarks > 0 else 1.0
+        coverage_pct = round(coverage * 100.0, 1)
+
+        # BODY COVERAGE VALIDATION: If coverage < 70%, return UNKNOWN / Insufficient body visibility
+        if coverage < self.config.get("min_body_coverage_threshold", 0.70):
             return {
-                "valid_count": len(available_joints) * 2,
-                "available_regions": regions,
-                "coverage_pct": round((len(regions) / 5.0) * 100.0, 1),
-                "has_full_body": has_legs and has_upper,
-                "rejection_reason": "None" if has_legs else "Missing lower body keypoints"
+                "rejected": True,
+                "confidence": 0.0,
+                "coverage_pct": coverage_pct,
+                "visible_landmarks": visible_landmarks,
+                "missing_landmarks": missing_landmarks,
+                "total_required_landmarks": total_required_landmarks,
+                "rejection_reason": "Insufficient body visibility"
             }
 
-        valid_lms = [lm for lm in landmarks if isinstance(lm, dict) and lm.get("visibility", 1.0) >= 0.5]
-        valid_indices = {lm.get("index") for lm in valid_lms if lm.get("index") is not None}
+        matched_joints = 0
+        for joint, (min_a, max_a) in constraints.items():
+            angle = angles_map.get(joint)
+            if angle is not None and min_a <= angle <= max_a:
+                matched_joints += 1
 
-        regions = []
-        if any(i in valid_indices for i in range(11)):
-            regions.append("head")
-        if 11 in valid_indices or 12 in valid_indices:
-            regions.append("shoulders")
-        if 23 in valid_indices or 24 in valid_indices:
-            regions.append("hips")
-        if 25 in valid_indices or 26 in valid_indices:
-            regions.append("knees")
-        if 27 in valid_indices or 28 in valid_indices:
-            regions.append("ankles")
-
-        has_full_body = all(r in regions for r in ["head", "shoulders", "hips", "knees", "ankles"])
-        rejection_reason = "None" if ("knees" in regions and "ankles" in regions) else "Lower body missing (knees/ankles cut off)"
+        total_matched = matched_joints + visible_count
+        confidence = (total_matched / total_required * 100.0) if total_required > 0 else 0.0
 
         return {
-            "valid_count": len(valid_lms),
-            "available_regions": regions,
-            "coverage_pct": round((len(regions) / 5.0) * 100.0, 1),
-            "has_full_body": has_full_body,
-            "rejection_reason": rejection_reason
+            "rejected": False,
+            "confidence": round(confidence, 1),
+            "matched_rules": total_matched,
+            "failed_rules": total_required - total_matched,
+            "total_required": total_required,
+            "total_required_landmarks": total_required_landmarks,
+            "visible_landmarks": visible_landmarks,
+            "missing_landmarks": missing_landmarks,
+            "coverage_pct": coverage_pct,
+            "rejection_reason": "None"
         }
 
     def _return_unknown_state(self, reason: str) -> PoseResult:
@@ -305,7 +338,10 @@ class PoseRuleEngine(PoseRuleEngineInterface):
                 "current_pose_name": self._current_pose,
                 "confidence_score": self._confidence,
                 "required_landmarks_count": self._required_landmarks_count,
-                "available_landmarks_count": self._available_landmarks_count,
+                "visible_landmarks_count": len(self._visible_landmarks_list),
+                "missing_landmarks_count": len(self._missing_landmarks_list),
+                "visible_landmarks": self._visible_landmarks_list,
+                "missing_landmarks": self._missing_landmarks_list,
                 "body_coverage_pct": self._body_coverage_pct,
                 "pose_rejection_reason": self._pose_rejection_reason
             }

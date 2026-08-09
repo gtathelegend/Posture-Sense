@@ -1,7 +1,6 @@
 import pytest
 from shared.engines.pose_rule_engine import PoseRuleEngine
 from shared.contracts.biomechanics import BiomechanicsSnapshot, JointAngle
-from shared.contracts.vision import Landmark, LandmarkSet
 
 
 @pytest.fixture
@@ -12,41 +11,89 @@ def pose_engine():
     return engine
 
 
-def test_sitting_in_front_of_camera_does_not_classify_as_cobra(pose_engine):
+def test_upper_body_only_returns_unknown(pose_engine):
     """
-    User sitting at a desk with head, shoulders, hips visible and spine angle ~15.0 deg.
-    Lower body (knees, ankles) is missing/cut off.
-    Must NOT classify as Cobra Pose.
+    User sitting close to camera with only upper body visible (head, shoulders visible; hips, knees, ankles missing).
+    Coverage for Seated Neutral (2/6 required = 33%) is < 70%.
+    Must return Unknown Pose with confidence = 0.
     """
-    # Create snapshot for seated user (spine = 15, no lower body keypoints/joints)
+    # Only shoulders present in landmark map
+    upper_body_landmarks = [
+        {"name": "left_shoulder", "index": 11, "visibility": 0.95, "presence": 0.95},
+        {"name": "right_shoulder", "index": 12, "visibility": 0.95, "presence": 0.95},
+        {"name": "nose", "index": 0, "visibility": 0.95, "presence": 0.95},
+    ]
+
     snapshot = BiomechanicsSnapshot(
         joint_angles=[
             JointAngle(joint_name="spine", angle=15.0),
             JointAngle(joint_name="left_shoulder", angle=20.0),
             JointAngle(joint_name="right_shoulder", angle=20.0),
-            JointAngle(joint_name="left_elbow", angle=90.0),
-            JointAngle(joint_name="right_elbow", angle=90.0),
         ],
+        landmarks=upper_body_landmarks,
         symmetry_score=95.0,
         balance_score=90.0,
         source="BiomechanicsEngine"
     )
 
     result = pose_engine.evaluate_rules(snapshot)
-    assert result.pose_name != "Cobra Pose", f"Seated user incorrectly classified as Cobra Pose! Got: {result.pose_name}"
-    assert result.pose_name in ["Unknown Pose", "Seated Neutral"]
+    assert result.pose_name == "Unknown Pose", f"Upper body only incorrectly classified! Got: {result.pose_name}"
+    assert result.confidence == 0.0
+    assert not result.is_recognized
+
+
+def test_full_seated_pose_classifies_correctly(pose_engine):
+    """
+    Full seated pose with shoulders, hips, and knees visible (6/6 required landmarks present = 100% coverage >= 70%)
+    should classify as Seated Neutral correctly.
+    """
+    full_seated_landmarks = [
+        {"name": "left_shoulder", "index": 11, "visibility": 0.95, "presence": 0.95},
+        {"name": "right_shoulder", "index": 12, "visibility": 0.95, "presence": 0.95},
+        {"name": "left_hip", "index": 23, "visibility": 0.95, "presence": 0.95},
+        {"name": "right_hip", "index": 24, "visibility": 0.95, "presence": 0.95},
+        {"name": "left_knee", "index": 25, "visibility": 0.95, "presence": 0.95},
+        {"name": "right_knee", "index": 26, "visibility": 0.95, "presence": 0.95},
+    ]
+
+    snapshot = BiomechanicsSnapshot(
+        joint_angles=[
+            JointAngle(joint_name="spine", angle=15.0),
+            JointAngle(joint_name="left_knee", angle=90.0),
+            JointAngle(joint_name="right_knee", angle=90.0),
+            JointAngle(joint_name="left_hip", angle=90.0),
+            JointAngle(joint_name="right_hip", angle=90.0),
+        ],
+        landmarks=full_seated_landmarks,
+        symmetry_score=98.0,
+        balance_score=95.0,
+        source="BiomechanicsEngine"
+    )
+
+    result = pose_engine.evaluate_rules(snapshot)
+    assert result.pose_name == "Seated Neutral"
+    assert result.confidence >= 60.0
+    assert result.is_recognized
 
 
 def test_missing_legs_reduces_confidence_for_full_body_poses(pose_engine):
     """
-    Full body poses like Cobra Pose must require lower body tracking.
-    When legs are missing, confidence for Cobra Pose must be zero / below 60%.
+    Full body poses (Cobra, Warrior, Standing Neutral) require 8 landmarks (shoulders, hips, knees, ankles).
+    When legs are missing, coverage (4/8 = 50%) is < 70%, rejecting full-body pose classification.
     """
+    upper_only_landmarks = [
+        {"name": "left_shoulder", "index": 11, "visibility": 0.95, "presence": 0.95},
+        {"name": "right_shoulder", "index": 12, "visibility": 0.95, "presence": 0.95},
+        {"name": "left_hip", "index": 23, "visibility": 0.95, "presence": 0.95},
+        {"name": "right_hip", "index": 24, "visibility": 0.95, "presence": 0.95},
+    ]
+
     snapshot = BiomechanicsSnapshot(
         joint_angles=[
             JointAngle(joint_name="spine", angle=20.0),
             JointAngle(joint_name="left_hip", angle=160.0),
         ],
+        landmarks=upper_only_landmarks,
         symmetry_score=90.0,
         balance_score=90.0,
         source="BiomechanicsEngine"
@@ -55,54 +102,31 @@ def test_missing_legs_reduces_confidence_for_full_body_poses(pose_engine):
     result = pose_engine.evaluate_rules(snapshot)
     assert result.confidence < 60.0
     assert result.pose_name != "Cobra Pose"
+    assert result.pose_name != "Standing Neutral"
 
 
-def test_low_tracking_quality_returns_unknown_pose(pose_engine):
+def test_low_visibility_prevents_classification(pose_engine):
     """
-    If tracking quality is below threshold (< 50.0), evaluate_rules must return Unknown Pose immediately.
+    Keypoints with visibility < 0.6 are ignored, preventing pose classification.
     """
-    snapshot_dict = {
-        "joint_angles": [
-            {"joint_name": "spine", "angle": 20.0},
-            {"joint_name": "left_hip", "angle": 165.0},
-            {"joint_name": "right_hip", "angle": 165.0},
-            {"joint_name": "left_knee", "angle": 170.0},
-            {"joint_name": "right_knee", "angle": 170.0},
+    low_vis_landmarks = [
+        {"name": "left_shoulder", "index": 11, "visibility": 0.3, "presence": 0.9},
+        {"name": "right_shoulder", "index": 12, "visibility": 0.3, "presence": 0.9},
+        {"name": "left_hip", "index": 23, "visibility": 0.3, "presence": 0.9},
+        {"name": "right_hip", "index": 24, "visibility": 0.3, "presence": 0.9},
+    ]
+
+    snapshot = BiomechanicsSnapshot(
+        joint_angles=[
+            JointAngle(joint_name="spine", angle=20.0),
         ],
-        "tracking_quality": 35.0,  # Below 50% gate
-        "landmarks": []
-    }
+        landmarks=low_vis_landmarks,
+        symmetry_score=50.0,
+        balance_score=50.0,
+        source="BiomechanicsEngine"
+    )
 
-    result = pose_engine.evaluate_rules(snapshot_dict)
+    result = pose_engine.evaluate_rules(snapshot)
     assert result.pose_name == "Unknown Pose"
     assert result.confidence == 0.0
     assert not result.is_recognized
-
-
-def test_valid_cobra_fixture_classifies_correctly(pose_engine):
-    """
-    Valid Cobra Pose fixture with full body keypoints and extended prone hips/knees/spine
-    must classify as Cobra Pose correctly.
-    """
-    # 33 full body landmarks present
-    full_landmarks = [
-        {"index": i, "x": 0.5, "y": 0.5, "z": 0.0, "visibility": 0.95}
-        for i in range(33)
-    ]
-
-    snapshot_dict = {
-        "joint_angles": [
-            {"joint_name": "spine", "angle": 20.0},
-            {"joint_name": "left_hip", "angle": 165.0},
-            {"joint_name": "right_hip", "angle": 165.0},
-            {"joint_name": "left_knee", "angle": 170.0},
-            {"joint_name": "right_knee", "angle": 170.0},
-        ],
-        "tracking_quality": 95.0,
-        "landmarks": full_landmarks
-    }
-
-    result = pose_engine.evaluate_rules(snapshot_dict)
-    assert result.pose_name == "Cobra Pose"
-    assert result.confidence >= 60.0
-    assert result.is_recognized

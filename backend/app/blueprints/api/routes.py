@@ -63,10 +63,20 @@ def health():
 
 @api_bp.route('/version')
 def version():
+    import os
+    git_sha = os.getenv('RENDER_GIT_COMMIT', 'cefc6ea0ea793e2e4fe94180f962de662c84357b')
+    env = os.getenv('FLASK_ENV', 'production')
     return jsonify({
         'version': '2.0.0',
-        'phase': 'Production Validated (Milestones 1–10 Completed)'
+        'application_version': '2.0.0',
+        'git_commit': git_sha,
+        'environment': env,
+        'engine_runtime_version': '2.0.0',
+        'pipeline_architecture': 'v2 Browser Native Pipeline',
+        'status': 'operational'
     })
+
+
 
 
 # ── Analytics Endpoints (Scoped to current_user for strict user isolation) ───

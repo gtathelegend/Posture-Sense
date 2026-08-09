@@ -1,0 +1,92 @@
+version: "2.0.0"
+
+# Default dimension weights for exercises when no specific profile is defined.
+# All active weights MUST sum to 1.0.
+default_weights:
+  form: 0.30
+  rom: 0.20
+  stability: 0.15
+  symmetry: 0.15
+  control: 0.10
+  tempo: 0.10
+
+# Exercise category weight profiles
+categories:
+  dynamic:
+    form: 0.30
+    rom: 0.20
+    stability: 0.15
+    symmetry: 0.15
+    control: 0.10
+    tempo: 0.10
+  static_hold:
+    form: 0.25
+    stability: 0.30
+    symmetry: 0.20
+    control: 0.15
+    tracking_quality: 0.10
+
+# Specific exercise weight overrides
+exercises:
+  bodyweight_squat:
+    form: 0.30
+    rom: 0.20
+    stability: 0.15
+    symmetry: 0.15
+    control: 0.10
+    tempo: 0.10
+  push_up:
+    form: 0.35
+    rom: 0.25
+    stability: 0.15
+    symmetry: 0.15
+    control: 0.10
+  lunge:
+    form: 0.30
+    rom: 0.20
+    stability: 0.20
+    symmetry: 0.15
+    control: 0.15
+  jumping_jack:
+    form: 0.25
+    rom: 0.25
+    symmetry: 0.20
+    tempo: 0.20
+    control: 0.10
+  plank:
+    form: 0.30
+    stability: 0.35
+    symmetry: 0.15
+    control: 0.20
+  tree_pose_hold:
+    form: 0.20
+    stability: 0.40
+    symmetry: 0.20
+    control: 0.20
+  warrior_ii_hold:
+    form: 0.30
+    stability: 0.30
+    symmetry: 0.20
+    control: 0.20
+
+# Configurable score bands
+score_bands:
+  - min: 90.0
+    max: 100.0
+    label: "Excellent"
+  - min: 75.0
+    max: 89.99
+    label: "Good"
+  - min: 60.0
+    max: 74.99
+    label: "Needs Improvement"
+  - min: 0.0
+    max: 59.99
+    label: "Poor"
+
+# Quality gates for minimum trustworthy scoring
+quality_gates:
+  min_tracking_quality: 50.0
+  min_pose_confidence: 0.4
+  min_landmark_visibility: 0.5
+  min_samples: 3

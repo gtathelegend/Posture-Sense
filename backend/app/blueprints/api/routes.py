@@ -59,3 +59,46 @@ def health():
 @api_bp.route('/version')
 def version():
     return jsonify({'version': '2.0.0', 'phase': 'Architecture Migration Phase 1'})
+
+
+# ── Analytics Endpoints (Scoped to current_user for strict user isolation) ───
+
+@api_bp.route('/analytics/summary', methods=['GET'])
+@login_required
+def get_analytics_summary():
+    from backend.app.repositories.analytics_repository import AnalyticsRepository
+    summary = AnalyticsRepository.get_user_analytics_summary(current_user.id)
+    return jsonify(summary)
+
+
+@api_bp.route('/analytics/progress', methods=['GET'])
+@login_required
+def get_analytics_progress():
+    from backend.app.repositories.analytics_repository import AnalyticsRepository
+    progress = AnalyticsRepository.get_user_progress(current_user.id)
+    return jsonify(progress)
+
+
+@api_bp.route('/analytics/exercises', methods=['GET'])
+@login_required
+def get_analytics_exercises():
+    from backend.app.repositories.analytics_repository import AnalyticsRepository
+    exercises = AnalyticsRepository.get_exercise_history(current_user.id)
+    return jsonify(exercises)
+
+
+@api_bp.route('/analytics/trends', methods=['GET'])
+@login_required
+def get_analytics_trends():
+    from backend.app.repositories.analytics_repository import AnalyticsRepository
+    trends = AnalyticsRepository.get_user_trends(current_user.id)
+    return jsonify(trends)
+
+
+@api_bp.route('/analytics/records', methods=['GET'])
+@login_required
+def get_analytics_records():
+    from backend.app.repositories.analytics_repository import AnalyticsRepository
+    records = AnalyticsRepository.get_personal_records(current_user.id)
+    return jsonify({'user_id': str(current_user.id), 'records': records})
+

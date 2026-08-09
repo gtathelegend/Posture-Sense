@@ -39,13 +39,14 @@
   <div class="row mb-3 align-items-center">
     <div class="col">
       <h4 class="mb-0 text-white fw-bold">🏆 PostureSense AI Pipeline — Developer Playground</h4>
-      <p class="text-muted small mb-0">Real-time perception, biomechanics, pose recognition, movement tracking, and scoring engine (Priority 1–8).</p>
+      <p class="text-muted small mb-0">Real-time perception, biomechanics, pose recognition, movement tracking, scoring, and feedback engine (Priority 1–9).</p>
     </div>
     <div class="col-auto d-flex gap-2 align-items-center">
       <span id="pill-cam"   class="badge bg-secondary">Camera Stopped</span>
       <span id="pill-viz"   class="badge bg-secondary">Visualization Standby</span>
       <span id="pill-mv"    class="badge bg-secondary">Movement Standby</span>
       <span id="pill-score" class="badge bg-secondary">Scoring Standby</span>
+      <span id="pill-fb"    class="badge bg-secondary">Feedback Standby</span>
       <span id="pill-fps"   class="badge bg-dark border border-secondary text-info">-- FPS</span>
     </div>
   </div>
@@ -292,6 +293,44 @@
         </div>
       </div>
 
+      <!-- Feedback Engine Card -->
+      <div class="card bg-dark border-secondary text-white p-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2 text-success d-flex justify-content-between align-items-center">
+          <span>💬 Feedback Engine — Live AI Guidance</span>
+          <span class="badge bg-success text-dark" id="fb-severity">INFO</span>
+        </h6>
+
+        <div class="metric-box bg-dark border-success p-2 mb-2">
+          <span class="label text-success fw-bold">ACTIVE FEEDBACK MESSAGE</span>
+          <span class="value text-light fw-bold fs-6 d-block my-1" id="fb-message">Awaiting assessment events…</span>
+          <div class="d-flex justify-content-between text-muted small mt-1">
+            <span>Category: <span id="fb-cat" class="text-info">--</span></span>
+            <span>Confidence: <span id="fb-conf" class="text-warning">--%</span></span>
+          </div>
+        </div>
+
+        <div class="row g-2 small text-muted">
+          <div class="col-6">
+            <div class="metric-box p-2">
+              <span class="label">Rule Triggered</span>
+              <span class="value text-info small" id="fb-rule" style="font-size:11px;">—</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="metric-box p-2">
+              <span class="label">Metric Source</span>
+              <span class="value text-primary small" id="fb-src" style="font-size:11px;">—</span>
+            </div>
+          </div>
+          <div class="col-12 mt-1">
+            <div class="metric-box p-2 text-start" style="font-size:11px;">
+              <span class="label text-center d-block">MEASURABLE EVIDENCE</span>
+              <span id="fb-evidence" class="text-light font-monospace d-block text-center mt-1">--</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /right panel -->
   </div><!-- /row -->
 </div><!-- /container -->
@@ -305,6 +344,7 @@ import { PoseRuleEngine }      from '/static/assets/js/engines/pose_rule_engine.
 import { VisualizationEngine } from '/static/assets/js/engines/visualization_engine.js';
 import { MovementEngine }      from '/static/assets/js/engines/movement_engine.js';
 import { ScoringEngine }       from '/static/assets/js/engines/scoring_engine.js';
+import { FeedbackEngine }      from '/static/assets/js/engines/feedback_engine.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -326,6 +366,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const vizEngine  = new VisualizationEngine();
   const mvEngine   = new MovementEngine();
   const scoreEngine= new ScoringEngine(bus);
+  const fbEngine   = new FeedbackEngine(bus);
 
   // Wire event bus notifications for browser demo
   const origBioProc = bioEngine.processBiomechanics.bind(bioEngine);
@@ -348,6 +389,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.vizEngine      = vizEngine;
   window.movementEngine = mvEngine;
   window.scoringEngine  = scoreEngine;
+  window.feedbackEngine = fbEngine;
 
   // ── DOM refs ─────────────────────────────────────────────────────────────
   const video       = document.getElementById('viz-video');
@@ -381,6 +423,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await vizEngine.initialize();
   await mvEngine.initialize();
   await scoreEngine.initialize();
+  await fbEngine.initialize();
 
   // ── Start ────────────────────────────────────────────────────────────────
   btnStart.addEventListener('click', async () => {
@@ -403,11 +446,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       await vizEngine.start(canvas, video);
       await mvEngine.start();
       await scoreEngine.start();
+      await fbEngine.start();
 
       document.getElementById('pill-mv').className    = 'badge bg-success';
       document.getElementById('pill-mv').textContent   = 'Movement Active';
       document.getElementById('pill-score').className = 'badge bg-success';
       document.getElementById('pill-score').textContent= 'Scoring Active';
+      document.getElementById('pill-fb').className    = 'badge bg-success';
+      document.getElementById('pill-fb').textContent   = 'Feedback Active';
 
       document.getElementById('pill-cam').className = 'badge bg-success';
       document.getElementById('pill-cam').textContent = 'Camera Live';
@@ -428,23 +474,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     const running = vizEngine.status === 'running';
     if (running) {
       camEngine.pause(); mpEngine.pause(); lmEngine.pause();
-      bioEngine.pause(); poseEngine.pause(); vizEngine.pause(); mvEngine.pause(); scoreEngine.pause();
+      bioEngine.pause(); poseEngine.pause(); vizEngine.pause(); mvEngine.pause(); scoreEngine.pause(); fbEngine.pause();
       btnPause.textContent = '▶ Resume';
       document.getElementById('pill-viz').textContent   = 'Visualization Paused';
       document.getElementById('pill-mv').textContent    = 'Movement Paused';
       document.getElementById('pill-score').textContent = 'Scoring Paused';
+      document.getElementById('pill-fb').textContent    = 'Feedback Paused';
     } else {
       camEngine.resume(); mpEngine.resume(); lmEngine.resume();
-      bioEngine.resume(); poseEngine.resume(); vizEngine.resume(); mvEngine.resume(); scoreEngine.resume();
+      bioEngine.resume(); poseEngine.resume(); vizEngine.resume(); mvEngine.resume(); scoreEngine.resume(); fbEngine.resume();
       btnPause.textContent = '⏸ Pause';
       document.getElementById('pill-viz').textContent   = 'Visualization Active';
       document.getElementById('pill-mv').textContent    = 'Movement Active';
       document.getElementById('pill-score').textContent = 'Scoring Active';
+      document.getElementById('pill-fb').textContent    = 'Feedback Active';
     }
   });
 
   // ── Stop ─────────────────────────────────────────────────────────────────
   btnStop.addEventListener('click', async () => {
+    await fbEngine.stop();
     await scoreEngine.stop();
     await mvEngine.stop();
     await vizEngine.stop();
@@ -466,6 +515,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('pill-mv').textContent   = 'Movement Standby';
     document.getElementById('pill-score').className = 'badge bg-secondary';
     document.getElementById('pill-score').textContent= 'Scoring Standby';
+    document.getElementById('pill-fb').className    = 'badge bg-secondary';
+    document.getElementById('pill-fb').textContent   = 'Feedback Standby';
 
     btnStart.disabled = false;
     btnPause.disabled = true;
@@ -501,6 +552,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const bd = bioEngine.getDiagnostics();
     const md = mvEngine.getDiagnostics();
     const sd = scoreEngine.getDiagnostics();
+    const fd = fbEngine.getDiagnostics();
 
     mFps.textContent     = vd.metrics.renderFps;
     mLat.textContent     = `${vd.metrics.visualizationLatencyMs} ms`;
@@ -561,6 +613,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         .slice(0, 2)
         .map(([k, c]) => `${k.toUpperCase()} (+${c.contribution})`);
       document.getElementById('sc-top').textContent = topContribs.length > 0 ? topContribs.join(', ') : '--';
+    }
+
+    // Feedback Engine metrics
+    const activeFb = fbEngine._activeFeedback || [];
+    if (activeFb.length > 0) {
+      const top = activeFb[0];
+      document.getElementById('fb-message').textContent = top.message;
+      document.getElementById('fb-severity').textContent = top.severity.toUpperCase();
+      document.getElementById('fb-severity').className = `badge ${top.severity === 'critical' ? 'bg-danger' : top.severity === 'high' ? 'bg-warning text-dark' : 'bg-info text-dark'}`;
+      document.getElementById('fb-cat').textContent = top.category;
+      document.getElementById('fb-conf').textContent = `${(top.confidence * 100).toFixed(0)}%`;
+      document.getElementById('fb-rule').textContent = top.rule_triggered;
+      document.getElementById('fb-src').textContent = top.metric_source;
+
+      if (top.evidence) {
+        document.getElementById('fb-evidence').textContent = `val=${top.evidence.raw_value}${top.evidence.unit} | thresh=${top.evidence.threshold}${top.evidence.unit} | diff=${top.evidence.difference}`;
+      } else {
+        document.getElementById('fb-evidence').textContent = '--';
+      }
+    } else {
+      document.getElementById('fb-message').textContent = 'Form & execution are looking good!';
+      document.getElementById('fb-severity').textContent = 'GOOD';
+      document.getElementById('fb-severity').className = 'badge bg-success';
+      document.getElementById('fb-cat').textContent = 'General';
+      document.getElementById('fb-conf').textContent = '100%';
+      document.getElementById('fb-rule').textContent = '—';
+      document.getElementById('fb-src').textContent = '—';
+      document.getElementById('fb-evidence').textContent = 'No active issues detected';
     }
   }, 500);
 

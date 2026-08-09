@@ -133,6 +133,16 @@ export class DebugOverlay {
                  &nbsp; ROM: <span id="dbg-score-rom" style="color:#38bdf8;">—</span></div>
             <div>Stability: <span id="dbg-score-stab" style="color:#a78bfa;">—</span>
                  &nbsp; Symmetry: <span id="dbg-score-symm" style="color:#a78bfa;">—</span></div>
+            <hr style="border-color:#1e293b;margin:6px 0;">
+
+            <!-- Feedback Engine -->
+            <div style="color:#22c55e;font-weight:700;margin-bottom:3px;">💬 Feedback Engine  <span style="color:#64748b;font-size:10px;">Priority 9</span></div>
+            <div>Generated: <span id="dbg-fb-count" style="color:#4ade80;">0</span>
+                 &nbsp; Active Queue: <span id="dbg-fb-active" style="color:#38bdf8;">0</span></div>
+            <div>Highest Severity: <span id="dbg-fb-sev" style="color:#f87171;">info</span>
+                 &nbsp; Latency: <span id="dbg-fb-lat" style="color:#4ade80;">—</span> ms</div>
+            <div>Last Feedback: <span id="dbg-fb-last" style="color:#fde047;font-size:11px;">None</span></div>
+            <div>Active Rules: <span id="dbg-fb-rules" style="color:#c084fc;">0</span></div>
 
             <div style="margin-top:10px;color:#475569;font-size:10px;text-align:right;">
                 Press CTRL+SHIFT+D to close
@@ -230,6 +240,17 @@ export class DebugOverlay {
             this._set('dbg-score-rom',     rep?.components?.rom?.score !== undefined ? `${rep.components.rom.score}%` : '—');
             this._set('dbg-score-stab',    rep?.components?.stability?.score !== undefined ? `${rep.components.stability.score}%` : '—');
             this._set('dbg-score-symm',    rep?.components?.symmetry?.score !== undefined ? `${rep.components.symmetry.score}%` : '—');
+        }
+
+        // Feedback Engine metrics
+        if (window.feedbackEngine) {
+            const fd = window.feedbackEngine.getDiagnostics();
+            this._set('dbg-fb-count',  fd.metrics.generatedCount);
+            this._set('dbg-fb-active', fd.metrics.activeFeedbackCount);
+            this._set('dbg-fb-sev',    fd.metrics.highestSeverity.toUpperCase());
+            this._set('dbg-fb-lat',    `${fd.metrics.generationLatencyMs} ms`);
+            this._set('dbg-fb-last',   fd.metrics.lastFeedbackMessage);
+            this._set('dbg-fb-rules',  fd.metrics.activeRulesCount);
         }
     }
 

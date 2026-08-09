@@ -20,14 +20,15 @@
 | **TD-14** | Heuristic 2D joint angle approximations | Implemented `BiomechanicsEngine` 3D vector geometry, CoM estimation, symmetry analysis, and ROM tracking. |
 | **TD-15** | Hardcoded pose classification thresholds | Implemented configuration-driven `PoseRuleEngine` matching 12 poses with hold timers. |
 | **TD-16** | No real-time skeleton or biomechanics visualization | Implemented `VisualizationEngine` Canvas renderer with 11 configurable overlays, 60 FPS target, High-DPI support, and mirror mode. |
+| **TD-17** | No dynamic rep counting, phase detection, or exercise hold tracking | Implemented `MovementEngine` (Priority 7) with 11-state FSM, sequential phase ordering, debounced rep counter, ROM gate, tempo analyzer, and 10 YAML exercise configs. |
 
 ---
 
-## Remaining Technical Debt (Deferred to Phase 2+)
+## Remaining Technical Debt (Deferred to Phase 3+)
 
 | Item ID | Description | Planned Phase |
 |---|---|---|
-| **TD-08** | Server-side OpenCV / MediaPipe video streaming (`/video_feed`) causing high CPU usage | Phase 2 (Browser MediaPipe WASM Engine) |
-| **TD-09** | Hardcoded pose classification if-statements in `classifyPose()` | Phase 2 (Configuration-driven Pose Rule Engine) |
-| **TD-10** | Monolithic Jinja2 HTML templates without modern component framework | Phase 3 (Next.js + React Frontend Migration) |
-| **TD-11** | Heavy server-side dependencies (`opencv-contrib-python`, `mediapipe`, `protobuf`) | Phase 2 (Backend dependency cleanup) |
+| **TD-18** | Server-side OpenCV / MediaPipe video streaming (`/video_feed`) causing high CPU usage | Phase 3 (Browser MediaPipe WASM Engine) |
+| **TD-19** | Monolithic Jinja2 HTML templates without modern component framework | Phase 4 (Next.js + React Frontend Migration) |
+| **TD-20** | Heavy server-side dependencies (`opencv-contrib-python`, `mediapipe`, `protobuf`) | Phase 3 (Backend dependency cleanup) |
+

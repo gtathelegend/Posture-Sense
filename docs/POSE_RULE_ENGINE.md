@@ -27,7 +27,10 @@ Biomechanics Engine (Priority 4)             EventBus                     Pose R
                                           ┌────────────┐                             ▼
                                           │pose.       │◄────────────────────────────┘
                                           │detected    │    Emits PoseResult Contracts
-                                          └────────────┘
+                                          └─────┬──────┘    (Consumed by VisualizationEngine & MovementEngine)
+                                                │
+                                                ▼
+                                   Movement Engine (Priority 7)
 ```
 
 ---

@@ -1,6 +1,6 @@
 # PostureSense Feature Matrix
 
-**Version:** 2.0.0 (Phase 1)  
+**Version:** 2.0.0 (Phase 2 — Movement Engine)  
 
 | Feature / Architectural Area | v1 Baseline Status | Phase 1 Status | Target v2 Status |
 |---|---|---|---|
@@ -24,3 +24,5 @@
 | **Biomechanics Engine** | ❌ Heuristic approximations | ✅ `BiomechanicsEngine` 3D Vector Math | ✅ 10 3D Joint Angles, CoM, Symmetry & ROM |
 | **Pose Rule Engine** | ❌ Hardcoded neural net | ✅ Config-Driven `PoseRuleEngine` | ✅ 12 Rule-Based Poses & Hold Detection |
 | **Visualization Engine** | ❌ No real-time rendering | ✅ Canvas `VisualizationEngine` | ✅ 33-Landmark Skeleton, CoM, Balance, Pose HUD, 60 FPS |
+| **Movement Engine** | ❌ No rep counting or phase detection | ✅ Config-Driven `MovementEngine` (Priority 7) | ✅ 10 Exercises, FSM, Rep Counter, Tempo, Hold Timer |
+

@@ -201,6 +201,7 @@ export class VisualizationEngine {
         if (!this.eventBus) return;
         this.eventBus.subscribe('landmarks.validated', (e) => {
             this._latestLandmarks = e.data || null;
+            if (e.data) this.trackingLostReason = null;
         });
         this.eventBus.subscribe('biomechanics.updated', (e) => {
             this._latestBiomechanics = e.data || null;
@@ -208,6 +209,19 @@ export class VisualizationEngine {
         this.eventBus.subscribe('pose.detected', (e) => {
             this._latestPose = e.data || null;
         });
+        this.eventBus.subscribe('tracking.lost', (e) => {
+            this.resetVisualizationState(e.data?.reason || "Pose tracking unavailable");
+        });
+    }
+
+    resetVisualizationState(reason = "Pose tracking unavailable") {
+        this._latestLandmarks = null;
+        this._latestBiomechanics = null;
+        this._latestPose = null;
+        this.trackingLostReason = reason;
+        if (this.ctx && this.canvas) {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
     }
 
     // ─── Render Loop ─────────────────────────────────────────────────────────
@@ -674,10 +688,11 @@ export class VisualizationEngine {
             ctx.font = '12px "Inter", sans-serif';
             ctx.fillText(`Full body not visible — Body visibility: ${coveragePct}%`, W / 2, boxY + 42);
         } else {
+            const subtitle = this.trackingLostReason || 'Step into frame or adjust camera angle';
             ctx.font = 'bold 14px "Inter", sans-serif';
-            ctx.fillText('🚫 No person detected', W / 2, boxY + 22);
+            ctx.fillText('🚫 Pose tracking unavailable', W / 2, boxY + 22);
             ctx.font = '12px "Inter", sans-serif';
-            ctx.fillText('Step into frame or adjust camera angle', W / 2, boxY + 42);
+            ctx.fillText(subtitle.length > 42 ? subtitle.substring(0, 42) + '...' : subtitle, W / 2, boxY + 42);
         }
         ctx.restore();
     }

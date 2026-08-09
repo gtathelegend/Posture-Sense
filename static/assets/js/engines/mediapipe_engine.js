@@ -1,7 +1,8 @@
 /**
  * MediaPipeEngine
- * Browser MediaPipe Tasks Vision Engine for PostureSense v2.
- * Consumes camera frames, manages Web Worker inference, and publishes LandmarkSet contracts over EventBus.
+ * Production-grade client MediaPipe Tasks Vision Pose Landmarker wrapper engine for PostureSense v2.
+ * Offloads inference to a Web Worker, processes camera frames, emits landmarks.detected & tracking.lost events,
+ * and handles model load failures gracefully.
  */
 
 export class MediaPipeEngine {
@@ -17,60 +18,95 @@ export class MediaPipeEngine {
         this.isModelLoaded = false;
         this.isTracking = false;
         this.isInferenceBusy = false;
+        this.fpsTimer = null;
+        this.frameCountInSecond = 0;
 
         // Metrics & Diagnostics
         this.metrics = {
-            fps: 0,
-            inferenceLatencyMs: 0.0,
             modelLoadTimeMs: 0.0,
+            inferenceLatencyMs: 0.0,
+            inferenceFps: 0.0,
             framesProcessed: 0,
-            droppedFrames: 0,
+            framesDropped: 0,
             landmarkCount: 0,
             trackingConfidence: 0.0
         };
-
-        this.frameCountWindow = 0;
-        this.fpsTimer = null;
-        this.lastLandmarkTime = null;
     }
 
     async initialize(config = {}) {
         this.status = "initialized";
         this._publish("mediapipe.initialized", this.getDiagnostics());
-        await this.loadModel();
         return true;
     }
 
     async loadModel() {
         const startTime = performance.now();
-        return new Promise((resolve, reject) => {
+        console.log('[MediaPipeEngine] Spawning worker static/assets/js/workers/mediapipe_worker.js...');
+
+        return new Promise((resolve) => {
             try {
                 this.worker = new Worker('/static/assets/js/workers/mediapipe_worker.js');
+
+                this.worker.onerror = (err) => {
+                    const errorMsg = err.message || 'MediaPipe Web Worker failed to load or execute.';
+                    console.error('[MediaPipeEngine] Worker error:', errorMsg);
+                    this.status = 'failed';
+                    this.isModelLoaded = false;
+                    this._publish("mediapipe.failed", { error: errorMsg });
+                    this._publish("tracking.lost", {
+                        reason: "MediaPipe Worker Error",
+                        error: errorMsg,
+                        timestamp: new Date().toISOString()
+                    });
+                    resolve(false);
+                };
+
                 this.worker.onmessage = (e) => {
                     const { action, success, landmarks, confidence, latencyMs, error } = e.data;
                     if (action === 'MODEL_LOADED' && success) {
                         this.isModelLoaded = true;
                         this.metrics.modelLoadTimeMs = performance.now() - startTime;
+                        this.status = 'ready';
                         this._publish("mediapipe.model_loaded", this.getDiagnostics());
                         resolve(true);
                     } else if (action === 'MODEL_ERROR') {
                         this.status = "failed";
+                        this.isModelLoaded = false;
                         this._publish("mediapipe.failed", { error });
+                        this._publish("tracking.lost", {
+                            reason: "MediaPipe Model Load Failure",
+                            error: error,
+                            timestamp: new Date().toISOString()
+                        });
                         resolve(false);
                     } else if (action === 'FRAME_PROCESSED') {
                         this.isInferenceBusy = false;
                         this._handleFrameProcessed(landmarks || [], confidence || 0.0, latencyMs || 0.0);
+                    } else if (action === 'FRAME_ERROR') {
+                        this.isInferenceBusy = false;
+                        console.warn('[MediaPipeEngine] Frame processing error:', error);
+                        this._publish("mediapipe.error", { error });
+                        this._publish("tracking.lost", {
+                            reason: "MediaPipe Frame Error",
+                            error: error,
+                            timestamp: new Date().toISOString()
+                        });
                     }
                 };
 
                 this.worker.postMessage({ action: 'LOAD_MODEL' });
             } catch (err) {
-                // Fallback for environments without worker script loading
-                console.warn('[MediaPipeEngine] Web Worker init fallback:', err);
-                this.isModelLoaded = true;
-                this.metrics.modelLoadTimeMs = performance.now() - startTime;
-                this._publish("mediapipe.model_loaded", this.getDiagnostics());
-                resolve(true);
+                const errorMsg = err.message || String(err);
+                console.warn('[MediaPipeEngine] Web Worker init exception:', errorMsg);
+                this.status = "failed";
+                this.isModelLoaded = false;
+                this._publish("mediapipe.failed", { error: errorMsg });
+                this._publish("tracking.lost", {
+                    reason: "MediaPipe Web Worker Init Exception",
+                    error: errorMsg,
+                    timestamp: new Date().toISOString()
+                });
+                resolve(false);
             }
         });
     }
@@ -83,7 +119,12 @@ export class MediaPipeEngine {
 
     async start() {
         if (!this.isModelLoaded) {
-            await this.loadModel();
+            const loaded = await this.loadModel();
+            if (!loaded) {
+                console.error('[MediaPipeEngine] Start aborted — model loading failed.');
+                this.status = 'failed';
+                return false;
+            }
         }
         this.status = "running";
         this.isInferenceBusy = false;
@@ -131,31 +172,23 @@ export class MediaPipeEngine {
 
     _subscribeToCameraFrames() {
         if (this.eventBus && typeof this.eventBus.subscribe === 'function') {
-            this.eventBus.subscribe('frame.captured', (event) => {
-                if (this.status === 'running') {
-                    // WORKER BACKPRESSURE: If worker is busy processing previous frame, drop stale frame
-                    if (this.isInferenceBusy) {
-                        this.metrics.droppedFrames++;
-                        return;
-                    }
+            this.eventBus.subscribe('camera.frame_ready', (event) => {
+                if (this.status !== 'running' || !this.worker || this.isInferenceBusy) {
+                    if (this.isInferenceBusy) this.metrics.framesDropped++;
+                    return;
+                }
 
+                if (event.data && event.data.imageBitmap) {
+                    this.isInferenceBusy = true;
                     this.metrics.framesProcessed++;
-                    this.frameCountWindow++;
-
-                    if (this.worker && this.isModelLoaded && event.data?.imageBitmap) {
-                        this.isInferenceBusy = true;
-                        this.worker.postMessage({
-                            action: 'PROCESS_FRAME',
-                            payload: {
-                                imageBitmap: event.data.imageBitmap,
-                                frameNumber: this.metrics.framesProcessed
-                            }
-                        }, [event.data.imageBitmap]);
-                    } else {
-                        // Isolated test / fallback contract delivery
-                        const landmarks = this._generateRaw33Landmarks();
-                        this._handleFrameProcessed(landmarks, 0.95, 12.5);
-                    }
+                    this.frameCountInSecond++;
+                    this.worker.postMessage({
+                        action: 'PROCESS_FRAME',
+                        payload: {
+                            imageBitmap: event.data.imageBitmap,
+                            frameNumber: this.metrics.framesProcessed
+                        }
+                    }, [event.data.imageBitmap]);
                 }
             });
         }
@@ -185,38 +218,19 @@ export class MediaPipeEngine {
         } else {
             if (this.isTracking) {
                 this.isTracking = false;
-                this._publish("tracking.lost", { confidence: 0.0 });
+                this._publish("tracking.lost", {
+                    reason: "No landmarks detected in frame",
+                    confidence: 0.0,
+                    timestamp: new Date().toISOString()
+                });
             }
         }
     }
 
-    _generateRaw33Landmarks() {
-        // Standard 33 MediaPipe Pose Landmark keypoints (unprocessed raw coordinates)
-        const landmarkNames = [
-            'NOSE', 'LEFT_EYE_INNER', 'LEFT_EYE', 'LEFT_EYE_OUTER', 'RIGHT_EYE_INNER', 'RIGHT_EYE',
-            'RIGHT_EYE_OUTER', 'LEFT_EAR', 'RIGHT_EAR', 'MOUTH_LEFT', 'MOUTH_RIGHT', 'LEFT_SHOULDER',
-            'RIGHT_SHOULDER', 'LEFT_ELBOW', 'RIGHT_ELBOW', 'LEFT_WRIST', 'RIGHT_WRIST', 'LEFT_PINKY',
-            'RIGHT_PINKY', 'LEFT_INDEX', 'RIGHT_INDEX', 'LEFT_THUMB', 'RIGHT_THUMB', 'LEFT_HIP',
-            'RIGHT_HIP', 'LEFT_KNEE', 'RIGHT_KNEE', 'LEFT_ANKLE', 'RIGHT_ANKLE', 'LEFT_HEEL',
-            'RIGHT_HEEL', 'LEFT_FOOT_INDEX', 'RIGHT_FOOT_INDEX'
-        ];
-
-        return landmarkNames.map((name, i) => ({
-            id: i,
-            index: i,
-            name: name,
-            x: 0.5 + (Math.sin(i) * 0.1),
-            y: 0.5 + (Math.cos(i) * 0.1),
-            z: 0.0,
-            visibility: 0.99,
-            presence: 0.99
-        }));
-    }
-
     _startFpsTimer() {
         this.fpsTimer = setInterval(() => {
-            this.metrics.fps = this.frameCountWindow;
-            this.frameCountWindow = 0;
+            this.metrics.inferenceFps = this.frameCountInSecond;
+            this.frameCountInSecond = 0;
         }, 1000);
     }
 
@@ -227,8 +241,10 @@ export class MediaPipeEngine {
             status: this.status,
             priority: this.priority,
             dependencies: this.dependencies,
-            isModelLoaded: this.isModelLoaded,
-            isTracking: this.isTracking,
+            config: {
+                isModelLoaded: this.isModelLoaded,
+                isTracking: this.isTracking
+            },
             metrics: { ...this.metrics }
         };
     }

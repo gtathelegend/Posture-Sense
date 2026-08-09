@@ -1,13 +1,23 @@
 /**
  * MediaPipe Tasks Vision Web Worker
  * Performs off-main-thread 33-landmark pose detection using PoseLandmarker.
- * Preserves x, y, z, visibility, and presence metadata with safe fallbacks.
+ * Tries local vendor assets (/static/vendor/mediapipe/) first, with fallback to CDN.
  */
 
+let visionLoaded = false;
 try {
-    importScripts('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/vision_bundle.js');
-} catch (error) {
-    console.error('[MediaPipeWorker] Failed to import vision_bundle.js script:', error);
+    importScripts('/static/vendor/mediapipe/vision_bundle.js');
+    visionLoaded = true;
+    console.log('[MediaPipeWorker] Loaded local vision_bundle.js from /static/vendor/mediapipe/');
+} catch (localErr) {
+    console.warn('[MediaPipeWorker] Local vision_bundle.js not found, trying CDN fallback...', localErr);
+    try {
+        importScripts('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/vision_bundle.js');
+        visionLoaded = true;
+        console.log('[MediaPipeWorker] Loaded vision_bundle.js from CDN.');
+    } catch (cdnErr) {
+        console.error('[MediaPipeWorker] Critical Error: Failed to import vision_bundle.js from both local and CDN sources:', cdnErr);
+    }
 }
 
 const LANDMARK_NAMES = [
@@ -26,15 +36,34 @@ self.onmessage = async (e) => {
 
     if (action === 'LOAD_MODEL') {
         try {
-            console.log('[MediaPipeWorker] Initializing FilesetResolver...');
-            const vision = await self.tasksVision.FilesetResolver.forVisionTasks(
-                'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm'
-            );
-            console.log('[MediaPipeWorker] FilesetResolver initialized. Creating PoseLandmarker...');
+            if (!visionLoaded || !self.tasksVision) {
+                throw new Error('MediaPipe Vision bundle script is not loaded or unavailable.');
+            }
 
+            let vision = null;
+            try {
+                console.log('[MediaPipeWorker] Initializing FilesetResolver with local WASM assets...');
+                vision = await self.tasksVision.FilesetResolver.forVisionTasks('/static/vendor/mediapipe/wasm');
+            } catch (wasmErr) {
+                console.warn('[MediaPipeWorker] Local WASM load failed, trying CDN fallback...', wasmErr);
+                vision = await self.tasksVision.FilesetResolver.forVisionTasks(
+                    'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm'
+                );
+            }
+
+            let modelAssetPath = '/static/vendor/mediapipe/pose_landmarker_lite.task';
+            try {
+                const headRes = await fetch(modelAssetPath, { method: 'HEAD' });
+                if (!headRes.ok) throw new Error(`Local model HTTP ${headRes.status}`);
+            } catch {
+                console.warn('[MediaPipeWorker] Local model task file not accessible, using CDN fallback...');
+                modelAssetPath = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
+            }
+
+            console.log('[MediaPipeWorker] Creating PoseLandmarker with model:', modelAssetPath);
             poseLandmarker = await self.tasksVision.PoseLandmarker.createFromOptions(vision, {
                 baseOptions: {
-                    modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
+                    modelAssetPath: modelAssetPath,
                     delegate: 'GPU'
                 },
                 runningMode: 'IMAGE',
@@ -52,7 +81,7 @@ self.onmessage = async (e) => {
         }
     } else if (action === 'PROCESS_FRAME') {
         if (!poseLandmarker) {
-            self.postMessage({ action: 'FRAME_PROCESSED', landmarks: [], confidence: 0 });
+            self.postMessage({ action: 'FRAME_ERROR', error: 'PoseLandmarker is uninitialized.' });
             return;
         }
         try {

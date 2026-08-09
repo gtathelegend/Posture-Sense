@@ -49,6 +49,15 @@ export class EngineAdapter {
             });
         });
 
+        // Translate Feedback Events
+        this._subscribe('feedback.generated', (event) => {
+            const data = event.data || event || {};
+            this.engineContext.updateState({
+                lastFeedback: data.message || '',
+                feedbackSeverity: data.severity || 'info'
+            });
+        });
+
         // Translate Error Events
         this._subscribe('camera.error', (event) => {
             this.engineContext.updateState({ status: 'error' });

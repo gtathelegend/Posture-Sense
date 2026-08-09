@@ -14,6 +14,7 @@ from shared.engines.interfaces import (
 )
 from shared.engines.movement_engine import MovementEngine, MovementState
 from shared.engines.scoring_engine import ScoringEngine
+from shared.engines.feedback_engine import FeedbackEngine
 
 __all__ = [
     'CameraEngineInterface',
@@ -31,4 +32,5 @@ __all__ = [
     'MovementEngine',
     'MovementState',
     'ScoringEngine',
+    'FeedbackEngine',
 ]

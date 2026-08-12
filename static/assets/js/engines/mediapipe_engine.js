@@ -26,6 +26,7 @@ export class MediaPipeEngine {
             modelLoadTimeMs: 0.0,
             inferenceLatencyMs: 0.0,
             inferenceFps: 0.0,
+            framesReceived: 0,
             framesProcessed: 0,
             framesDropped: 0,
             landmarkCount: 0,
@@ -171,34 +172,68 @@ export class MediaPipeEngine {
     }
 
     _subscribeToCameraFrames() {
-        if (this.eventBus && typeof this.eventBus.subscribe === 'function') {
-            this.eventBus.subscribe('camera.frame_ready', (event) => {
-                if (this.status !== 'running' || !this.worker || this.isInferenceBusy) {
-                    if (this.isInferenceBusy) this.metrics.framesDropped++;
-                    return;
-                }
+        if (!this.eventBus || typeof this.eventBus.subscribe !== 'function') return;
 
-                if (event.data && event.data.imageBitmap) {
-                    this.isInferenceBusy = true;
-                    this.metrics.framesProcessed++;
-                    this.frameCountInSecond++;
-                    this.worker.postMessage({
-                        action: 'PROCESS_FRAME',
-                        payload: {
-                            imageBitmap: event.data.imageBitmap,
-                            frameNumber: this.metrics.framesProcessed,
-                            timestamp: performance.now()
-                        }
-                    }, [event.data.imageBitmap]);
+        const onFrame = async (event) => {
+            if (this.status !== 'running' || !this.worker) return;
+
+            this.metrics.framesReceived++;
+            if (this.metrics.framesReceived % 30 === 0) {
+                const data = event.data || {};
+                console.log(`[MediaPipeEngine] Frames received: ${this.metrics.framesReceived}`, {
+                    frameNumber: data.frame_number || data.frameNumber || this.metrics.framesReceived,
+                    width: data.width || 1280,
+                    height: data.height || 720,
+                    timestamp: data.timestamp || new Date().toISOString()
+                });
+            }
+
+            if (this.isInferenceBusy) {
+                this.metrics.framesDropped++;
+                if (event.data && event.data.imageBitmap && typeof event.data.imageBitmap.close === 'function') {
+                    try { event.data.imageBitmap.close(); } catch (_) {}
                 }
-            });
-        }
+                return;
+            }
+
+            let bitmap = event.data?.imageBitmap || null;
+            if (!bitmap && event.data?.videoElement && event.data.videoElement.readyState >= 2) {
+                try {
+                    bitmap = await createImageBitmap(event.data.videoElement);
+                } catch (_) {}
+            }
+
+            if (bitmap) {
+                this.isInferenceBusy = true;
+                this.metrics.framesProcessed++;
+                this.frameCountInSecond++;
+                this.worker.postMessage({
+                    action: 'PROCESS_FRAME',
+                    payload: {
+                        imageBitmap: bitmap,
+                        frameNumber: this.metrics.framesProcessed,
+                        timestamp: performance.now()
+                    }
+                }, [bitmap]);
+            }
+        };
+
+        this.eventBus.subscribe('frame.captured', onFrame);
+        this.eventBus.subscribe('camera.frame_ready', onFrame);
     }
 
     _handleFrameProcessed(landmarks, confidence, latencyMs) {
         this.metrics.inferenceLatencyMs = latencyMs || 0.0;
         this.metrics.landmarkCount = landmarks.length;
         this.metrics.trackingConfidence = confidence || 0.0;
+
+        if (this.metrics.framesProcessed % 30 === 0) {
+            console.log('[MediaPipeEngine] landmarks.detected:', {
+                frameNumber: this.metrics.framesProcessed,
+                landmarkCount: landmarks.length,
+                confidence: confidence
+            });
+        }
 
         if (landmarks.length > 0) {
             if (!this.isTracking) {

@@ -150,6 +150,14 @@ export class LandmarkEngine {
         this.metrics.jitterScore = roundVal(jitter, 3);
         this.metrics.filterLatencyMs = roundVal(performance.now() - startTime, 2);
 
+        if (this.metrics.framesAccepted % 30 === 0) {
+            console.log('[LandmarkEngine] Validated landmarks:', {
+                frameNumber: this.metrics.framesAccepted,
+                qualityScore: qualityScore,
+                trackingState: this.metrics.trackingState
+            });
+        }
+
         // Construct ValidatedLandmarkSet payload
         const validatedPayload = {
             id: Math.random().toString(36).substring(2, 11),

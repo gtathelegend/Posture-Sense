@@ -175,11 +175,18 @@ export class CameraEngine {
     }
 
     _startFrameLoop() {
-        const loop = () => {
+        const loop = async () => {
             if (this.status === 'running') {
                 const now = performance.now();
                 this.metrics.frameCount++;
                 this.frameCountWindow++;
+
+                let imageBitmap = null;
+                if (this.videoElement && this.videoElement.readyState >= 2) {
+                    try {
+                        imageBitmap = await createImageBitmap(this.videoElement);
+                    } catch (_) {}
+                }
 
                 // Publish Frame Event contract
                 const framePayload = {
@@ -188,12 +195,15 @@ export class CameraEngine {
                     schema_version: '2.0.0',
                     source: 'CameraEngine',
                     frame_number: this.metrics.frameCount,
-                    width: this.config.width,
-                    height: this.config.height,
-                    fps: this.metrics.fps
+                    width: this.videoElement ? (this.videoElement.videoWidth || this.config.width) : this.config.width,
+                    height: this.videoElement ? (this.videoElement.videoHeight || this.config.height) : this.config.height,
+                    fps: this.metrics.fps,
+                    imageBitmap: imageBitmap,
+                    videoElement: this.videoElement
                 };
 
                 this._publish("frame.captured", framePayload);
+                this._publish("camera.frame_ready", framePayload);
                 this.lastFrameTime = now;
             }
             if (this.status === 'running' || this.status === 'paused') {

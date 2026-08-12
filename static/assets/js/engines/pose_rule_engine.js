@@ -236,6 +236,11 @@ export class PoseRuleEngine {
                     this.evaluateSnapshot(event.data || {});
                 }
             });
+            this.eventBus.subscribe('tracking.lost', (event) => {
+                if (this.status === 'running') {
+                    this._returnUnknownState(event.data?.reason || "Tracking lost", 0.0);
+                }
+            });
         }
     }
 

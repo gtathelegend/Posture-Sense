@@ -30,6 +30,7 @@ const LANDMARK_NAMES = [
 
 let poseLandmarkerInstance = null;
 let _lastTimestamp = 0;
+let _receivedFrameCount = 0;
 
 // ─── Helper: post a structured error ─────────────────────────────────────────
 
@@ -245,6 +246,11 @@ self.onmessage = async (e) => {
             return;
         }
         try {
+            _receivedFrameCount++;
+            if (_receivedFrameCount % 30 === 0) {
+                console.log(`[MediaPipeWorker] Frames received: ${_receivedFrameCount}`);
+            }
+
             const startTime = performance.now();
 
             // VIDEO mode requires a monotonically increasing timestamp in milliseconds
@@ -256,11 +262,15 @@ self.onmessage = async (e) => {
             const latency = performance.now() - startTime;
 
             const rawLandmarks = result.landmarks && result.landmarks[0] ? result.landmarks[0] : [];
+            const poseCount = result.landmarks ? result.landmarks.length : 0;
 
-            // Debug: log landmark count for first few frames
-            if ((payload.frameNumber || 0) <= 3) {
-                console.log(`[MediaPipeWorker] Pose inference result frame ${payload.frameNumber}:`, result);
-                console.log(`[MediaPipeWorker] Landmark count:`, rawLandmarks.length);
+            if (_receivedFrameCount % 30 === 0 || (payload.frameNumber || 0) <= 3) {
+                console.log('[MediaPipeWorker] Inference:', {
+                    frameNumber: payload.frameNumber,
+                    timestamp: timestamp,
+                    poseCount: poseCount,
+                    landmarkCount: rawLandmarks.length
+                });
             }
 
             const landmarks = rawLandmarks.map((lm, i) => ({

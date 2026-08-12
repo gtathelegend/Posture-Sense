@@ -41,7 +41,7 @@ export class MediaPipeEngine {
 
     async loadModel() {
         const startTime = performance.now();
-        console.log('[MediaPipeEngine] Spawning worker static/assets/js/workers/mediapipe_worker.js...');
+        console.log('[MediaPipeEngine] Creating MediaPipe module worker...');
 
         return new Promise((resolve) => {
             try {
@@ -186,7 +186,8 @@ export class MediaPipeEngine {
                         action: 'PROCESS_FRAME',
                         payload: {
                             imageBitmap: event.data.imageBitmap,
-                            frameNumber: this.metrics.framesProcessed
+                            frameNumber: this.metrics.framesProcessed,
+                            timestamp: performance.now()
                         }
                     }, [event.data.imageBitmap]);
                 }

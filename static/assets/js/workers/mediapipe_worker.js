@@ -18,9 +18,9 @@ const LANDMARK_NAMES = [
     'right_heel', 'left_foot_index', 'right_foot_index'
 ];
 
-let poseLandmarker = null;
-let FilesetResolver = null;
-let PoseLandmarker = null;
+let poseLandmarkerInstance = null;
+let FilesetResolverClass = null;
+let PoseLandmarkerClass = null;
 
 self.onmessage = async (e) => {
     const { action, payload } = e.data;
@@ -30,8 +30,12 @@ self.onmessage = async (e) => {
             console.log('[MediaPipeWorker] Loading local Vision bundle...');
             try {
                 const visionModule = await import(VISION_BUNDLE_PATH);
-                FilesetResolver = visionModule.FilesetResolver;
-                PoseLandmarker = visionModule.PoseLandmarker;
+                FilesetResolverClass = visionModule.FilesetResolver || visionModule.default?.FilesetResolver || (typeof self !== 'undefined' && self.tasksVision?.FilesetResolver);
+                PoseLandmarkerClass = visionModule.PoseLandmarker || visionModule.default?.PoseLandmarker || (typeof self !== 'undefined' && self.tasksVision?.PoseLandmarker);
+
+                if (!FilesetResolverClass || !PoseLandmarkerClass) {
+                    throw new Error(`FilesetResolver=${Boolean(FilesetResolverClass)}, PoseLandmarker=${Boolean(PoseLandmarkerClass)}`);
+                }
                 console.log('[MediaPipeWorker] Vision bundle loaded successfully.');
             } catch (bundleErr) {
                 const errorMsg = `Vision bundle missing or failed to load: ${VISION_BUNDLE_PATH} (${bundleErr.message || bundleErr})`;
@@ -43,7 +47,7 @@ self.onmessage = async (e) => {
             console.log('[MediaPipeWorker] Initializing local WASM runtime...');
             let vision = null;
             try {
-                vision = await FilesetResolver.forVisionTasks(WASM_ASSETS_PATH);
+                vision = await FilesetResolverClass.forVisionTasks(WASM_ASSETS_PATH);
                 console.log('[MediaPipeWorker] WASM runtime initialized.');
             } catch (wasmErr) {
                 const errorMsg = `WASM runtime missing or failed to initialize: ${WASM_ASSETS_PATH} (${wasmErr.message || wasmErr})`;
@@ -54,7 +58,7 @@ self.onmessage = async (e) => {
 
             console.log('[MediaPipeWorker] Loading local pose model...');
             try {
-                poseLandmarker = await self.tasksVision.PoseLandmarker.createFromOptions(vision, {
+                poseLandmarkerInstance = await PoseLandmarkerClass.createFromOptions(vision, {
                     baseOptions: {
                         modelAssetPath: POSE_MODEL_PATH,
                         delegate: 'GPU'
@@ -80,13 +84,13 @@ self.onmessage = async (e) => {
             self.postMessage({ action: 'MODEL_ERROR', error: errorMsg });
         }
     } else if (action === 'PROCESS_FRAME') {
-        if (!poseLandmarker) {
+        if (!poseLandmarkerInstance) {
             self.postMessage({ action: 'FRAME_ERROR', error: 'PoseLandmarker is uninitialized.' });
             return;
         }
         try {
             const startTime = performance.now();
-            const result = poseLandmarker.detect(payload.imageBitmap);
+            const result = poseLandmarkerInstance.detect(payload.imageBitmap);
             const latency = performance.now() - startTime;
 
             const rawLandmarks = result.landmarks && result.landmarks[0] ? result.landmarks[0] : [];

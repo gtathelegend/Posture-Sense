@@ -27,6 +27,9 @@ def dashboard_stats():
         'total_sessions': data['total_sessions'],
         'total_duration': data['total_duration'],
         'avg_accuracy': data['avg_accuracy'],
+        'biomechanics': data.get('biomechanics', {}),
+        'totals': data.get('totals', {}),
         'pose_counts': data['pose_counts'],
         'recent_sessions': data['recent_sessions']
     })
+

@@ -30,6 +30,15 @@ class ReportService:
         if not target and sessions:
             target = sessions[0]
 
+        reps_val = getattr(target, 'reps', 0) if target else 0
+        tq_val = getattr(target, 'tracking_quality', 100.0) if target else 100.0
+        symm_val = getattr(target, 'symmetry_score', 100.0) if target else 100.0
+        bal_val = getattr(target, 'balance_score', 100.0) if target else 100.0
+        stab_val = getattr(target, 'stability_score', 100.0) if target else 100.0
+        rom_val = getattr(target, 'rom_score', 100.0) if target else 100.0
+        hold_val = getattr(target, 'hold_time', 0.0) if target else 0.0
+        rules_val = getattr(target, 'failed_rules', []) if target else []
+
         session_dict = {
             "session_id": str(getattr(target, 'id', session_id)) if target else session_id,
             "user_id": str(user_id),
@@ -38,14 +47,21 @@ class ReportService:
             "average_score": target.accuracy if target else 0.0,
             "best_score": target.accuracy if target else 0.0,
             "worst_score": target.accuracy if target else 0.0,
-            "completed_reps": 10,
-            "valid_reps": 10,
+            "completed_reps": reps_val,
+            "valid_reps": reps_val,
             "invalid_reps": 0,
-            "tracking_quality": 100.0
+            "hold_time": hold_val,
+            "symmetry_score": symm_val,
+            "balance_score": bal_val,
+            "stability_score": stab_val,
+            "rom_score": rom_val,
+            "tracking_quality": tq_val,
+            "failed_rules": rules_val
         }
 
         report = ReportService._engine.generate_session_report(session_dict)
         return report.to_dict()
+
 
     @staticmethod
     def generate_progress_report(user_id: Any) -> Dict[str, Any]:

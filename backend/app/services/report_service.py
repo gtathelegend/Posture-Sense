@@ -31,11 +31,11 @@ class ReportService:
             target = sessions[0]
 
         reps_val = getattr(target, 'reps', 0) if target else 0
-        tq_val = getattr(target, 'tracking_quality', 100.0) if target else 100.0
-        symm_val = getattr(target, 'symmetry_score', 100.0) if target else 100.0
-        bal_val = getattr(target, 'balance_score', 100.0) if target else 100.0
-        stab_val = getattr(target, 'stability_score', 100.0) if target else 100.0
-        rom_val = getattr(target, 'rom_score', 100.0) if target else 100.0
+        tq_val = getattr(target, 'tracking_quality', None) if target else None
+        symm_val = getattr(target, 'symmetry_score', None) if target else None
+        bal_val = getattr(target, 'balance_score', None) if target else None
+        stab_val = getattr(target, 'stability_score', None) if target else None
+        rom_val = getattr(target, 'rom_score', None) if target else None
         hold_val = getattr(target, 'hold_time', 0.0) if target else 0.0
         rules_val = getattr(target, 'failed_rules', []) if target else []
 
@@ -58,6 +58,7 @@ class ReportService:
             "tracking_quality": tq_val,
             "failed_rules": rules_val
         }
+
 
         report = ReportService._engine.generate_session_report(session_dict)
         return report.to_dict()

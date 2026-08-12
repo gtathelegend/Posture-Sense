@@ -112,7 +112,8 @@ def version():
 @login_required
 def get_analytics_summary():
     from backend.app.repositories.analytics_repository import AnalyticsRepository
-    summary = AnalyticsRepository.get_user_analytics_summary(current_user.id)
+    timeframe = request.args.get('timeframe', 'all')
+    summary = AnalyticsRepository.get_user_analytics_summary(current_user.id, timeframe=timeframe)
     return jsonify(summary)
 
 
@@ -120,7 +121,8 @@ def get_analytics_summary():
 @login_required
 def get_analytics_progress():
     from backend.app.repositories.analytics_repository import AnalyticsRepository
-    progress = AnalyticsRepository.get_user_progress(current_user.id)
+    timeframe = request.args.get('timeframe', 'all')
+    progress = AnalyticsRepository.get_user_progress(current_user.id, timeframe=timeframe)
     return jsonify(progress)
 
 
@@ -128,7 +130,8 @@ def get_analytics_progress():
 @login_required
 def get_analytics_exercises():
     from backend.app.repositories.analytics_repository import AnalyticsRepository
-    exercises = AnalyticsRepository.get_exercise_history(current_user.id)
+    timeframe = request.args.get('timeframe', 'all')
+    exercises = AnalyticsRepository.get_exercise_history(current_user.id, timeframe=timeframe)
     return jsonify(exercises)
 
 
@@ -136,7 +139,8 @@ def get_analytics_exercises():
 @login_required
 def get_analytics_trends():
     from backend.app.repositories.analytics_repository import AnalyticsRepository
-    trends = AnalyticsRepository.get_user_trends(current_user.id)
+    timeframe = request.args.get('timeframe', 'all')
+    trends = AnalyticsRepository.get_user_trends(current_user.id, timeframe=timeframe)
     return jsonify(trends)
 
 
@@ -146,6 +150,7 @@ def get_analytics_records():
     from backend.app.repositories.analytics_repository import AnalyticsRepository
     records = AnalyticsRepository.get_personal_records(current_user.id)
     return jsonify({'user_id': str(current_user.id), 'records': records})
+
 
 
 # ── Reports & Export Endpoints (Scoped to current_user for strict user isolation) ──

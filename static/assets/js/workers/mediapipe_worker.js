@@ -1,23 +1,26 @@
 /**
  * MediaPipe Tasks Vision Web Worker
  * Performs off-main-thread 33-landmark pose detection using PoseLandmarker.
- * Tries local vendor assets (/static/vendor/mediapipe/) first, with fallback to CDN.
+ * Uses only locally hosted MediaPipe assets from /static/vendor/mediapipe/v0.10.0/.
  */
 
+const MEDIAPIPE_ASSET_BASE = '/static/vendor/mediapipe/v0.10.0';
+const VISION_BUNDLE_PATH = `${MEDIAPIPE_ASSET_BASE}/vision_bundle.js`;
+const WASM_ASSETS_PATH = `${MEDIAPIPE_ASSET_BASE}/wasm`;
+const POSE_MODEL_PATH = `${MEDIAPIPE_ASSET_BASE}/pose_landmarker_lite.task`;
+
 let visionLoaded = false;
+let visionLoadError = null;
+
+console.log('[MediaPipeWorker] Loading local Vision bundle...');
 try {
-    importScripts('/static/vendor/mediapipe/vision_bundle.js');
+    importScripts(VISION_BUNDLE_PATH);
     visionLoaded = true;
-    console.log('[MediaPipeWorker] Loaded local vision_bundle.js from /static/vendor/mediapipe/');
-} catch (localErr) {
-    console.warn('[MediaPipeWorker] Local vision_bundle.js not found, trying CDN fallback...', localErr);
-    try {
-        importScripts('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/vision_bundle.js');
-        visionLoaded = true;
-        console.log('[MediaPipeWorker] Loaded vision_bundle.js from CDN.');
-    } catch (cdnErr) {
-        console.error('[MediaPipeWorker] Critical Error: Failed to import vision_bundle.js from both local and CDN sources:', cdnErr);
-    }
+    console.log('[MediaPipeWorker] Vision bundle loaded successfully.');
+} catch (err) {
+    visionLoaded = false;
+    visionLoadError = err;
+    console.error(`[MediaPipeWorker] Failed to load Vision bundle from ${VISION_BUNDLE_PATH}:`, err);
 }
 
 const LANDMARK_NAMES = [
@@ -37,47 +40,51 @@ self.onmessage = async (e) => {
     if (action === 'LOAD_MODEL') {
         try {
             if (!visionLoaded || !self.tasksVision) {
-                throw new Error('MediaPipe Vision bundle script is not loaded or unavailable.');
+                const errDetail = visionLoadError ? (visionLoadError.message || String(visionLoadError)) : 'self.tasksVision unavailable';
+                const errorMsg = `Vision bundle missing or failed to load: ${VISION_BUNDLE_PATH} (${errDetail})`;
+                console.error(`[MediaPipeWorker] ${errorMsg}`);
+                self.postMessage({ action: 'MODEL_ERROR', error: errorMsg });
+                return;
             }
 
+            console.log('[MediaPipeWorker] Initializing local WASM runtime...');
             let vision = null;
             try {
-                console.log('[MediaPipeWorker] Initializing FilesetResolver with local WASM assets...');
-                vision = await self.tasksVision.FilesetResolver.forVisionTasks('/static/vendor/mediapipe/wasm');
+                vision = await self.tasksVision.FilesetResolver.forVisionTasks(WASM_ASSETS_PATH);
+                console.log('[MediaPipeWorker] WASM runtime initialized.');
             } catch (wasmErr) {
-                console.warn('[MediaPipeWorker] Local WASM load failed, trying CDN fallback...', wasmErr);
-                vision = await self.tasksVision.FilesetResolver.forVisionTasks(
-                    'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm'
-                );
+                const errorMsg = `WASM runtime missing or failed to initialize: ${WASM_ASSETS_PATH} (${wasmErr.message || wasmErr})`;
+                console.error(`[MediaPipeWorker] ${errorMsg}`);
+                self.postMessage({ action: 'MODEL_ERROR', error: errorMsg });
+                return;
             }
 
-            let modelAssetPath = '/static/vendor/mediapipe/pose_landmarker_lite.task';
+            console.log('[MediaPipeWorker] Loading local pose model...');
             try {
-                const headRes = await fetch(modelAssetPath, { method: 'HEAD' });
-                if (!headRes.ok) throw new Error(`Local model HTTP ${headRes.status}`);
-            } catch {
-                console.warn('[MediaPipeWorker] Local model task file not accessible, using CDN fallback...');
-                modelAssetPath = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
+                poseLandmarker = await self.tasksVision.PoseLandmarker.createFromOptions(vision, {
+                    baseOptions: {
+                        modelAssetPath: POSE_MODEL_PATH,
+                        delegate: 'GPU'
+                    },
+                    runningMode: 'IMAGE',
+                    numPoses: 1,
+                    minPoseDetectionConfidence: 0.5,
+                    minPosePresenceConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+                console.log('[MediaPipeWorker] Pose model loaded successfully.');
+                console.log('[MediaPipeWorker] MediaPipe ready.');
+                self.postMessage({ action: 'MODEL_LOADED', success: true });
+            } catch (modelErr) {
+                const errorMsg = `Pose model missing or failed to load: ${POSE_MODEL_PATH} (${modelErr.message || modelErr})`;
+                console.error(`[MediaPipeWorker] ${errorMsg}`);
+                self.postMessage({ action: 'MODEL_ERROR', error: errorMsg });
+                return;
             }
-
-            console.log('[MediaPipeWorker] Creating PoseLandmarker with model:', modelAssetPath);
-            poseLandmarker = await self.tasksVision.PoseLandmarker.createFromOptions(vision, {
-                baseOptions: {
-                    modelAssetPath: modelAssetPath,
-                    delegate: 'GPU'
-                },
-                runningMode: 'IMAGE',
-                numPoses: 1,
-                minPoseDetectionConfidence: 0.5,
-                minPosePresenceConfidence: 0.5,
-                minTrackingConfidence: 0.5
-            });
-
-            console.log('[MediaPipeWorker] PoseLandmarker successfully created.');
-            self.postMessage({ action: 'MODEL_LOADED', success: true });
         } catch (error) {
+            const errorMsg = `MediaPipe initialization failure: ${error.message || String(error)}`;
             console.error('[MediaPipeWorker] Error loading MediaPipe model:', error);
-            self.postMessage({ action: 'MODEL_ERROR', error: error.message || String(error) });
+            self.postMessage({ action: 'MODEL_ERROR', error: errorMsg });
         }
     } else if (action === 'PROCESS_FRAME') {
         if (!poseLandmarker) {
@@ -114,3 +121,4 @@ self.onmessage = async (e) => {
         }
     }
 };
+

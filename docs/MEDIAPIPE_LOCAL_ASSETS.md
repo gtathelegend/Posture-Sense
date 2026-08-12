@@ -8,7 +8,7 @@ PostureSense v2 relies on MediaPipe Tasks Vision (`PoseLandmarker`) for client-s
 ## 1. Local Asset Directory Structure
 
 ```
-static/vendor/mediapipe/
+static/vendor/mediapipe/v0.10.0/
 ├── vision_bundle.js                       (MediaPipe Tasks Vision bundle JS)
 ├── pose_landmarker_lite.task              (5.7 MB Float16 Lite Pose Landmarker model)
 └── wasm/
@@ -20,20 +20,18 @@ static/vendor/mediapipe/
 
 ---
 
-## 2. Asset Loading Strategy & Fallback Hierarchy
+## 2. Asset Loading Strategy
 
-`static/assets/js/workers/mediapipe_worker.js` uses a resilient two-tier loading protocol:
+`static/assets/js/workers/mediapipe_worker.js` uses strict local asset loading:
 
-1. **Tier 1 (Local Primary)**:
-   - Worker imports `/static/vendor/mediapipe/vision_bundle.js`.
-   - `FilesetResolver.forVisionTasks` points to `/static/vendor/mediapipe/wasm`.
-   - Model task file points to `/static/vendor/mediapipe/pose_landmarker_lite.task`.
+1. **Local Vendor Assets (`/static/vendor/mediapipe/v0.10.0/`)**:
+   - Worker imports `/static/vendor/mediapipe/v0.10.0/vision_bundle.js`.
+   - `FilesetResolver.forVisionTasks` points to `/static/vendor/mediapipe/v0.10.0/wasm`.
+   - Model task file points to `/static/vendor/mediapipe/v0.10.0/pose_landmarker_lite.task`.
 
-2. **Tier 2 (CDN Fallback)**:
-   - If local files are missing, HTTP 404, or fail to load, worker automatically catches the exception and falls back to:
-     - Bundle: `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/vision_bundle.js`
-     - WASM: `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm`
-     - Model: `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task`
+2. **Strict Failure Guard**:
+   - If local files are missing, HTTP 404, or fail to load, the worker fails fast with explicit diagnostic logs specifying the failed local path (`MODEL_ERROR`).
+   - No runtime dependency on external CDNs (jsDelivr, unpkg, Google Cloud Storage).
 
 ---
 

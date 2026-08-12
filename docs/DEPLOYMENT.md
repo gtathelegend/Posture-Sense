@@ -38,4 +38,4 @@ VITE_API_URL=https://posturesense-api.onrender.com
 
 - **Render Cold Starts**: Render free instances sleep after 15 minutes of inactivity. Cold start latency is ~30–50s.
   - *Mitigation*: Client-side perception engine (Camera, MediaPipe, Landmarks, Biomechanics, Pose Rules) runs 100% locally in the browser and remains functional during backend wake-up.
-- **Model Asset Delivery**: WASM and `.task` files hosted on CDN (`jsdelivr`) for global caching.
+- **Model Asset Delivery**: WASM and `.task` files hosted locally in `/static/vendor/mediapipe/v0.10.0/` for complete offline/production self-reliance.

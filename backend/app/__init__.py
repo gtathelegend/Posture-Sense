@@ -10,6 +10,12 @@ from backend.app.middleware.security import register_middleware
 from backend.app.blueprints import main_bp, auth_bp, dashboard_bp, contact_bp, api_bp
 
 
+import mimetypes
+
+mimetypes.add_type('application/wasm', '.wasm')
+mimetypes.add_type('application/octet-stream', '.task')
+
+
 def create_app(config_class=Config):
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
     template_folder = os.path.join(base_dir, 'templates')

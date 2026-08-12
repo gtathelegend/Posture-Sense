@@ -131,11 +131,13 @@ export class PosePipelineController {
         if (cameraRunning && mediaPipeReady) {
             this.status = 'running';
             this.healthState = 'HEALTHY';
+            console.log('[PostureSense][Pipeline] MediaPipe ready.');
             console.log('[PostureSense][Pipeline] All engines running smoothly.');
         } else {
-            this.status = 'running';
+            this.status = 'degraded';
             this.healthState = 'DEGRADED';
             this.clearStalePipelineCache("MediaPipe inference unavailable");
+            console.warn('[PostureSense][Pipeline] MediaPipe failed.');
             console.warn('[PostureSense][Pipeline] Pipeline running in DEGRADED state — MediaPipe tracking unavailable.');
         }
 

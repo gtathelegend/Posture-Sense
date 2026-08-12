@@ -6,7 +6,7 @@
 export class SessionService {
     static async savePoseSession(poseLabel, duration = 0.0, accuracy = 0.0) {
         try {
-            const response = await fetch('/save_pose_session', {
+            const response = await fetch('/api/save_pose_session', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

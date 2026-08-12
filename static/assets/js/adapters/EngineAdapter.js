@@ -23,6 +23,14 @@ export class EngineAdapter {
         });
 
         // Translate Pose Events
+        this._subscribe('pose.detected', (event) => {
+            const data = event.data || {};
+            this.engineContext.updateState({
+                currentPose: data.pose_name || 'Unknown Pose',
+                status: data.pose_name && data.pose_name !== 'Unknown Pose' ? 'tracking' : 'idle'
+            });
+        });
+
         this._subscribe('pose.recognized', (event) => {
             const data = event.data || {};
             this.engineContext.updateState({
@@ -36,6 +44,42 @@ export class EngineAdapter {
             this.engineContext.updateState({
                 lastPose: this.engineContext.currentPose,
                 currentPose: data.pose_name || 'Changed Pose'
+            });
+        });
+
+        // Translate Score Events
+        this._subscribe('score.updated', (event) => {
+            const data = event.data || event || {};
+            this.engineContext.updateState({
+                overallScore: data.overall_score ?? 0.0,
+                scoreConfidence: data.score_confidence ?? 1.0,
+                scoreBand: data.category || 'Standby'
+            });
+        });
+
+        // Translate Feedback Events
+        this._subscribe('feedback.generated', (event) => {
+            const data = event.data || event || {};
+            this.engineContext.updateState({
+                lastFeedback: data.message || '',
+                feedbackSeverity: data.severity || 'info'
+            });
+        });
+
+        // Translate Analytics Events
+        this._subscribe('analytics.progress_updated', (event) => {
+            const data = event.data || event || {};
+            this.engineContext.updateState({
+                sessionsProcessed: data.sessions_processed || 0,
+                activeTrendsCount: data.trends_count || 0
+            });
+        });
+
+        // Translate Report Events
+        this._subscribe('report.generated', (event) => {
+            const data = event.data || event || {};
+            this.engineContext.updateState({
+                lastReportType: data.metadata?.report_type || 'session'
             });
         });
 

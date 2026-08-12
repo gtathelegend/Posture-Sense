@@ -45,33 +45,50 @@ class Frame(BaseContract):
 
 
 class Landmark:
-    def __init__(self, index: int, name: str, x: float, y: float, z: float = 0.0, visibility: float = 1.0):
+    def __init__(
+        self,
+        index: int,
+        name: str,
+        x: float,
+        y: float,
+        z: float = 0.0,
+        visibility: float = 1.0,
+        presence: float = 1.0,
+        id: Optional[int] = None
+    ):
+        self.id = id if id is not None else index
         self.index = index
         self.name = name
         self.x = x
         self.y = y
         self.z = z
         self.visibility = visibility
+        self.presence = presence
 
     def to_dict(self) -> Dict[str, Any]:
         return {
+            "id": self.id,
             "index": self.index,
             "name": self.name,
             "x": self.x,
             "y": self.y,
             "z": self.z,
-            "visibility": self.visibility
+            "visibility": self.visibility,
+            "presence": self.presence
         }
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Landmark':
+        idx = data.get("index", 0)
         return cls(
-            index=data.get("index", 0),
+            id=data.get("id", idx),
+            index=idx,
             name=data.get("name", "UNSPECIFIED"),
             x=float(data.get("x", 0.0)),
             y=float(data.get("y", 0.0)),
             z=float(data.get("z", 0.0)),
-            visibility=float(data.get("visibility", 1.0))
+            visibility=float(data.get("visibility", 1.0)),
+            presence=float(data.get("presence", 1.0))
         )
 
 

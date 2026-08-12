@@ -33,7 +33,7 @@ def sitemap():
 
 @main_bp.route('/sitemap2.xml')
 def sitemap2():
-    return send_file(_get_root_file('sitemap2.xml'), mimetype='text/xml')
+    return send_file(_get_root_file('sitemap.xml'), mimetype='text/xml')
 
 
 @main_bp.route('/robots.txt')
@@ -69,4 +69,37 @@ def join_now():
 @main_bp.route('/playground')
 def playground():
     return render_template('playground.html')
+
+
+# ── Backward Compatibility Alias Routes ───────────────────────────────────────
+
+@main_bp.route('/get_status')
+def get_status_alias():
+    from backend.app.blueprints.api.routes import get_status
+    return get_status()
+
+
+@main_bp.route('/stop_camera')
+def stop_camera_alias():
+    from backend.app.blueprints.api.routes import stop_camera
+    return stop_camera()
+
+
+@main_bp.route('/video_feed')
+def video_feed_alias():
+    from backend.app.blueprints.api.routes import video_feed
+    return video_feed()
+
+
+@main_bp.route('/save_pose_session', methods=['POST'])
+def save_pose_session_alias():
+    from backend.app.blueprints.api.routes import save_pose_session
+    return save_pose_session()
+
+
+@main_bp.route('/status')
+def status_alias():
+    from backend.app.blueprints.api.routes import pose_status_updates
+    return pose_status_updates()
+
 

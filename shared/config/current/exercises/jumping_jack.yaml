@@ -1,0 +1,81 @@
+schema_version: "2.0.0"
+id: jumping_jack
+name: Jumping Jack
+category: dynamic
+description: Jumping jacks — arms raise overhead while legs spread, return to start.
+
+entry_conditions:
+  joint_constraints:
+    left_shoulder: [0, 40]
+    right_shoulder: [0, 40]
+  min_tracking_quality: 60.0
+  required_joints: [left_shoulder, right_shoulder, left_knee, right_knee]
+
+exit_conditions:
+  tracking_quality_below: 40.0
+  inactivity_timeout_ms: 4000
+
+phases:
+  - id: top
+    name: Arms Down / Feet Together
+    type: top
+    trigger_joints: [left_shoulder, right_shoulder]
+    trigger_ranges:
+      left_shoulder: [0, 45]
+      right_shoulder: [0, 45]
+    min_duration_ms: 100
+    max_duration_ms: 3000
+
+  - id: concentric
+    name: Arms Rising
+    type: concentric
+    trigger_joints: [left_shoulder, right_shoulder]
+    trigger_ranges:
+      left_shoulder: [45, 135]
+      right_shoulder: [45, 135]
+    direction: increasing
+    primary_joint: left_shoulder
+    min_duration_ms: 100
+    max_duration_ms: 2000
+
+  - id: bottom
+    name: Arms Overhead / Feet Apart
+    type: bottom
+    trigger_joints: [left_shoulder, right_shoulder]
+    trigger_ranges:
+      left_shoulder: [130, 180]
+      right_shoulder: [130, 180]
+    min_duration_ms: 50
+    max_duration_ms: 1500
+
+  - id: eccentric
+    name: Arms Lowering
+    type: eccentric
+    trigger_joints: [left_shoulder, right_shoulder]
+    trigger_ranges:
+      left_shoulder: [0, 130]
+      right_shoulder: [0, 130]
+    direction: decreasing
+    primary_joint: left_shoulder
+    min_duration_ms: 100
+    max_duration_ms: 2000
+
+rep_completion:
+  required_phases: [top, concentric, bottom, eccentric]
+  final_phase: eccentric
+  return_to: top
+  min_rom_percentage: 40.0
+  rom_joint: left_shoulder
+  rom_reference_top: 20.0
+  rom_reference_bottom: 150.0
+  prevent_bounce: true
+  debounce_ms: 250
+  min_bottom_depth_deg: 120.0
+
+hold_config: null
+
+tempo_limits:
+  min_cadence_rpm: 10
+  max_cadence_rpm: 80
+
+diagnostics_label: Jumping Jack

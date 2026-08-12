@@ -1,0 +1,50 @@
+schema_version: "2.0.0"
+id: bridge_hold
+name: Bridge Hold
+category: static_hold
+description: Glute bridge hold — hips raised, maintaining hip extension against gravity.
+
+entry_conditions:
+  joint_constraints:
+    left_hip: [150, 185]
+    right_hip: [150, 185]
+    left_knee: [80, 110]
+    right_knee: [80, 110]
+  min_tracking_quality: 55.0
+  required_joints: [left_hip, right_hip, left_knee, right_knee]
+
+exit_conditions:
+  tracking_quality_below: 35.0
+  joint_violation:
+    left_hip: [130, 195]
+  inactivity_timeout_ms: 10000
+
+phases:
+  - id: hold
+    name: Bridge Hold
+    type: hold
+    trigger_joints: [left_hip, right_hip]
+    trigger_ranges:
+      left_hip: [145, 190]
+      right_hip: [145, 190]
+    min_duration_ms: 0
+    max_duration_ms: 300000
+
+rep_completion:
+  required_phases: []
+  final_phase: null
+  return_to: null
+  min_rom_percentage: 0.0
+  prevent_bounce: false
+  debounce_ms: 0
+
+hold_config:
+  min_seconds: 5.0
+  milestone_seconds: [10, 20, 30, 45, 60]
+  count_unit: seconds
+
+tempo_limits:
+  min_cadence_rpm: 0
+  max_cadence_rpm: 0
+
+diagnostics_label: Bridge

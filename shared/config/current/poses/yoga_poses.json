@@ -4,16 +4,20 @@
     "warrior_ii": {
       "name": "Warrior II Pose",
       "category": "yoga",
+      "requires_full_body": true,
+      "required_regions": ["head", "shoulders", "hips", "knees", "ankles"],
       "required_angles": {
-        "left_elbow": [165, 195],
-        "right_elbow": [165, 195],
-        "left_shoulder": [80, 110],
-        "right_shoulder": [80, 110]
+        "left_knee": [80, 110],
+        "right_knee": [160, 180],
+        "left_shoulder": [80, 105],
+        "right_shoulder": [80, 105]
       }
     },
     "t_pose": {
       "name": "T Pose",
       "category": "yoga",
+      "requires_full_body": true,
+      "required_regions": ["head", "shoulders", "hips", "knees", "ankles"],
       "required_angles": {
         "left_elbow": [165, 195],
         "right_elbow": [165, 195],
@@ -26,17 +30,24 @@
     "tree_pose": {
       "name": "Tree Pose",
       "category": "yoga",
+      "requires_full_body": true,
+      "required_regions": ["head", "shoulders", "hips", "knees", "ankles"],
       "required_angles": {
-        "standing_knee": [165, 195],
-        "bent_knee": [25, 45]
+        "left_knee": [160, 180],
+        "right_knee": [30, 90]
       }
     },
     "cobra_pose": {
       "name": "Cobra Pose",
       "category": "yoga",
+      "requires_full_body": true,
+      "required_regions": ["head", "shoulders", "hips", "knees", "ankles"],
       "required_angles": {
-        "left_hip_knee": [160, 200],
-        "right_hip_knee": [160, 200]
+        "spine": [10, 45],
+        "left_hip": [150, 180],
+        "right_hip": [150, 180],
+        "left_knee": [160, 180],
+        "right_knee": [160, 180]
       }
     }
   }

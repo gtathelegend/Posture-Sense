@@ -1,0 +1,78 @@
+schema_version: "2.0.0"
+id: lunge
+name: Lunge
+category: dynamic
+description: Forward lunge — step forward and lower rear knee toward ground, return.
+
+entry_conditions:
+  joint_constraints:
+    left_knee: [155, 180]
+    right_knee: [155, 180]
+  min_tracking_quality: 60.0
+  required_joints: [left_knee, right_knee, left_hip, right_hip]
+
+exit_conditions:
+  tracking_quality_below: 40.0
+  inactivity_timeout_ms: 5000
+
+phases:
+  - id: top
+    name: Standing
+    type: top
+    trigger_joints: [left_knee, right_knee]
+    trigger_ranges:
+      left_knee: [155, 180]
+      right_knee: [155, 180]
+    min_duration_ms: 200
+    max_duration_ms: 5000
+
+  - id: concentric
+    name: Lunging Down
+    type: concentric
+    trigger_joints: [left_knee]
+    trigger_ranges:
+      left_knee: [80, 155]
+    direction: decreasing
+    primary_joint: left_knee
+    min_duration_ms: 300
+    max_duration_ms: 6000
+
+  - id: bottom
+    name: Lunge Position
+    type: bottom
+    trigger_joints: [left_knee]
+    trigger_ranges:
+      left_knee: [60, 110]
+    min_duration_ms: 100
+    max_duration_ms: 4000
+
+  - id: eccentric
+    name: Returning
+    type: eccentric
+    trigger_joints: [left_knee]
+    trigger_ranges:
+      left_knee: [110, 180]
+    direction: increasing
+    primary_joint: left_knee
+    min_duration_ms: 300
+    max_duration_ms: 6000
+
+rep_completion:
+  required_phases: [top, concentric, bottom, eccentric]
+  final_phase: eccentric
+  return_to: top
+  min_rom_percentage: 40.0
+  rom_joint: left_knee
+  rom_reference_top: 170.0
+  rom_reference_bottom: 90.0
+  prevent_bounce: true
+  debounce_ms: 400
+  min_bottom_depth_deg: 110.0
+
+hold_config: null
+
+tempo_limits:
+  min_cadence_rpm: 4
+  max_cadence_rpm: 30
+
+diagnostics_label: Lunge

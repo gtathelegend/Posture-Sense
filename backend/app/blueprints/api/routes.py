@@ -53,9 +53,135 @@ def video_feed():
 
 @api_bp.route('/health')
 def health():
-    return jsonify({'status': 'ok', 'service': 'PostureSense v2 Backend'})
+    return jsonify({
+        'status': 'healthy',
+        'service': 'PostureSense v2 Backend',
+        'pipeline_status': 'operational',
+        'version': '2.0.0'
+    })
 
 
 @api_bp.route('/version')
 def version():
-    return jsonify({'version': '2.0.0', 'phase': 'Architecture Migration Phase 1'})
+    import os
+    git_sha = os.getenv('RENDER_GIT_COMMIT', 'cefc6ea0ea793e2e4fe94180f962de662c84357b')
+    env = os.getenv('FLASK_ENV', 'production')
+    return jsonify({
+        'version': '2.0.0',
+        'application_version': '2.0.0',
+        'git_commit': git_sha,
+        'environment': env,
+        'engine_runtime_version': '2.0.0',
+        'pipeline_architecture': 'v2 Browser Native Pipeline',
+        'status': 'operational'
+    })
+
+
+
+
+# ── Analytics Endpoints (Scoped to current_user for strict user isolation) ───
+
+@api_bp.route('/analytics/summary', methods=['GET'])
+@login_required
+def get_analytics_summary():
+    from backend.app.repositories.analytics_repository import AnalyticsRepository
+    summary = AnalyticsRepository.get_user_analytics_summary(current_user.id)
+    return jsonify(summary)
+
+
+@api_bp.route('/analytics/progress', methods=['GET'])
+@login_required
+def get_analytics_progress():
+    from backend.app.repositories.analytics_repository import AnalyticsRepository
+    progress = AnalyticsRepository.get_user_progress(current_user.id)
+    return jsonify(progress)
+
+
+@api_bp.route('/analytics/exercises', methods=['GET'])
+@login_required
+def get_analytics_exercises():
+    from backend.app.repositories.analytics_repository import AnalyticsRepository
+    exercises = AnalyticsRepository.get_exercise_history(current_user.id)
+    return jsonify(exercises)
+
+
+@api_bp.route('/analytics/trends', methods=['GET'])
+@login_required
+def get_analytics_trends():
+    from backend.app.repositories.analytics_repository import AnalyticsRepository
+    trends = AnalyticsRepository.get_user_trends(current_user.id)
+    return jsonify(trends)
+
+
+@api_bp.route('/analytics/records', methods=['GET'])
+@login_required
+def get_analytics_records():
+    from backend.app.repositories.analytics_repository import AnalyticsRepository
+    records = AnalyticsRepository.get_personal_records(current_user.id)
+    return jsonify({'user_id': str(current_user.id), 'records': records})
+
+
+# ── Reports & Export Endpoints (Scoped to current_user for strict user isolation) ──
+
+@api_bp.route('/reports/session/<session_id>', methods=['GET'])
+@login_required
+def get_session_report(session_id):
+    from backend.app.services.report_service import ReportService
+    rep = ReportService.generate_session_report(current_user.id, session_id)
+    return jsonify(rep)
+
+
+@api_bp.route('/reports/exercise/<exercise_id>', methods=['GET'])
+@login_required
+def get_exercise_report(exercise_id):
+    from backend.app.services.report_service import ReportService
+    rep = ReportService.generate_exercise_report(current_user.id, exercise_id)
+    return jsonify(rep)
+
+
+@api_bp.route('/reports/progress', methods=['GET'])
+@login_required
+def get_progress_report():
+    from backend.app.services.report_service import ReportService
+    rep = ReportService.generate_progress_report(current_user.id)
+    return jsonify(rep)
+
+
+@api_bp.route('/reports/comprehensive', methods=['GET'])
+@login_required
+def get_comprehensive_report():
+    from backend.app.services.report_service import ReportService
+    rep = ReportService.generate_comprehensive_report(current_user.id)
+    return jsonify(rep)
+
+
+@api_bp.route('/reports/session/<session_id>/pdf', methods=['GET'])
+@login_required
+def get_session_report_pdf(session_id):
+    from backend.app.services.report_service import ReportService
+    export_res = ReportService.export_session_pdf(current_user.id, session_id)
+    return Response(export_res['content'], mimetype='text/html', headers={
+        'Content-Disposition': f'inline; filename="{export_res["filename"]}"'
+    })
+
+
+@api_bp.route('/reports/session/<session_id>/json', methods=['GET'])
+@login_required
+def get_session_report_json(session_id):
+    from backend.app.services.report_service import ReportService
+    export_res = ReportService.export_session_json(current_user.id, session_id)
+    return Response(export_res['content'], mimetype='application/json', headers={
+        'Content-Disposition': f'attachment; filename="{export_res["filename"]}"'
+    })
+
+
+@api_bp.route('/reports/progress.csv', methods=['GET'])
+@login_required
+def get_progress_csv():
+    from backend.app.services.report_service import ReportService
+    export_res = ReportService.export_progress_csv(current_user.id)
+    return Response(export_res['content'], mimetype='text/csv', headers={
+        'Content-Disposition': f'attachment; filename="{export_res["filename"]}"'
+    })
+
+

@@ -30,11 +30,23 @@ Every contract inherits from `BaseContract` and includes four mandatory metadata
 5. `BiomechanicsSnapshot`: Collection of joint angles, `symmetry_score`, and `balance_score`.
 6. `PoseResult`: Recognized static pose (`pose_name`, `confidence`, `is_recognized`).
 7. `ExerciseResult`: Dynamic exercise tracking (`exercise_name`, `rep_count`, `current_phase`, `form_score`).
-8. `ScoreReport`: Multi-component evaluation (`overall_score`, `posture_score`, `alignment_score`, `stability_score`, `category`).
-9. `FeedbackMessage`: Corrective advice (`message`, `severity`, `target_joint`, `correction_angle`).
-10. `AnalyticsSnapshot`: Session interval statistics (`session_id`, `current_score`, `frame_rate`, `elapsed_seconds`).
-11. `SessionSummary`: Completed session metrics (`session_id`, `user_id`, `pose_label`, `duration`, `avg_accuracy`, `total_reps`).
-12. `UserProfile`: User settings and preference payload (`user_id`, `username`, `email`, `preferred_mode`).
+8. `ScoreReport`: Multi-component explainable evaluation (`overall_score`, `score_confidence`, `category`, `components`, `exercise_id`, `rep_scores`, `hold_score`, `session_summary`, `missing_metrics`, `quality_gate_passed`, `quality_warning`).
+9. `FeedbackResult`: Actionable, evidence-based feedback payload (`feedback_id`, `category`, `type`, `severity`, `message`, `evidence`, `metric_source`, `confidence`, `exercise_id`, `rule_triggered`, `template_key`, `variables`).
+10. `FeedbackSessionSummary`: Aggregate session assessment summary (`session_id`, `exercise_id`, `strengths`, `weak_areas`, `common_mistakes`, `improvement_areas`).
+11. `AnalyticsSnapshot`: Session interval statistics (`session_id`, `current_score`, `frame_rate`, `elapsed_seconds`).
+12. `SessionAnalytics`: Detailed single-session performance record (`session_id`, `user_id`, `start_time`, `end_time`, `duration`, `exercise_id`, `completed_reps`, `valid_reps`, `invalid_reps`, `average_score`, `best_score`, `worst_score`, `consistency`, `tracking_quality`).
+13. `ExerciseAnalytics`: Historical performance aggregation per exercise (`exercise_id`, `total_sessions`, `total_repetitions`, `best_score`, `average_score`, `best_rom`, `average_rom`, `average_stability`, `average_symmetry`, `average_form`, `last_performed`, `improvement_percentage`).
+14. `TrendMetric`: Statistical trend evaluation (`metric_name`, `timeframe`, `trend_direction`, `observation_count`, `slope`, `percentage_change`, `sample_values`).
+15. `PersonalRecord`: Milestone record payload (`record_type`, `exercise_id`, `value`, `unit`, `achieved_at`, `previous_value`).
+16. `AnalyticsSummary`: Aggregate user progress payload (`user_id`, `total_sessions`, `total_duration`, `overall_average_score`, `streak_days`, `recent_sessions`, `exercise_history`, `active_trends`, `personal_records`, `comparison`).
+17. `ReportMetadata`: Audit metadata container for generated reports (`report_type`, `user_id`, `generated_at`, `source_data_version`, `application_version`, `schema_version`).
+18. `SessionReport`: Single-session report payload (`metadata`, `session_info`, `performance`, `assessment`, `data_quality`).
+19. `ExerciseReport`: Historical exercise performance report (`metadata`, `exercise_info`, `performance_summary`, `recent_history`).
+20. `ProgressReport`: Longitudinal user progress report (`metadata`, `overall_summary`, `trends`, `personal_records`, `comparison`).
+21. `ComprehensiveReport`: Master all-in-one user evaluation report (`metadata`, `progress_summary`, `session_reports`, `exercise_reports`, `personal_records`).
+22. `ExportResult`: Downloadable export container (`report_type`, `format`, `filename`, `content`, `content_type`).
+23. `SessionSummary`: Completed session metrics (`session_id`, `user_id`, `pose_label`, `duration`, `avg_accuracy`, `total_reps`).
+24. `UserProfile`: User settings and preference payload (`user_id`, `username`, `email`, `preferred_mode`).
 
 ---
 

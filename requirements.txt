@@ -10,3 +10,4 @@ gunicorn
 flask_cors
 python-dotenv
 werkzeug
+PyYAML

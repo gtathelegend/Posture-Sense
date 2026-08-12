@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="100%" height="100%">
+  <defs>
+    <linearGradient id="scoreBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#scoreBg)"/>
+
+  <!-- Top Title -->
+  <text x="50" y="55" font-family="Segoe UI, sans-serif" font-weight="800" font-size="24" fill="#ffffff">8-DIMENSION SCORING ENGINE DASHBOARD</text>
+  <text x="50" y="80" font-family="Segoe UI, sans-serif" font-size="14" fill="#94a3b8">Session ID: sess_20260809_0921 · Exercise: Bodyweight Squat · Duration: 04:30</text>
+
+  <!-- Main Overall Score Card (Gauge) -->
+  <rect x="50" y="110" width="340" height="515" rx="16" fill="#1e293b" stroke="#6366f1" stroke-width="2"/>
+  <text x="80" y="145" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700" fill="#818cf8">OVERALL QUALITY SCORE</text>
+
+  <!-- Big Score Number -->
+  <circle cx="220" cy="280" r="100" fill="none" stroke="#334155" stroke-width="18"/>
+  <circle cx="220" cy="280" r="100" fill="none" stroke="url(#gaugeGrad)" stroke-width="18" stroke-dasharray="628" stroke-dashoffset="65"/>
+  <text x="220" y="275" font-family="Segoe UI, sans-serif" font-size="64" font-weight="900" fill="#ffffff" text-anchor="middle">91.4</text>
+  <text x="220" y="310" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700" fill="#10b981" text-anchor="middle">EXCELLENT</text>
+
+  <!-- Score Quality Badges -->
+  <rect x="80" y="420" width="280" height="40" rx="8" fill="#0f172a"/>
+  <text x="100" y="445" font-family="Segoe UI, sans-serif" font-size="14" fill="#94a3b8">Score Band:</text>
+  <text x="220" y="445" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#10b981">Optimal (90-100)</text>
+
+  <rect x="80" y="475" width="280" height="40" rx="8" fill="#0f172a"/>
+  <text x="100" y="500" font-family="Segoe UI, sans-serif" font-size="14" fill="#94a3b8">Confidence Level:</text>
+  <text x="230" y="500" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#38bdf8">98.2% (High)</text>
+
+  <rect x="80" y="530" width="280" height="40" rx="8" fill="#0f172a"/>
+  <text x="100" y="555" font-family="Segoe UI, sans-serif" font-size="14" fill="#94a3b8">Quality Gate:</text>
+  <text x="220" y="555" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#a855f7">PASSED (Zero Penalty)</text>
+
+  <!-- Right Side 8 Dimension Breakdown -->
+  <rect x="410" y="110" width="740" height="515" rx="16" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="440" y="145" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#ffffff">EXPLAINABLE DIMENSION BREAKDOWN</text>
+
+  <!-- Dimension 1: Joint Alignment -->
+  <text x="440" y="185" font-family="Segoe UI, sans-serif" font-size="14" fill="#cbd5e1">1. Joint Alignment Score</text>
+  <text x="1070" y="185" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#10b981">94.0</text>
+  <rect x="440" y="195" width="650" height="12" rx="6" fill="#0f172a"/>
+  <rect x="440" y="195" width="611" height="12" rx="6" fill="#10b981"/>
+
+  <!-- Dimension 2: Range of Motion -->
+  <text x="440" y="235" font-family="Segoe UI, sans-serif" font-size="14" fill="#cbd5e1">2. Range of Motion (ROM)</text>
+  <text x="1070" y="235" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#10b981">92.5</text>
+  <rect x="440" y="245" width="650" height="12" rx="6" fill="#0f172a"/>
+  <rect x="440" y="245" width="601" height="12" rx="6" fill="#10b981"/>
+
+  <!-- Dimension 3: Symmetry -->
+  <text x="440" y="285" font-family="Segoe UI, sans-serif" font-size="14" fill="#cbd5e1">3. Bilateral Symmetry</text>
+  <text x="1070" y="285" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#38bdf8">89.0</text>
+  <rect x="440" y="295" width="650" height="12" rx="6" fill="#0f172a"/>
+  <rect x="440" y="295" width="578" height="12" rx="6" fill="#38bdf8"/>
+
+  <!-- Dimension 4: Stability -->
+  <text x="440" y="335" font-family="Segoe UI, sans-serif" font-size="14" fill="#cbd5e1">4. Postural Stability (CoM)</text>
+  <text x="1070" y="335" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#38bdf8">88.5</text>
+  <rect x="440" y="345" width="650" height="12" rx="6" fill="#0f172a"/>
+  <rect x="440" y="345" width="575" height="12" rx="6" fill="#38bdf8"/>
+
+  <!-- Dimension 5: Smoothness -->
+  <text x="440" y="385" font-family="Segoe UI, sans-serif" font-size="14" fill="#cbd5e1">5. Movement Smoothness (Jitter)</text>
+  <text x="1070" y="385" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#10b981">95.0</text>
+  <rect x="440" y="395" width="650" height="12" rx="6" fill="#0f172a"/>
+  <rect x="440" y="395" width="617" height="12" rx="6" fill="#10b981"/>
+
+  <!-- Dimension 6: Tempo -->
+  <text x="440" y="435" font-family="Segoe UI, sans-serif" font-size="14" fill="#cbd5e1">6. Movement Tempo Ratio</text>
+  <text x="1070" y="435" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#fbbf24">84.0</text>
+  <rect x="440" y="445" width="650" height="12" rx="6" fill="#0f172a"/>
+  <rect x="440" y="445" width="546" height="12" rx="6" fill="#fbbf24"/>
+
+  <!-- Dimension 7: Hold Duration -->
+  <text x="440" y="485" font-family="Segoe UI, sans-serif" font-size="14" fill="#cbd5e1">7. Pose Hold Time Consistency</text>
+  <text x="1070" y="485" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#a855f7">90.0</text>
+  <rect x="440" y="495" width="650" height="12" rx="6" fill="#0f172a"/>
+  <rect x="440" y="495" width="585" height="12" rx="6" fill="#a855f7"/>
+
+  <!-- Dimension 8: Fatigue Index -->
+  <text x="440" y="535" font-family="Segoe UI, sans-serif" font-size="14" fill="#cbd5e1">8. Fatigue Drift Resistance</text>
+  <text x="1070" y="535" font-family="Segoe UI, sans-serif" font-size="14" font-weight="700" fill="#10b981">96.0</text>
+  <rect x="440" y="545" width="650" height="12" rx="6" fill="#0f172a"/>
+  <rect x="440" y="545" width="624" height="12" rx="6" fill="#10b981"/>
+
+  <text x="440" y="595" font-family="Segoe UI, sans-serif" font-size="12" font-style="italic" fill="#94a3b8">Weight Configuration: scoring_weights.yaml v2.0 · Quality Gate Penalty: 0.0</text>
+</svg>

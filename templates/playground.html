@@ -1,100 +1,767 @@
 {% extends "base.html" %}
 
-{% block title %}Developer Playground — PostureSense v2 Runtime{% endblock %}
+{% block title %}Developer Playground — Visualization & Movement Engine{% endblock %}
 
 {% block content %}
-<div class="container py-5" style="margin-top: 80px;">
-  <div class="row">
-    <div class="col-lg-12">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>🛠️ Engine Runtime & Diagnostics Playground</h2>
-        <span class="badge bg-primary fs-6">Runtime System v2.0.0</span>
-      </div>
-      <p class="text-muted">Monitors engine registration, lifecycle states, topological dependency resolution, health scores, and metrics.</p>
+<style>
+  #viz-canvas-wrapper {
+    position: relative;
+    width: 100%;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  #viz-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    transform: scaleX(-1); /* mirror */
+  }
+  #viz-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  .toggle-btn { min-width: 140px; }
+  .metric-box {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 6px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .metric-box .label { font-size: 10px; color: #64748b; display: block; margin-bottom: 2px; }
+  .metric-box .value { font-size: 17px; font-weight: 700; }
+</style>
+
+<div class="container-fluid py-4" style="margin-top: 72px;">
+  <div class="row mb-3 align-items-center">
+    <div class="col">
+      <h4 class="mb-0 text-white fw-bold">🏆 PostureSense AI Pipeline — Developer Playground</h4>
+      <p class="text-muted small mb-0">Real-time perception, biomechanics, pose recognition, movement tracking, scoring, feedback, analytics, and reporting engine (Priority 1–11).</p>
+    </div>
+    <div class="col-auto d-flex gap-2 align-items-center">
+      <span id="pill-cam"   class="badge bg-secondary">Camera Stopped</span>
+      <span id="pill-viz"   class="badge bg-secondary">Visualization Standby</span>
+      <span id="pill-mv"    class="badge bg-secondary">Movement Standby</span>
+      <span id="pill-score" class="badge bg-secondary">Scoring Standby</span>
+      <span id="pill-fb"    class="badge bg-secondary">Feedback Standby</span>
+      <span id="pill-an"    class="badge bg-secondary">Analytics Standby</span>
+      <span id="pill-rp"    class="badge bg-secondary">Reports Standby</span>
+      <span id="pill-fps"   class="badge bg-dark border border-secondary text-info">-- FPS</span>
     </div>
   </div>
 
-  <div class="row g-4 mt-2">
-    <!-- Diagnostics Card 1 -->
-    <div class="col-md-4">
-      <div class="card bg-dark border-secondary h-100 text-white p-3">
-        <h5>⚙️ Runtime System</h5>
-        <hr class="border-secondary">
-        <p><strong>App Version:</strong> <span class="text-info">2.0.0</span></p>
-        <p><strong>Runtime Version:</strong> <span class="text-info">2.0.0</span></p>
-        <p><strong>Lifecycle State:</strong> <span class="text-success">READY</span></p>
-        <p><strong>Event Bus:</strong> <span class="text-success">Active</span></p>
-      </div>
-    </div>
+  <div class="row g-3">
 
-    <!-- Diagnostics Card 2 -->
-    <div class="col-md-4">
-      <div class="card bg-dark border-secondary h-100 text-white p-3">
-        <h5>🔌 Engine Registry & Graph</h5>
-        <hr class="border-secondary">
-        <p><strong>Registered Engines:</strong> <span class="text-warning">12 Defined</span></p>
-        <p><strong>Dependency Resolver:</strong> <span class="text-success">Kahn's Topological</span></p>
-        <p><strong>Health Monitoring:</strong> <span class="text-success">Active</span></p>
-        <p><strong>Metrics Collector:</strong> <span class="text-success">Active</span></p>
-      </div>
-    </div>
+    <!-- ── Viewport column ─────────────────────────────────────── -->
+    <div class="col-lg-8">
+      <div class="card bg-dark border-secondary text-white p-2">
 
-    <!-- Diagnostics Card 3 -->
-    <div class="col-md-4">
-      <div class="card bg-dark border-secondary h-100 text-white p-3">
-        <h5>📡 System Health & Debug</h5>
-        <hr class="border-secondary">
-        <p><strong>Backend Status:</strong> <span id="playground-backend" class="text-success">Connecting...</span></p>
-        <p><strong>Database:</strong> <span class="text-success">Connected</span></p>
-        <p><strong>Debug Overlay:</strong> Press <kbd>CTRL + SHIFT + D</kbd></p>
-      </div>
-    </div>
-  </div>
+        <!-- Video + canvas stack -->
+        <div id="viz-canvas-wrapper" style="min-height: 320px;">
+          <video id="viz-video" autoplay muted playsinline></video>
+          <canvas id="viz-canvas"></canvas>
 
-  <!-- Dependency Graph Visualization Table -->
-  <div class="row mt-4">
-    <div class="col-12">
-      <div class="card bg-dark border-secondary text-white p-4">
-        <h5>🕸️ Engine Dependency Topology</h5>
-        <div class="table-responsive mt-3">
-          <table class="table table-dark table-striped align-middle">
-            <thead>
-              <tr>
-                <th>Priority</th>
-                <th>Engine ID</th>
-                <th>Category</th>
-                <th>Lifecycle State</th>
-                <th>Dependencies</th>
-                <th>Health Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td>1</td><td>camera_engine</td><td>Vision Input</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>None</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>2</td><td>mediapipe_engine</td><td>Landmark Detection</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>camera_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>3</td><td>landmark_engine</td><td>Landmark Filtering</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>mediapipe_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>4</td><td>biomechanics_engine</td><td>Angle Math</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>landmark_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>5</td><td>pose_rule_engine</td><td>Pose Recognition</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>biomechanics_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>6</td><td>movement_engine</td><td>Rep Counter</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>pose_rule_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>7</td><td>scoring_engine</td><td>Form Scoring</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>movement_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>8</td><td>feedback_engine</td><td>Guidance</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>scoring_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-              <tr><td>9</td><td>analytics_engine</td><td>Session Stats</td><td><span class="badge bg-secondary">REGISTERED</span></td><td>feedback_engine</td><td><span class="badge bg-success">100.0</span></td></tr>
-            </tbody>
-          </table>
+          <!-- No-signal placeholder -->
+          <div id="viz-placeholder" style="
+              position:absolute; inset:0; display:flex;
+              flex-direction:column; align-items:center; justify-content:center;
+              background:rgba(0,0,0,0.85); color:#475569;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor"
+                 viewBox="0 0 16 16" style="margin-bottom:12px">
+              <path d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16
+                       4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2
+                       2 0 0 1-2-2V5z"/>
+            </svg>
+            <span class="fw-semibold">Start the pipeline to see live skeleton rendering</span>
+          </div>
+        </div>
+
+        <!-- Pipeline controls -->
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          <button id="btn-start" class="btn btn-success btn-sm">▶ Start Pipeline</button>
+          <button id="btn-pause" class="btn btn-warning btn-sm" disabled>⏸ Pause</button>
+          <button id="btn-stop"  class="btn btn-danger  btn-sm" disabled>⏹ Stop</button>
+          <button id="btn-fs"    class="btn btn-outline-secondary btn-sm ms-auto">⛶ Fullscreen Canvas</button>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<script>
-  document.addEventListener("DOMContentLoaded", async () => {
+    <!-- ── Right panel ─────────────────────────────────────────── -->
+    <div class="col-lg-4 d-flex flex-column gap-3">
+
+      <!-- Live metrics -->
+      <div class="card bg-dark border-secondary text-white p-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2 text-info">📊 Live Metrics</h6>
+        <div class="row g-2">
+          <div class="col-6"><div class="metric-box">
+            <span class="label">Render FPS</span>
+            <span class="value text-success" id="m-fps">--</span>
+          </div></div>
+          <div class="col-6"><div class="metric-box">
+            <span class="label">Render Latency</span>
+            <span class="value text-info" id="m-lat">-- ms</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Pose Confidence</span>
+            <span class="value text-warning" id="m-conf">--%</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Hold Timer</span>
+            <span class="value text-primary" id="m-hold">--s</span>
+          </div></div>
+        </div>
+
+        <!-- Recognized pose badge -->
+        <div class="metric-box mt-2 text-center">
+          <span class="label">Current Pose</span>
+          <div class="value fs-5 text-success" id="m-pose">—</div>
+        </div>
+
+        <!-- Rule evaluation row -->
+        <div class="d-flex justify-content-between mt-2">
+          <span class="small text-success" id="m-matched">✓ -- matched</span>
+          <span class="small text-danger"  id="m-failed">✗ -- failed</span>
+          <span class="small text-muted"   id="m-holdstate">idle</span>
+        </div>
+      </div>
+
+      <!-- Biomechanics snapshot -->
+      <div class="card bg-dark border-secondary text-white p-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2 text-purple" style="color:#a78bfa">📐 Biomechanics</h6>
+        <div class="row g-2">
+          <div class="col-6"><div class="metric-box">
+            <span class="label">L/R Balance</span>
+            <span class="value text-primary" id="b-balance">50/50</span>
+          </div></div>
+          <div class="col-6"><div class="metric-box">
+            <span class="label">Symmetry</span>
+            <span class="value text-success" id="b-symm">--%</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">CoM X / Y</span>
+            <span class="value text-info" id="b-com" style="font-size:13px">--, --</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Forward Lean</span>
+            <span class="value text-warning" id="b-lean">--°</span>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- Visualization toggles -->
+      <div class="card bg-dark border-secondary text-white p-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2 text-secondary">🎛 Visualization Toggles</h6>
+        <div class="d-flex flex-wrap gap-2">
+          <button id="tog-skeleton"   class="btn btn-sm btn-outline-success  toggle-btn active"   data-opt="showSkeleton">Skeleton</button>
+          <button id="tog-angles"     class="btn btn-sm btn-outline-info     toggle-btn active"   data-opt="showJointAngles">Joint Angles</button>
+          <button id="tog-labels"     class="btn btn-sm btn-outline-warning  toggle-btn"          data-opt="showJointLabels">Joint Labels</button>
+          <button id="tog-conf"       class="btn btn-sm btn-outline-success  toggle-btn active"   data-opt="showConfidenceColors">Confidence Colors</button>
+          <button id="tog-com"        class="btn btn-sm btn-outline-warning  toggle-btn active"   data-opt="showCenterOfMass">CoM</button>
+          <button id="tog-balance"    class="btn btn-sm btn-outline-primary  toggle-btn active"   data-opt="showBalance">Balance Bar</button>
+          <button id="tog-pose"       class="btn btn-sm btn-outline-success  toggle-btn active"   data-opt="showPoseLabel">Pose HUD</button>
+          <button id="tog-rules"      class="btn btn-sm btn-outline-info     toggle-btn active"   data-opt="showRuleEvaluation">Rule Panel</button>
+          <button id="tog-symmetry"   class="btn btn-sm btn-outline-secondary toggle-btn"         data-opt="showSymmetry">Symmetry</button>
+          <button id="tog-axes"       class="btn btn-sm btn-outline-secondary toggle-btn"         data-opt="showOrientationAxes">Axes</button>
+          <button id="tog-mirror"     class="btn btn-sm btn-outline-danger    toggle-btn active"  data-opt="mirrorMode">Mirror</button>
+        </div>
+      </div>
+
+      <!-- ── Movement Engine panel ─────────────────────────────── -->
+      <div class="card bg-dark border-secondary text-white p-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2" style="color:#f472b6;">🏋️ Movement Engine</h6>
+
+        <!-- Exercise selector -->
+        <div class="mb-2">
+          <label class="form-label text-muted small mb-1" for="mv-exercise-select">Active Exercise</label>
+          <select id="mv-exercise-select" class="form-select form-select-sm bg-dark text-white border-secondary">
+            <option value="">— Select Exercise —</option>
+            <option value="bodyweight_squat">Bodyweight Squat</option>
+            <option value="push_up">Push-Up</option>
+            <option value="lunge">Lunge</option>
+            <option value="jumping_jack">Jumping Jack</option>
+            <option value="plank">Plank (Hold)</option>
+            <option value="wall_sit">Wall Sit (Hold)</option>
+            <option value="chair_pose_hold">Chair Pose Hold</option>
+            <option value="tree_pose_hold">Tree Pose Hold</option>
+            <option value="warrior_ii_hold">Warrior II Hold</option>
+            <option value="bridge_hold">Bridge Hold</option>
+          </select>
+        </div>
+
+        <!-- Rep Counter (large) -->
+        <div class="metric-box mb-2 text-center" style="background:#1a1035;border-color:#7c3aed;">
+          <span class="label">Rep Count</span>
+          <div id="mv-reps" style="font-size:42px;font-weight:900;color:#c084fc;line-height:1.1;">0</div>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-6"><div class="metric-box">
+            <span class="label">Current Phase</span>
+            <span class="value text-warning" id="mv-phase" style="font-size:13px;">idle</span>
+          </div></div>
+          <div class="col-6"><div class="metric-box">
+            <span class="label">FSM State</span>
+            <span class="value text-info" id="mv-fsm" style="font-size:13px;">idle</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">ROM %</span>
+            <span class="value text-success" id="mv-rom">--%</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Cadence</span>
+            <span class="value text-primary" id="mv-cadence">-- rpm</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Movement Dir</span>
+            <span class="value" id="mv-dir" style="color:#c084fc;font-size:13px;">—</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Hold Timer</span>
+            <span class="value text-warning" id="mv-hold">0.0s</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Exercise Timer</span>
+            <span class="value text-muted" id="mv-duration">0.0s</span>
+          </div></div>
+          <div class="col-6 mt-1"><div class="metric-box">
+            <span class="label">Latency</span>
+            <span class="value text-success" id="mv-lat">-- ms</span>
+          </div></div>
+        </div>
+      </div>
+
+      <!-- Scoring Engine Card -->
+      <div class="card bg-dark border-secondary text-white p-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2 text-warning d-flex justify-content-between align-items-center">
+          <span>🏆 Scoring Engine — Live Performance Scores</span>
+          <span class="badge bg-warning text-dark fs-6" id="sc-band">Standby</span>
+        </h6>
+        
+        <div class="row g-2">
+          <div class="col-8">
+            <div class="metric-box bg-dark border-warning p-2">
+              <span class="label text-warning fw-bold">OVERALL PERFORMANCE SCORE</span>
+              <span class="value text-warning fw-bold display-6" id="sc-overall">--</span>
+              <span class="small text-muted d-block mt-1">Confidence: <span id="sc-conf" class="text-info">--%</span></span>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="metric-box p-2 h-100 d-flex flex-column justify-content-center">
+              <span class="label">Quality Gate</span>
+              <span class="badge bg-success" id="sc-gate">PASS</span>
+              <span class="label mt-1">Latency</span>
+              <span class="value text-success small" id="sc-lat">-- ms</span>
+            </div>
+          </div>
+
+          <div class="col-4 mt-2"><div class="metric-box">
+            <span class="label">Form Quality</span>
+            <span class="value text-info" id="sc-form">--</span>
+          </div></div>
+          <div class="col-4 mt-2"><div class="metric-box">
+            <span class="label">Range of Motion</span>
+            <span class="value text-success" id="sc-rom">--</span>
+          </div></div>
+          <div class="col-4 mt-2"><div class="metric-box">
+            <span class="label">Stability</span>
+            <span class="value text-primary" id="sc-stab">--</span>
+          </div></div>
+          <div class="col-4 mt-1"><div class="metric-box">
+            <span class="label">Symmetry</span>
+            <span class="value text-info" id="sc-symm">--</span>
+          </div></div>
+          <div class="col-4 mt-1"><div class="metric-box">
+            <span class="label">Control</span>
+            <span class="value text-warning" id="sc-ctrl">--</span>
+          </div></div>
+          <div class="col-4 mt-1"><div class="metric-box">
+            <span class="label">Tempo / Cadence</span>
+            <span class="value text-light" id="sc-tempo">--</span>
+          </div></div>
+        </div>
+
+        <div class="mt-2 pt-2 border-top border-secondary small">
+          <div class="d-flex justify-content-between text-muted mb-1">
+            <span>Unavailable Metrics:</span>
+            <span id="sc-missing" class="text-danger fw-semibold">None</span>
+          </div>
+          <div class="d-flex justify-content-between text-muted">
+            <span>Top Contributors:</span>
+            <span id="sc-top" class="text-info fw-semibold">--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback Engine Card -->
+      <div class="card bg-dark border-secondary text-white p-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2 text-success d-flex justify-content-between align-items-center">
+          <span>💬 Feedback Engine — Live AI Guidance</span>
+          <span class="badge bg-success text-dark" id="fb-severity">INFO</span>
+        </h6>
+
+        <div class="metric-box bg-dark border-success p-2 mb-2">
+          <span class="label text-success fw-bold">ACTIVE FEEDBACK MESSAGE</span>
+          <span class="value text-light fw-bold fs-6 d-block my-1" id="fb-message">Awaiting assessment events…</span>
+          <div class="d-flex justify-content-between text-muted small mt-1">
+            <span>Category: <span id="fb-cat" class="text-info">--</span></span>
+            <span>Confidence: <span id="fb-conf" class="text-warning">--%</span></span>
+          </div>
+        </div>
+
+        <div class="row g-2 small text-muted">
+          <div class="col-6">
+            <div class="metric-box p-2">
+              <span class="label">Rule Triggered</span>
+              <span class="value text-info small" id="fb-rule" style="font-size:11px;">—</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="metric-box p-2">
+              <span class="label">Metric Source</span>
+              <span class="value text-primary small" id="fb-src" style="font-size:11px;">—</span>
+            </div>
+          </div>
+          <div class="col-12 mt-1">
+            <div class="metric-box p-2 text-start" style="font-size:11px;">
+              <span class="label text-center d-block">MEASURABLE EVIDENCE</span>
+              <span id="fb-evidence" class="text-light font-monospace d-block text-center mt-1">--</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics & Progress Card -->
+      <div class="card bg-dark border-secondary text-white p-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2 text-info d-flex justify-content-between align-items-center">
+          <span>📊 Analytics & Progress Engine</span>
+          <span class="badge bg-info text-dark" id="an-streak">🔥 0 Day Streak</span>
+        </h6>
+
+        <div class="row g-2 small text-muted">
+          <div class="col-6">
+            <div class="metric-box p-2">
+              <span class="label">Total Sessions</span>
+              <span class="value text-light fw-bold" id="an-sessions">0</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="metric-box p-2">
+              <span class="label">Overall Avg Score</span>
+              <span class="value text-success fw-bold" id="an-avg-score">--</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="metric-box p-2">
+              <span class="label">Personal Records</span>
+              <span class="value text-warning fw-bold" id="an-records">0</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="metric-box p-2">
+              <span class="label">Trend Direction</span>
+              <span class="value text-info fw-bold" id="an-trend">STABLE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reports & Export Card -->
+      <div class="card bg-dark border-secondary text-white p-3 mt-3">
+        <h6 class="border-bottom border-secondary pb-2 mb-2 text-warning d-flex justify-content-between align-items-center">
+          <span>📑 Reports & Export Engine</span>
+          <span class="badge bg-warning text-dark" id="rp-fmt-pill">JSON / PDF / CSV</span>
+        </h6>
+
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          <button id="btn-view-report" class="btn btn-outline-info btn-sm flex-fill">👁️ View Report</button>
+          <button id="btn-export-pdf"   class="btn btn-outline-danger btn-sm flex-fill">📄 PDF</button>
+          <button id="btn-export-json"  class="btn btn-outline-warning btn-sm flex-fill">📋 JSON</button>
+          <button id="btn-export-csv"   class="btn btn-outline-success btn-sm flex-fill">📊 CSV</button>
+        </div>
+      </div>
+
+    </div><!-- /right panel -->
+  </div><!-- /row -->
+</div><!-- /container -->
+
+<script type="module">
+import { CameraEngine }        from '/static/assets/js/engines/camera_engine.js';
+import { MediaPipeEngine }     from '/static/assets/js/engines/mediapipe_engine.js';
+import { LandmarkEngine }      from '/static/assets/js/engines/landmark_engine.js';
+import { BiomechanicsEngine }  from '/static/assets/js/engines/biomechanics_engine.js';
+import { PoseRuleEngine }      from '/static/assets/js/engines/pose_rule_engine.js';
+import { VisualizationEngine } from '/static/assets/js/engines/visualization_engine.js';
+import { MovementEngine }      from '/static/assets/js/engines/movement_engine.js';
+import { ScoringEngine }       from '/static/assets/js/engines/scoring_engine.js';
+import { FeedbackEngine }      from '/static/assets/js/engines/feedback_engine.js';
+import { AnalyticsEngine }     from '/static/assets/js/engines/analytics_engine.js';
+import { ReportEngine }        from '/static/assets/js/engines/report_engine.js';
+
+document.addEventListener('DOMContentLoaded', async () => {
+
+  // Simple event bus wrapper for demo pipeline wiring
+  class SharedDemoBus {
+    constructor() { this.listeners = {}; }
+    subscribe(name, fn) { (this.listeners[name] = this.listeners[name] || []).push(fn); }
+    publish(name, data) { (this.listeners[name] || []).forEach(fn => fn({ name, data })); }
+  }
+
+  const bus = new SharedDemoBus();
+
+  // ── Engine instances ─────────────────────────────────────────────────────
+  const camEngine  = new CameraEngine();
+  const mpEngine   = new MediaPipeEngine();
+  const lmEngine   = new LandmarkEngine();
+  const bioEngine  = new BiomechanicsEngine();
+  const poseEngine = new PoseRuleEngine();
+  const vizEngine  = new VisualizationEngine();
+  const mvEngine   = new MovementEngine();
+  const scoreEngine= new ScoringEngine(bus);
+  const fbEngine   = new FeedbackEngine(bus);
+  const anEngine   = new AnalyticsEngine(bus);
+  const rpEngine   = new ReportEngine(bus);
+
+  // Wire event bus notifications for browser demo
+  const origBioProc = bioEngine.processBiomechanics.bind(bioEngine);
+  bioEngine.processBiomechanics = function(lms) {
+    const snap = origBioProc(lms);
+    bus.publish('biomechanics.updated', snap);
+    return snap;
+  };
+
+  const origPoseEval = poseEngine.evaluateRules.bind(poseEngine);
+  poseEngine.evaluateRules = function(snap) {
+    const res = origPoseEval(snap);
+    bus.publish('pose.detected', res);
+    return res;
+  };
+
+  // Expose to debug overlay
+  window.landmarkEngine = lmEngine;
+  window.bioEngine      = bioEngine;
+  window.poseEngine     = poseEngine;
+  window.vizEngine      = vizEngine;
+  window.movementEngine = mvEngine;
+  window.scoringEngine  = scoreEngine;
+  window.feedbackEngine = fbEngine;
+  window.analyticsEngine= anEngine;
+  window.reportEngine   = rpEngine;
+
+  // ── DOM refs ─────────────────────────────────────────────────────────────
+  const video       = document.getElementById('viz-video');
+  const canvas      = document.getElementById('viz-canvas');
+  const placeholder = document.getElementById('viz-placeholder');
+  const btnStart    = document.getElementById('btn-start');
+  const btnPause    = document.getElementById('btn-pause');
+  const btnStop     = document.getElementById('btn-stop');
+  const btnFs       = document.getElementById('btn-fs');
+
+  // Metric display refs
+  const mFps     = document.getElementById('m-fps');
+  const mLat     = document.getElementById('m-lat');
+  const mConf    = document.getElementById('m-conf');
+  const mHold    = document.getElementById('m-hold');
+  const mPose    = document.getElementById('m-pose');
+  const mMatched = document.getElementById('m-matched');
+  const mFailed  = document.getElementById('m-failed');
+  const mHoldst  = document.getElementById('m-holdstate');
+  const bBal     = document.getElementById('b-balance');
+  const bSymm    = document.getElementById('b-symm');
+  const bCom     = document.getElementById('b-com');
+  const bLean    = document.getElementById('b-lean');
+  const pillFps  = document.getElementById('pill-fps');
+
+  // ── Initialize all engines ───────────────────────────────────────────────
+  await mpEngine.initialize();
+  await lmEngine.initialize();
+  await bioEngine.initialize();
+  await poseEngine.initialize();
+  await vizEngine.initialize();
+  await mvEngine.initialize();
+  await scoreEngine.initialize();
+  await fbEngine.initialize();
+  await anEngine.initialize();
+  await rpEngine.initialize();
+
+  // Export & View Report Buttons
+  document.getElementById('btn-view-report')?.addEventListener('click', () => {
+    const rep = rpEngine.generateSessionReport(anEngine.getSummary());
+    alert(`[PostureSense Session Report]\nType: ${rep.metadata.report_type}\nScore: ${rep.performance.overall_score}\nQuality: ${rep.data_quality.tracking_quality}%`);
+  });
+
+  document.getElementById('btn-export-pdf')?.addEventListener('click', () => {
+    const rep = rpEngine.generateSessionReport(anEngine.getSummary());
+    const res = rpEngine.exportPdf(rep);
+    const blob = new Blob([res.content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  });
+
+  document.getElementById('btn-export-json')?.addEventListener('click', () => {
+    const rep = rpEngine.generateSessionReport(anEngine.getSummary());
+    const res = rpEngine.exportJson(rep);
+    const blob = new Blob([res.content], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = res.filename; a.click();
+  });
+
+  document.getElementById('btn-export-csv')?.addEventListener('click', () => {
+    const res = rpEngine.exportCsv(anEngine.getSummary().recent_sessions || []);
+    const blob = new Blob([res.content], { type: 'text/csv' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = res.filename; a.click();
+  });
+
+  // ── Start ────────────────────────────────────────────────────────────────
+  btnStart.addEventListener('click', async () => {
     try {
-      const res = await fetch('/health');
-      const data = await res.json();
-      document.getElementById('playground-backend').textContent = data.status === 'ok' ? 'Online' : 'Offline';
-    } catch {
-      document.getElementById('playground-backend').textContent = 'Offline';
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      video.srcObject = stream;
+      await video.play();
+      placeholder.style.display = 'none';
+
+      // Size canvas to match video
+      video.addEventListener('loadedmetadata', () => {
+        canvas.width  = video.videoWidth;
+        canvas.height = video.videoHeight;
+      }, { once: true });
+
+      await mpEngine.start();
+      await lmEngine.start();
+      await bioEngine.start();
+      await poseEngine.start();
+      await vizEngine.start(canvas, video);
+      await mvEngine.start();
+      await scoreEngine.start();
+      await fbEngine.start();
+      await anEngine.start();
+      await rpEngine.start();
+
+      document.getElementById('pill-mv').className    = 'badge bg-success';
+      document.getElementById('pill-mv').textContent   = 'Movement Active';
+      document.getElementById('pill-score').className = 'badge bg-success';
+      document.getElementById('pill-score').textContent= 'Scoring Active';
+      document.getElementById('pill-fb').className    = 'badge bg-success';
+      document.getElementById('pill-fb').textContent   = 'Feedback Active';
+      document.getElementById('pill-an').className    = 'badge bg-success';
+      document.getElementById('pill-an').textContent   = 'Analytics Active';
+      document.getElementById('pill-rp').className    = 'badge bg-success';
+      document.getElementById('pill-rp').textContent   = 'Reports Active';
+
+      document.getElementById('pill-cam').className = 'badge bg-success';
+      document.getElementById('pill-cam').textContent = 'Camera Live';
+      document.getElementById('pill-viz').className = 'badge bg-success';
+      document.getElementById('pill-viz').textContent = 'Visualization Active';
+
+      btnStart.disabled = true;
+      btnPause.disabled = false;
+      btnStop.disabled  = false;
+    } catch (err) {
+      console.error('[Playground] Pipeline start failed:', err);
+      placeholder.querySelector('span').textContent = 'Camera access denied or not available.';
     }
   });
+
+  // ── Pause / Resume ───────────────────────────────────────────────────────
+  btnPause.addEventListener('click', () => {
+    const running = vizEngine.status === 'running';
+    if (running) {
+      camEngine.pause(); mpEngine.pause(); lmEngine.pause();
+      bioEngine.pause(); poseEngine.pause(); vizEngine.pause(); mvEngine.pause(); scoreEngine.pause(); fbEngine.pause(); anEngine.pause(); rpEngine.pause();
+      btnPause.textContent = '▶ Resume';
+      document.getElementById('pill-viz').textContent   = 'Visualization Paused';
+      document.getElementById('pill-mv').textContent    = 'Movement Paused';
+      document.getElementById('pill-score').textContent = 'Scoring Paused';
+      document.getElementById('pill-fb').textContent    = 'Feedback Paused';
+      document.getElementById('pill-an').textContent    = 'Analytics Paused';
+      document.getElementById('pill-rp').textContent    = 'Reports Paused';
+    } else {
+      camEngine.resume(); mpEngine.resume(); lmEngine.resume();
+      bioEngine.resume(); poseEngine.resume(); vizEngine.resume(); mvEngine.resume(); scoreEngine.resume(); fbEngine.resume(); anEngine.resume(); rpEngine.resume();
+      btnPause.textContent = '⏸ Pause';
+      document.getElementById('pill-viz').textContent   = 'Visualization Active';
+      document.getElementById('pill-mv').textContent    = 'Movement Active';
+      document.getElementById('pill-score').textContent = 'Scoring Active';
+      document.getElementById('pill-fb').textContent    = 'Feedback Active';
+      document.getElementById('pill-an').textContent    = 'Analytics Active';
+      document.getElementById('pill-rp').textContent    = 'Reports Active';
+    }
+  });
+
+  // ── Stop ─────────────────────────────────────────────────────────────────
+  btnStop.addEventListener('click', async () => {
+    await rpEngine.stop();
+    await anEngine.stop();
+    await fbEngine.stop();
+    await scoreEngine.stop();
+    await mvEngine.stop();
+    await vizEngine.stop();
+    await poseEngine.stop();
+    await bioEngine.stop();
+    await lmEngine.stop();
+    await mpEngine.stop();
+    if (video.srcObject) {
+      video.srcObject.getTracks().forEach(t => t.stop());
+      video.srcObject = null;
+    }
+    placeholder.style.display = 'flex';
+
+    document.getElementById('pill-cam').className   = 'badge bg-secondary';
+    document.getElementById('pill-cam').textContent = 'Camera Stopped';
+    document.getElementById('pill-viz').className   = 'badge bg-secondary';
+    document.getElementById('pill-viz').textContent = 'Visualization Standby';
+    document.getElementById('pill-mv').className    = 'badge bg-secondary';
+    document.getElementById('pill-mv').textContent   = 'Movement Standby';
+    document.getElementById('pill-score').className = 'badge bg-secondary';
+    document.getElementById('pill-score').textContent= 'Scoring Standby';
+    document.getElementById('pill-fb').className    = 'badge bg-secondary';
+    document.getElementById('pill-fb').textContent   = 'Feedback Standby';
+    document.getElementById('pill-an').className    = 'badge bg-secondary';
+    document.getElementById('pill-an').textContent   = 'Analytics Standby';
+    document.getElementById('pill-rp').className    = 'badge bg-secondary';
+    document.getElementById('pill-rp').textContent   = 'Reports Standby';
+
+    btnStart.disabled = false;
+    btnPause.disabled = true;
+    btnStop.disabled  = true;
+  });
+
+  // ── Fullscreen ────────────────────────────────────────────────────────────
+  btnFs.addEventListener('click', () => vizEngine.requestFullscreen());
+
+  // ── Toggle buttons ────────────────────────────────────────────────────────
+  document.querySelectorAll('.toggle-btn[data-opt]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const opt = btn.dataset.opt;
+      const next = !vizEngine.config[opt];
+      vizEngine.setOption(opt, next);
+      btn.classList.toggle('active', next);
+      if (opt === 'mirrorMode') {
+        video.style.transform = next ? 'scaleX(-1)' : 'none';
+      }
+    });
+  });
+
+  // ── Exercise selector ─────────────────────────────────────────────────────
+  document.getElementById('mv-exercise-select').addEventListener('change', (e) => {
+    const id = e.target.value;
+    if (id) mvEngine.setActiveExercise(id);
+  });
+
+  // ── Metric polling (500 ms) ───────────────────────────────────────────────
+  setInterval(() => {
+    const vd = vizEngine.getDiagnostics();
+    const pd = poseEngine.getDiagnostics();
+    const bd = bioEngine.getDiagnostics();
+    const md = mvEngine.getDiagnostics();
+    const sd = scoreEngine.getDiagnostics();
+    const fd = fbEngine.getDiagnostics();
+    const ad = anEngine.getDiagnostics();
+
+    mFps.textContent     = vd.metrics.renderFps;
+    mLat.textContent     = `${vd.metrics.visualizationLatencyMs} ms`;
+    pillFps.textContent  = `${vd.metrics.renderFps} FPS`;
+    mConf.textContent    = `${pd.metrics.confidenceScore}%`;
+    mHold.textContent    = `${pd.metrics.holdDurationSeconds}s`;
+    mPose.textContent    = pd.metrics.currentPoseName || '—';
+    mMatched.textContent = `✓ ${pd.metrics.matchedRulesCount} matched`;
+    mFailed.textContent  = `✗ ${pd.metrics.failedRulesCount} failed`;
+    mHoldst.textContent  = poseEngine.holdState?.toUpperCase() || 'idle';
+
+    bBal.textContent  = `${bd.metrics.leftRightBalanceRatio}/${(100 - bd.metrics.leftRightBalanceRatio).toFixed(0)}`;
+    bSymm.textContent = `${bd.metrics.overallSymmetryScore}%`;
+    bCom.textContent  = `${bd.metrics.centerOfMassX}, ${bd.metrics.centerOfMassY}`;
+    bLean.textContent = `--°`;
+
+    // Movement Engine metrics
+    const m = md.metrics;
+    document.getElementById('mv-reps').textContent     = m.repCount ?? 0;
+    document.getElementById('mv-phase').textContent    = m.currentPhase || 'idle';
+    document.getElementById('mv-fsm').textContent      = m.fsmState || 'idle';
+    document.getElementById('mv-rom').textContent      = `${m.romPercentage ?? 0}%`;
+    document.getElementById('mv-cadence').textContent  = `${m.currentCadence ?? 0} rpm`;
+    document.getElementById('mv-dir').textContent      = m.movementDirection || '—';
+    document.getElementById('mv-hold').textContent     = `${m.holdTime ?? 0}s`;
+    document.getElementById('mv-duration').textContent = `${m.exerciseDuration ?? 0}s`;
+    document.getElementById('mv-lat').textContent      = `${m.recognitionLatencyMs ?? 0} ms`;
+
+    // Scoring Engine metrics
+    const rep = scoreEngine._lastScoreReport;
+    document.getElementById('sc-overall').textContent = sd.metrics.overallScore !== undefined ? sd.metrics.overallScore : '--';
+    document.getElementById('sc-band').textContent    = sd.metrics.scoreBand || 'Standby';
+    document.getElementById('sc-conf').textContent    = `${(sd.metrics.scoreConfidence * 100).toFixed(0)}%`;
+    document.getElementById('sc-lat').textContent     = `${sd.metrics.processingTimeMs} ms`;
+    
+    if (rep && rep.quality_gate_passed) {
+      document.getElementById('sc-gate').className = 'badge bg-success';
+      document.getElementById('sc-gate').textContent = 'PASS';
+    } else {
+      document.getElementById('sc-gate').className = 'badge bg-warning text-dark';
+      document.getElementById('sc-gate').textContent = rep?.quality_warning || 'GATE FAIL';
+    }
+
+    if (rep && rep.components) {
+      document.getElementById('sc-form').textContent  = rep.components.form?.score !== null && rep.components.form?.score !== undefined ? `${rep.components.form.score}` : '--';
+      document.getElementById('sc-rom').textContent   = rep.components.rom?.score !== null && rep.components.rom?.score !== undefined ? `${rep.components.rom.score}` : '--';
+      document.getElementById('sc-stab').textContent  = rep.components.stability?.score !== null && rep.components.stability?.score !== undefined ? `${rep.components.stability.score}` : '--';
+      document.getElementById('sc-symm').textContent  = rep.components.symmetry?.score !== null && rep.components.symmetry?.score !== undefined ? `${rep.components.symmetry.score}` : '--';
+      document.getElementById('sc-ctrl').textContent  = rep.components.control?.score !== null && rep.components.control?.score !== undefined ? `${rep.components.control.score}` : '--';
+      document.getElementById('sc-tempo').textContent = rep.components.tempo?.score !== null && rep.components.tempo?.score !== undefined ? `${rep.components.tempo.score}` : '--';
+      
+      const missing = rep.missing_metrics || [];
+      document.getElementById('sc-missing').textContent = missing.length > 0 ? missing.join(', ') : 'None';
+
+      const topContribs = Object.entries(rep.components)
+        .filter(([_, c]) => c.status !== 'UNAVAILABLE' && c.contribution > 0)
+        .sort((a, b) => b[1].contribution - a[1].contribution)
+        .slice(0, 2)
+        .map(([k, c]) => `${k.toUpperCase()} (+${c.contribution})`);
+      document.getElementById('sc-top').textContent = topContribs.length > 0 ? topContribs.join(', ') : '--';
+    }
+
+    // Feedback Engine metrics
+    const activeFb = fbEngine._activeFeedback || [];
+    if (activeFb.length > 0) {
+      const top = activeFb[0];
+      document.getElementById('fb-message').textContent = top.message;
+      document.getElementById('fb-severity').textContent = top.severity.toUpperCase();
+      document.getElementById('fb-severity').className = `badge ${top.severity === 'critical' ? 'bg-danger' : top.severity === 'high' ? 'bg-warning text-dark' : 'bg-info text-dark'}`;
+      document.getElementById('fb-cat').textContent = top.category;
+      document.getElementById('fb-conf').textContent = `${(top.confidence * 100).toFixed(0)}%`;
+      document.getElementById('fb-rule').textContent = top.rule_triggered;
+      document.getElementById('fb-src').textContent = top.metric_source;
+
+      if (top.evidence) {
+        document.getElementById('fb-evidence').textContent = `val=${top.evidence.raw_value}${top.evidence.unit} | thresh=${top.evidence.threshold}${top.evidence.unit} | diff=${top.evidence.difference}`;
+      } else {
+        document.getElementById('fb-evidence').textContent = '--';
+      }
+    } else {
+      document.getElementById('fb-message').textContent = 'Form & execution are looking good!';
+      document.getElementById('fb-severity').textContent = 'GOOD';
+      document.getElementById('fb-severity').className = 'badge bg-success';
+      document.getElementById('fb-cat').textContent = 'General';
+      document.getElementById('fb-conf').textContent = '100%';
+      document.getElementById('fb-rule').textContent = '—';
+      document.getElementById('fb-src').textContent = '—';
+      document.getElementById('fb-evidence').textContent = 'No active issues detected';
+    }
+
+    // Analytics Engine metrics
+    const summary = anEngine.getSummary();
+    document.getElementById('an-sessions').textContent = summary.total_sessions;
+    document.getElementById('an-avg-score').textContent = summary.overall_average_score > 0 ? `${summary.overall_average_score}/100` : '--';
+    document.getElementById('an-records').textContent = summary.personal_records.length;
+    document.getElementById('an-streak').textContent = `🔥 ${summary.streak_days} Day Streak`;
+
+    const tr = summary.active_trends?.overall_score;
+    if (tr) {
+      document.getElementById('an-trend').textContent = `${tr.trend_direction} (${tr.percentage_change >= 0 ? '+' : ''}${tr.percentage_change}%)`;
+      document.getElementById('an-trend').className = `value fw-bold ${tr.trend_direction === 'IMPROVING' ? 'text-success' : tr.trend_direction === 'DECLINING' ? 'text-danger' : 'text-info'}`;
+    }
+  }, 500);
+
+});
 </script>
 {% endblock %}

@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="50%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="675" fill="url(#bgGrad)"/>
+  <circle cx="200" cy="150" r="300" fill="#6366f1" opacity="0.15" filter="url(#glow)"/>
+  <circle cx="1000" cy="500" r="250" fill="#a855f7" opacity="0.12" filter="url(#glow)"/>
+
+  <!-- Navigation Bar -->
+  <rect x="40" y="20" width="1120" height="64" rx="12" fill="#1e293b" fill-opacity="0.7" stroke="#334155" stroke-width="1"/>
+  <text x="70" y="58" font-family="Segoe UI, sans-serif" font-weight="800" font-size="22" fill="#ffffff" letter-spacing="1">POSTURE<tspan fill="#818cf8">SENSE</tspan> <tspan font-size="14" fill="#38bdf8">v2.0</tspan></text>
+  
+  <text x="750" y="56" font-family="Segoe UI, sans-serif" font-size="15" fill="#94a3b8">Features</text>
+  <text x="840" y="56" font-family="Segoe UI, sans-serif" font-size="15" fill="#94a3b8">Architecture</text>
+  <text x="960" y="56" font-family="Segoe UI, sans-serif" font-size="15" fill="#94a3b8">Analytics</text>
+  <rect x="1050" y="34" font-family="Segoe UI, sans-serif" font-size="14" width="90" height="36" rx="8" fill="url(#primaryGrad)"/>
+  <text x="1070" y="57" font-family="Segoe UI, sans-serif" font-size="14" font-weight="600" fill="#ffffff">Launch</text>
+
+  <!-- Hero Section -->
+  <text x="80" y="190" font-family="Segoe UI, sans-serif" font-size="44" font-weight="800" fill="#ffffff">Privacy-First AI Posture &amp;</text>
+  <text x="80" y="245" font-family="Segoe UI, sans-serif" font-size="44" font-weight="800" fill="url(#primaryGrad)">Biomechanical Movement Engine</text>
+  <text x="80" y="295" font-family="Segoe UI, sans-serif" font-size="17" fill="#94a3b8" width="500">
+    Sub-50ms browser-native WASM computer vision with 33-point 3D landmark tracking,
+  </text>
+  <text x="80" y="320" font-family="Segoe UI, sans-serif" font-size="17" fill="#94a3b8">
+    8-dimension scoring, real-time biomechanics, and zero video cloud streaming.
+  </text>
+
+  <!-- Mode Selector Cards -->
+  <!-- Card 1: Ergonomic -->
+  <rect x="80" y="370" width="240" height="230" rx="16" fill="#1e293b" stroke="#3b82f6" stroke-width="2" fill-opacity="0.8"/>
+  <rect x="100" y="390" width="40" height="40" rx="10" fill="#3b82f6" fill-opacity="0.2"/>
+  <text x="112" y="416" font-family="Segoe UI, sans-serif" font-size="20" fill="#60a5fa">🖥️</text>
+  <text x="100" y="460" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#ffffff">Ergonomic Desk</text>
+  <text x="100" y="485" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">Real-time desk posture</text>
+  <text x="100" y="505" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">monitoring &amp; slouch alerts</text>
+  <rect x="100" y="540" width="100" height="28" rx="6" fill="#2563eb"/>
+  <text x="115" y="559" font-family="Segoe UI, sans-serif" font-size="12" font-weight="600" fill="#ffffff">Active Mode</text>
+
+  <!-- Card 2: Exercise -->
+  <rect x="340" y="370" width="240" height="230" rx="16" fill="#1e293b" stroke="#334155" stroke-width="1" fill-opacity="0.6"/>
+  <rect x="360" y="390" width="40" height="40" rx="10" fill="#a855f7" fill-opacity="0.2"/>
+  <text x="372" y="416" font-family="Segoe UI, sans-serif" font-size="20" fill="#c084fc">🏋️</text>
+  <text x="360" y="460" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#ffffff">Exercise Fitness</text>
+  <text x="360" y="485" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">Rep counting, ROM gate,</text>
+  <text x="360" y="505" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">tempo &amp; squat analysis</text>
+  <rect x="360" y="540" width="90" height="28" rx="6" fill="#334155"/>
+  <text x="375" y="559" font-family="Segoe UI, sans-serif" font-size="12" font-weight="600" fill="#94a3b8">Select</text>
+
+  <!-- Card 3: Yoga -->
+  <rect x="600" y="370" width="240" height="230" rx="16" fill="#1e293b" stroke="#334155" stroke-width="1" fill-opacity="0.6"/>
+  <rect x="620" y="390" width="40" height="40" rx="10" fill="#10b981" fill-opacity="0.2"/>
+  <text x="632" y="416" font-family="Segoe UI, sans-serif" font-size="20" fill="#34d399">🧘</text>
+  <text x="620" y="460" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#ffffff">Yoga Alignment</text>
+  <text x="620" y="485" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">Pose matching rules,</text>
+  <text x="620" y="505" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">hold timer &amp; balance score</text>
+  <rect x="620" y="540" width="90" height="28" rx="6" fill="#334155"/>
+  <text x="635" y="559" font-family="Segoe UI, sans-serif" font-size="12" font-weight="600" fill="#94a3b8">Select</text>
+
+  <!-- Card 4: Rehabilitation -->
+  <rect x="860" y="370" width="240" height="230" rx="16" fill="#1e293b" stroke="#334155" stroke-width="1" fill-opacity="0.6"/>
+  <rect x="880" y="390" width="40" height="40" rx="10" fill="#f59e0b" fill-opacity="0.2"/>
+  <text x="892" y="416" font-family="Segoe UI, sans-serif" font-size="20" fill="#fbbf24">🩺</text>
+  <text x="880" y="460" font-family="Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#ffffff">Rehabilitation</text>
+  <text x="880" y="485" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">Precise ROM tracking,</text>
+  <text x="880" y="505" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">symmetry &amp; compensation</text>
+  <rect x="880" y="540" width="90" height="28" rx="6" fill="#334155"/>
+  <text x="895" y="559" font-family="Segoe UI, sans-serif" font-size="12" font-weight="600" fill="#94a3b8">Select</text>
+
+</svg>

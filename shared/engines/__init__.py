@@ -12,6 +12,11 @@ from shared.engines.interfaces import (
     NotificationEngineInterface,
     ReportEngineInterface,
 )
+from shared.engines.movement_engine import MovementEngine, MovementState
+from shared.engines.scoring_engine import ScoringEngine
+from shared.engines.feedback_engine import FeedbackEngine
+from shared.engines.analytics_engine import AnalyticsEngine
+from shared.engines.report_engine import ReportEngine
 
 __all__ = [
     'CameraEngineInterface',
@@ -26,4 +31,10 @@ __all__ = [
     'PersistenceEngineInterface',
     'NotificationEngineInterface',
     'ReportEngineInterface',
+    'MovementEngine',
+    'MovementState',
+    'ScoringEngine',
+    'FeedbackEngine',
+    'AnalyticsEngine',
+    'ReportEngine',
 ]

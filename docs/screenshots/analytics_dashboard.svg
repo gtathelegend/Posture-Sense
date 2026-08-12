@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="100%" height="100%">
+  <defs>
+    <linearGradient id="analyticsBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b132b"/>
+      <stop offset="100%" stop-color="#1c2541"/>
+    </linearGradient>
+    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#analyticsBg)"/>
+
+  <!-- Top Title -->
+  <text x="50" y="55" font-family="Segoe UI, sans-serif" font-weight="800" font-size="24" fill="#ffffff">LONGITUDINAL ANALYTICS &amp; CONSISTENCY STREAKS</text>
+  <text x="50" y="80" font-family="Segoe UI, sans-serif" font-size="14" fill="#94a3b8">User ID: usr_892103 · Timeframe: Last 30 Days · Deterministic Statistical Classifier</text>
+
+  <!-- 4 Stat Summary Cards -->
+  <!-- Card 1 -->
+  <rect x="50" y="110" width="250" height="100" rx="12" fill="#1e293b" stroke="#334155"/>
+  <text x="75" y="140" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">Total Sessions</text>
+  <text x="75" y="180" font-family="Segoe UI, sans-serif" font-size="32" font-weight="800" fill="#ffffff">48</text>
+  <text x="140" y="180" font-family="Segoe UI, sans-serif" font-size="14" fill="#10b981">↑ +14% mo</text>
+
+  <!-- Card 2 -->
+  <rect x="330" y="110" width="250" height="100" rx="12" fill="#1e293b" stroke="#334155"/>
+  <text x="355" y="140" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">Average Quality Score</text>
+  <text x="355" y="180" font-family="Segoe UI, sans-serif" font-size="32" font-weight="800" fill="#38bdf8">89.6</text>
+  <text x="445" y="180" font-family="Segoe UI, sans-serif" font-size="14" fill="#10b981">Optimal</text>
+
+  <!-- Card 3 -->
+  <rect x="610" y="110" width="250" height="100" rx="12" fill="#1e293b" stroke="#334155"/>
+  <text x="635" y="140" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">Active Streak</text>
+  <text x="635" y="180" font-family="Segoe UI, sans-serif" font-size="32" font-weight="800" fill="#fbbf24">12 Days 🔥</text>
+
+  <!-- Card 4 -->
+  <rect x="890" y="110" width="260" height="100" rx="12" fill="#1e293b" stroke="#334155"/>
+  <text x="915" y="140" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">Personal Record (Squat)</text>
+  <text x="915" y="180" font-family="Segoe UI, sans-serif" font-size="32" font-weight="800" fill="#a855f7">96.8</text>
+
+  <!-- Main Trend Line Chart -->
+  <rect x="50" y="235" width="700" height="390" rx="16" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="80" y="270" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700" fill="#ffffff">Posture &amp; Movement Progress Trend</text>
+  <text x="560" y="270" font-family="Segoe UI, sans-serif" font-size="13" font-weight="600" fill="#10b981">Classification: IMPROVING</text>
+
+  <!-- Chart Grid Lines -->
+  <line x1="80" y1="320" x2="710" y2="320" stroke="#334155" stroke-dasharray="4"/>
+  <line x1="80" y1="390" x2="710" y2="390" stroke="#334155" stroke-dasharray="4"/>
+  <line x1="80" y1="460" x2="710" y2="460" stroke="#334155" stroke-dasharray="4"/>
+  <line x1="80" y1="530" x2="710" y2="530" stroke="#334155" stroke-dasharray="4"/>
+
+  <text x="55" y="325" font-family="Segoe UI, sans-serif" font-size="11" fill="#94a3b8">100</text>
+  <text x="60" y="395" font-family="Segoe UI, sans-serif" font-size="11" fill="#94a3b8">80</text>
+  <text x="60" y="465" font-family="Segoe UI, sans-serif" font-size="11" fill="#94a3b8">60</text>
+  <text x="60" y="535" font-family="Segoe UI, sans-serif" font-size="11" fill="#94a3b8">40</text>
+
+  <!-- Trend Line -->
+  <path d="M 90 470 Q 180 430 270 410 T 450 360 T 630 330 L 700 320" fill="none" stroke="url(#lineGrad)" stroke-width="4"/>
+  <path d="M 90 470 Q 180 430 270 410 T 450 360 T 630 330 L 700 320 L 700 560 L 90 560 Z" fill="url(#lineGrad)" fill-opacity="0.1"/>
+
+  <!-- Plot Points -->
+  <circle cx="90" cy="470" r="5" fill="#38bdf8"/>
+  <circle cx="270" cy="410" r="5" fill="#38bdf8"/>
+  <circle cx="450" cy="360" r="5" fill="#10b981"/>
+  <circle cx="630" cy="330" r="5" fill="#10b981"/>
+  <circle cx="700" cy="320" r="6" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
+
+  <!-- Calendar Activity Heatmap (Right Side) -->
+  <rect x="775" y="235" width="375" height="390" rx="16" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="800" y="270" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700" fill="#ffffff">30-Day Activity Heatmap</text>
+
+  <!-- Heatmap Grid Cells (5x6 Grid) -->
+  <g fill="#10b981">
+    <rect x="800" y="300" width="45" height="45" rx="6" opacity="0.9"/>
+    <rect x="855" y="300" width="45" height="45" rx="6" opacity="0.6"/>
+    <rect x="910" y="300" width="45" height="45" rx="6" opacity="0.8"/>
+    <rect x="965" y="300" width="45" height="45" rx="6" opacity="0.3"/>
+    <rect x="1020" y="300" width="45" height="45" rx="6" opacity="0.9"/>
+    <rect x="1075" y="300" width="45" height="45" rx="6" opacity="0.7"/>
+
+    <rect x="800" y="355" width="45" height="45" rx="6" opacity="0.5"/>
+    <rect x="855" y="355" width="45" height="45" rx="6" opacity="0.9"/>
+    <rect x="910" y="355" width="45" height="45" rx="6" opacity="0.7"/>
+    <rect x="965" y="355" width="45" height="45" rx="6" opacity="0.9"/>
+    <rect x="1020" y="355" width="45" height="45" rx="6" opacity="0.4"/>
+    <rect x="1075" y="355" width="45" height="45" rx="6" opacity="0.8"/>
+
+    <rect x="800" y="410" width="45" height="45" rx="6" opacity="0.9"/>
+    <rect x="855" y="410" width="45" height="45" rx="6" opacity="0.8"/>
+    <rect x="910" y="410" width="45" height="45" rx="6" opacity="0.9"/>
+    <rect x="965" y="410" width="45" height="45" rx="6" opacity="0.9"/>
+    <rect x="1020" y="410" width="45" height="45" rx="6" opacity="0.7"/>
+    <rect x="1075" y="410" width="45" height="45" rx="6" opacity="0.6"/>
+
+    <rect x="800" y="465" width="45" height="45" rx="6" opacity="0.8"/>
+    <rect x="855" y="465" width="45" height="45" rx="6" opacity="0.9"/>
+    <rect x="910" y="465" width="45" height="45" rx="6" opacity="0.7"/>
+    <rect x="965" y="465" width="45" height="45" rx="6" opacity="0.9"/>
+    <rect x="1020" y="465" width="45" height="45" rx="6" opacity="0.8"/>
+    <rect x="1075" y="465" width="45" height="45" rx="6" opacity="0.9"/>
+  </g>
+
+  <text x="800" y="555" font-family="Segoe UI, sans-serif" font-size="13" fill="#94a3b8">Consistent Daily Ergonomic &amp; Exercise Sessions</text>
+  <text x="800" y="580" font-family="Segoe UI, sans-serif" font-size="12" fill="#38bdf8">REST API Endpoint: GET /api/analytics/summary</text>
+</svg>

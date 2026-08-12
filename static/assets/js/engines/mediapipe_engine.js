@@ -45,7 +45,7 @@ export class MediaPipeEngine {
 
         return new Promise((resolve) => {
             try {
-                this.worker = new Worker('/static/assets/js/workers/mediapipe_worker.js');
+                this.worker = new Worker('/static/assets/js/workers/mediapipe_worker.js', { type: 'module' });
 
                 this.worker.onerror = (err) => {
                     const errorMsg = err.message || 'MediaPipe Web Worker failed to load or execute.';

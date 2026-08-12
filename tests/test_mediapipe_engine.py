@@ -68,6 +68,9 @@ class TestMediaPipeEngine(unittest.TestCase):
         self.assertIn('wasm', content)
         self.assertIn('pose_landmarker_lite.task', content)
 
+        self.assertIn("import(VISION_BUNDLE_PATH)", content)
+        self.assertNotIn("importScripts", content)
+
         # Confirm no production CDN URLs remain
         self.assertNotIn('cdn.jsdelivr.net', content)
         self.assertNotIn('unpkg.com', content)
@@ -78,6 +81,7 @@ class TestMediaPipeEngine(unittest.TestCase):
         with open(engine_path, 'r', encoding='utf-8') as f:
             content = f.read()
 
+        self.assertIn("type: 'module'", content)
         self.assertNotIn('cdn.jsdelivr.net', content)
         self.assertNotIn('unpkg.com', content)
 

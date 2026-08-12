@@ -1,27 +1,13 @@
 /**
- * MediaPipe Tasks Vision Web Worker
+ * MediaPipe Tasks Vision Web Worker (ES Module)
  * Performs off-main-thread 33-landmark pose detection using PoseLandmarker.
- * Uses only locally hosted MediaPipe assets from /static/vendor/mediapipe/v0.10.0/.
+ * Uses only locally hosted MediaPipe ESM assets from /static/vendor/mediapipe/v0.10.0/.
  */
 
 const MEDIAPIPE_ASSET_BASE = '/static/vendor/mediapipe/v0.10.0';
 const VISION_BUNDLE_PATH = `${MEDIAPIPE_ASSET_BASE}/vision_bundle.js`;
 const WASM_ASSETS_PATH = `${MEDIAPIPE_ASSET_BASE}/wasm`;
 const POSE_MODEL_PATH = `${MEDIAPIPE_ASSET_BASE}/pose_landmarker_lite.task`;
-
-let visionLoaded = false;
-let visionLoadError = null;
-
-console.log('[MediaPipeWorker] Loading local Vision bundle...');
-try {
-    importScripts(VISION_BUNDLE_PATH);
-    visionLoaded = true;
-    console.log('[MediaPipeWorker] Vision bundle loaded successfully.');
-} catch (err) {
-    visionLoaded = false;
-    visionLoadError = err;
-    console.error(`[MediaPipeWorker] Failed to load Vision bundle from ${VISION_BUNDLE_PATH}:`, err);
-}
 
 const LANDMARK_NAMES = [
     'nose', 'left_eye_inner', 'left_eye', 'left_eye_outer', 'right_eye_inner', 'right_eye',
@@ -33,15 +19,22 @@ const LANDMARK_NAMES = [
 ];
 
 let poseLandmarker = null;
+let FilesetResolver = null;
+let PoseLandmarker = null;
 
 self.onmessage = async (e) => {
     const { action, payload } = e.data;
 
     if (action === 'LOAD_MODEL') {
         try {
-            if (!visionLoaded || !self.tasksVision) {
-                const errDetail = visionLoadError ? (visionLoadError.message || String(visionLoadError)) : 'self.tasksVision unavailable';
-                const errorMsg = `Vision bundle missing or failed to load: ${VISION_BUNDLE_PATH} (${errDetail})`;
+            console.log('[MediaPipeWorker] Loading local Vision bundle...');
+            try {
+                const visionModule = await import(VISION_BUNDLE_PATH);
+                FilesetResolver = visionModule.FilesetResolver;
+                PoseLandmarker = visionModule.PoseLandmarker;
+                console.log('[MediaPipeWorker] Vision bundle loaded successfully.');
+            } catch (bundleErr) {
+                const errorMsg = `Vision bundle missing or failed to load: ${VISION_BUNDLE_PATH} (${bundleErr.message || bundleErr})`;
                 console.error(`[MediaPipeWorker] ${errorMsg}`);
                 self.postMessage({ action: 'MODEL_ERROR', error: errorMsg });
                 return;
@@ -50,7 +43,7 @@ self.onmessage = async (e) => {
             console.log('[MediaPipeWorker] Initializing local WASM runtime...');
             let vision = null;
             try {
-                vision = await self.tasksVision.FilesetResolver.forVisionTasks(WASM_ASSETS_PATH);
+                vision = await FilesetResolver.forVisionTasks(WASM_ASSETS_PATH);
                 console.log('[MediaPipeWorker] WASM runtime initialized.');
             } catch (wasmErr) {
                 const errorMsg = `WASM runtime missing or failed to initialize: ${WASM_ASSETS_PATH} (${wasmErr.message || wasmErr})`;

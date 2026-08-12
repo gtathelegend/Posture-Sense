@@ -93,4 +93,3 @@ class SessionService:
         if session:
             return session, None
         return None, 'Failed to save session'
-

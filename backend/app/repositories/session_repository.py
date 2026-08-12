@@ -63,4 +63,3 @@ class SessionRepository:
         response = require_supabase().table('pose_sessions').insert(payload).execute()
         data = response.data or []
         return build_pose_session(data[0]) if data else None
-

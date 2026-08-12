@@ -257,5 +257,3 @@ class AnalyticsRepository:
             })
 
         return records
-
-

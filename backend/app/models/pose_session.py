@@ -72,4 +72,3 @@ def build_pose_session(record):
         tracking_quality=record.get('tracking_quality', 100.0),
         failed_rules=record.get('failed_rules', [])
     )
-

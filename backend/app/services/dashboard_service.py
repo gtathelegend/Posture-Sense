@@ -9,19 +9,20 @@ class DashboardService:
         total_sessions = len(sessions)
         total_duration = sum(s.duration for s in sessions)
         avg_accuracy = sum(s.accuracy for s in sessions) / total_sessions if total_sessions > 0 else 0
-        
+
         avg_symmetry = sum(s.symmetry_score for s in sessions) / total_sessions if total_sessions > 0 else 100.0
         avg_balance = sum(s.balance_score for s in sessions) / total_sessions if total_sessions > 0 else 100.0
         avg_stability = sum(s.stability_score for s in sessions) / total_sessions if total_sessions > 0 else 100.0
         avg_rom = sum(s.rom_score for s in sessions) / total_sessions if total_sessions > 0 else 100.0
         avg_tracking_quality = sum(s.tracking_quality for s in sessions) / total_sessions if total_sessions > 0 else 100.0
-        
+
         total_reps = sum(s.reps for s in sessions)
         total_hold_time = sum(s.hold_time for s in sessions)
 
         pose_counts = {}
         for session in sessions:
             pose_counts[session.pose_label] = pose_counts.get(session.pose_label, 0) + 1
+
             
         recent_sessions = []
         for session in sessions[:20]:
@@ -60,4 +61,3 @@ class DashboardService:
             'pose_counts': pose_counts,
             'recent_sessions': recent_sessions
         }
-

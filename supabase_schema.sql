@@ -42,4 +42,3 @@ ALTER TABLE public.pose_sessions
 
 create index if not exists idx_pose_sessions_user_id on public.pose_sessions (user_id);
 create index if not exists idx_pose_sessions_timestamp on public.pose_sessions (timestamp desc);
-

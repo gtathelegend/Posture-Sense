@@ -32,4 +32,3 @@ def dashboard_stats():
         'pose_counts': data['pose_counts'],
         'recent_sessions': data['recent_sessions']
     })
-

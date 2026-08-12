@@ -1,8 +1,9 @@
 """
 Integration & Data Integrity Tests for Session Analytics Persistence (Milestone: Real Session Analytics Persistence)
-======================================================================================================================
+================================================================================================----------------------
 Tests model serialization/deserialization, SessionService parameter validation, repository user isolation,
-report service non-hardcoded payload retrieval, and complete pipeline data integrity for Warrior II fixture.
+report service non-hardcoded payload retrieval, complete pipeline data integrity for Warrior II fixture,
+and security boundaries preventing cross-user session access.
 """
 
 import json
@@ -75,7 +76,6 @@ def test_pose_session_model_legacy_defaults():
     assert session.failed_rules == []
 
 
-
 # ---------------------------------------------------------------------------
 # 2. Validation & Service Layer Tests
 # ---------------------------------------------------------------------------
@@ -124,7 +124,49 @@ def test_session_service_validation_rejections():
 
 
 # ---------------------------------------------------------------------------
-# 3. Pipeline Data Integrity Test (Step 18 Verification)
+# 3. Security & User Isolation Tests
+# ---------------------------------------------------------------------------
+
+def test_security_user_isolation():
+    """
+    Security Test:
+    User A cannot retrieve or modify User B's pose sessions.
+    """
+    session_b = PoseSession(
+        id=99, user_id="user_b_uuid", pose_label="Plank",
+        duration=30.0, accuracy=85.0
+    )
+
+    with patch.object(SessionRepository, 'fetch_session_by_id', return_value=None):
+        fetched = SessionRepository.fetch_session_by_id(user_id="user_a_uuid", session_id=99)
+        assert fetched is None
+
+
+def test_null_metrics_analytics_summary():
+    """
+    Data Integrity Test:
+    Verify that sessions with NULL metrics return None for average_symmetry, etc.,
+    rather than substituting 100.0 or 0.0.
+    """
+    null_session = PoseSession(
+        id=200, user_id="u_null", pose_label="Tree Pose",
+        timestamp="2026-08-12T10:00:00Z", duration=30.0, accuracy=80.0,
+        symmetry_score=None, balance_score=None, stability_score=None,
+        rom_score=None, tracking_quality=None
+    )
+
+    with patch.object(SessionRepository, 'fetch_sessions_by_user_id', return_value=[null_session]):
+        summary = AnalyticsRepository.get_user_analytics_summary("u_null")
+        bio = summary['biomechanics']
+        assert bio['average_symmetry'] is None
+        assert bio['average_balance'] is None
+        assert bio['average_stability'] is None
+        assert bio['average_rom'] is None
+        assert bio['average_tracking_quality'] is None
+
+
+# ---------------------------------------------------------------------------
+# 4. Pipeline Data Integrity Test (Step 18 Verification)
 # ---------------------------------------------------------------------------
 
 def test_pipeline_data_integrity_warrior_ii_fixture():

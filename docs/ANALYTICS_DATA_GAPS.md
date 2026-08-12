@@ -10,36 +10,44 @@ This document specifies the exact data gaps identified during the audit of the P
 
 | Data Gap | Why Needed | Source Engine | Persistence Status | API Change | Priority |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Repetitions Count** (`completed_reps`) | Track exercise volume, dynamic rep counts, and rep-based personal records. | `MovementEngine` | ✅ **COMPLETED** (`reps` column in `pose_sessions`). | Updated `POST /save_pose_session` body & analytics responses. | **P0 (Resolved)** |
-| **Symmetry Score** (`symmetry_score`) | Track bilateral posture balance, left/right shoulder/hip alignment trends over time. | `BiomechanicsEngine` | ✅ **COMPLETED** (`symmetry_score` column in `pose_sessions`). | Exposed `symmetry_score` in `/api/analytics/*` & `/api/dashboard_stats`. | **P0 (Resolved)** |
-| **Balance Score** (`balance_score`) | Measure postural stability and center-of-mass alignment over base of support. | `BiomechanicsEngine` | ✅ **COMPLETED** (`balance_score` column in `pose_sessions`). | Exposed `balance_score` in `/api/analytics/*` & `/api/dashboard_stats`. | **P0 (Resolved)** |
-| **Stability Score** (`stability_score`) | Measure body sway and posture hold steadiness during static poses. | `ScoringEngine` / `BiomechanicsEngine` | ✅ **COMPLETED** (`stability_score` column in `pose_sessions`). | Exposed `stability_score` in `/api/analytics/*` & `/api/dashboard_stats`. | **P0 (Resolved)** |
-| **Range of Motion** (`rom_score`) | Measure flexibility, joint movement depth, and ROM progression per exercise. | `MovementEngine` | ✅ **COMPLETED** (`rom_score` column in `pose_sessions`). | Exposed `rom_score` in `/api/analytics/*` & `/api/dashboard_stats`. | **P0 (Resolved)** |
-| **Hold Duration** (`hold_time`) | Measure static pose hold endurance (distinct from total camera session duration). | `MovementEngine` | ✅ **COMPLETED** (`hold_time` column in `pose_sessions`). | Exposed `hold_time` in `/api/analytics/*` & `/api/dashboard_stats`. | **P0 (Resolved)** |
-| **Tracking Quality** (`tracking_quality`) | Filter low-confidence frames, prevent corrupted landmark data from affecting trends. | `LandmarkEngine` | ✅ **COMPLETED** (`tracking_quality` column in `pose_sessions`). | Included `tracking_quality` in session summaries & reports. | **P0 (Resolved)** |
-| **Failed Rules JSON** (`failed_rules`) | Generate targeted coaching insights, common mistakes history, and posture flaw trends. | `PoseRuleEngine` / `FeedbackEngine` | ✅ **COMPLETED** (`failed_rules` column in `pose_sessions`). | Included `failed_rules` in session reports & analytics API. | **P1 (Resolved)** |
-| **Streak Tracking** (`streak_days`) | Drive user engagement and habit building via daily practice streaks. | `AnalyticsEngine` | Derived from `pose_sessions.timestamp`. | Include calculated `streak_days` in `/api/analytics/summary`. | **P1** |
+| **Repetitions Count** (`reps`) | Track exercise volume, dynamic rep counts, and rep-based personal records. | `MovementEngine` | ✅ **RESOLVED** (`reps` integer DEFAULT 0). | Updated `POST /save_pose_session` body & analytics responses. | **P0 (Resolved)** |
+| **Symmetry Score** (`symmetry_score`) | Track bilateral posture balance, left/right shoulder/hip alignment trends over time. | `BiomechanicsEngine` | ✅ **RESOLVED** (`symmetry_score` float NULL). | Exposed `symmetry_score` in `/api/analytics/*` & `/api/dashboard/overview`. | **P0 (Resolved)** |
+| **Balance Score** (`balance_score`) | Measure postural stability and center-of-mass alignment over base of support. | `BiomechanicsEngine` | ✅ **RESOLVED** (`balance_score` float NULL). | Exposed `balance_score` in `/api/analytics/*` & `/api/dashboard/overview`. | **P0 (Resolved)** |
+| **Stability Score** (`stability_score`) | Measure body sway and posture hold steadiness during static poses. | `ScoringEngine` / `BiomechanicsEngine` | ✅ **RESOLVED** (`stability_score` float NULL). | Exposed `stability_score` in `/api/analytics/*` & `/api/dashboard/overview`. | **P0 (Resolved)** |
+| **Range of Motion** (`rom_score`) | Measure flexibility, joint movement depth, and ROM progression per exercise. | `MovementEngine` | ✅ **RESOLVED** (`rom_score` float NULL). | Exposed `rom_score` in `/api/analytics/*` & `/api/dashboard/overview`. | **P0 (Resolved)** |
+| **Hold Duration** (`hold_time`) | Measure static pose hold endurance (distinct from total camera session duration). | `MovementEngine` | ✅ **RESOLVED** (`hold_time` float DEFAULT 0.0). | Exposed `hold_time` in `/api/analytics/*` & `/api/dashboard/overview`. | **P0 (Resolved)** |
+| **Tracking Quality** (`tracking_quality`) | Filter low-confidence frames, prevent corrupted landmark data from affecting trends. | `LandmarkEngine` | ✅ **RESOLVED** (`tracking_quality` float NULL). | Included `tracking_quality` in session summaries & reports. | **P0 (Resolved)** |
+| **Failed Rules JSON** (`failed_rules`) | Generate targeted coaching insights, common mistakes history, and posture flaw trends. | `PoseRuleEngine` / `FeedbackEngine` | ✅ **RESOLVED** (`failed_rules` jsonb DEFAULT '[]'). | Included `failed_rules` in session reports & analytics API. | **P1 (Resolved)** |
+| **Streak Tracking** (`streak_days`) | Drive user engagement and habit building via daily practice streaks. | `AnalyticsEngine` | Derived from `pose_sessions.timestamp`. | Included calculated `streak_days` in `/api/dashboard/overview`. | **P1 (Resolved)** |
 | **Personal Records Persistence** | Track historical achievements (best hold, best score, highest reps) across restarts. | `AnalyticsEngine` | Derived dynamically from indexed `pose_sessions`. | Enhanced `/api/analytics/records` response. | **P1 (Resolved)** |
 
 
 ---
 
-# 2. Required Database Schema Changes
+# 2. Database Schema Migration
 
-To resolve these data gaps without breaking backwards compatibility, the `public.pose_sessions` schema should be altered as follows:
+To resolve these data gaps cleanly with `NULL` indicating unmeasured metrics, `public.pose_sessions` has been migrated:
 
 ```sql
--- Proposed Schema Migration for PostureSense v2 Analytics Enhancement
+-- Migration 001: Rich Session Persistence & Analytics Pipeline
 ALTER TABLE public.pose_sessions
     ADD COLUMN IF NOT EXISTS reps integer NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS symmetry_score double precision NOT NULL DEFAULT 100.0,
-    ADD COLUMN IF NOT EXISTS balance_score double precision NOT NULL DEFAULT 100.0,
-    ADD COLUMN IF NOT EXISTS stability_score double precision NOT NULL DEFAULT 100.0,
-    ADD COLUMN IF NOT EXISTS rom_score double precision NOT NULL DEFAULT 100.0,
+    ADD COLUMN IF NOT EXISTS symmetry_score double precision NULL,
+    ADD COLUMN IF NOT EXISTS balance_score double precision NULL,
+    ADD COLUMN IF NOT EXISTS stability_score double precision NULL,
+    ADD COLUMN IF NOT EXISTS rom_score double precision NULL,
     ADD COLUMN IF NOT EXISTS hold_time double precision NOT NULL DEFAULT 0.0,
-    ADD COLUMN IF NOT EXISTS tracking_quality double precision NOT NULL DEFAULT 100.0,
+    ADD COLUMN IF NOT EXISTS tracking_quality double precision NULL,
     ADD COLUMN IF NOT EXISTS failed_rules jsonb NOT NULL DEFAULT '[]'::jsonb;
+
+ALTER TABLE public.pose_sessions
+    ALTER COLUMN symmetry_score DROP DEFAULT,
+    ALTER COLUMN balance_score DROP DEFAULT,
+    ALTER COLUMN stability_score DROP DEFAULT,
+    ALTER COLUMN rom_score DROP DEFAULT,
+    ALTER COLUMN tracking_quality DROP DEFAULT;
 ```
+
 
 ---
 

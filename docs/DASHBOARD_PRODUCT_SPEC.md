@@ -171,26 +171,27 @@ The Insight Engine evaluates rule templates against user analytics. **No LLM is 
 
 ---
 
-## 13. Recommended Product Feature Matrix
+## 13. Product Feature Implementation Matrix
 
 ### P0 — Must Have (Core Dashboard V2)
-1. **Redesigned Overview Cards:** Total Sessions, Practice Time, Overall Score, Practice Streak.
-2. **Historical Score Trend Chart:** 7-day and 30-day interactive line charts.
-3. **Database Schema Update:** Add `reps`, `symmetry_score`, `balance_score`, `stability_score`, `rom_score`, `hold_time`, `tracking_quality` columns to `pose_sessions`.
-4. **Enhanced API Payload:** Update `/save_pose_session` and `/api/dashboard_stats`.
-5. **Pose Performance Grid:** Cards listing sessions, avg score, best score per pose.
+1. **Redesigned Overview Cards:** ✅ **COMPLETED** (Total Sessions, Practice Time, Posture Score + 7d delta, Practice Streak).
+2. **Historical Score Trend Chart:** ✅ **COMPLETED** (Chart.js line chart with 7d, 30d, all-time toggles and linear slope).
+3. **Database Schema Update:** ✅ **COMPLETED** (`reps`, `symmetry_score`, `balance_score`, `stability_score`, `rom_score`, `hold_time`, `tracking_quality`, `failed_rules`).
+4. **Enhanced API Payload:** ✅ **COMPLETED** (`GET /api/dashboard/overview` and `/api/dashboard_stats`).
+5. **Pose Performance Grid:** ✅ **COMPLETED** (Pose cards + Strongest vs Needs Practice comparison box).
 
 ### P1 — High Value (Product Intelligence)
-1. **Biomechanics Dimensional Radar Chart:** Visualizing Symmetry, Balance, Stability, ROM.
-2. **Personal Records Cards:** Displaying all-time achievements.
-3. **Deterministic Insight Engine:** Rules generating automated text feedback cards.
-4. **Session Comparison Panel:** Current vs Previous session delta breakdown.
-5. **Interactive Date Range Filters:** 7d, 30d, all-time selectors.
+1. **Biomechanics Movement Quality Card:** ✅ **COMPLETED** (Horizontal bars for Symmetry, Balance, Stability, ROM + Tracking Quality card).
+2. **Personal Records Cards:** ✅ **COMPLETED** (Highest Score, Longest Hold, Best Symmetry, Best Balance, Best ROM, Most Reps).
+3. **Deterministic Insight Engine:** ✅ **COMPLETED** (Rules 1-5 generating automated coaching feedback cards without LLM).
+4. **Session Comparison Panel:** ✅ **COMPLETED** (Latest vs Previous session delta breakdown with semantic states).
+5. **Interactive Date Range Filters:** ✅ **COMPLETED** (7d, 30d, all-time selectors).
 
 ### P2 — Future Infrastructure
 1. **PDF & CSV Export Downloads from UI:** Direct download button in dashboard.
 2. **Practice Goals & Target Setting:** Weekly practice minute goal setting.
 3. **Achievement Badges:** Gamified milestone badges.
+
 
 ---
 

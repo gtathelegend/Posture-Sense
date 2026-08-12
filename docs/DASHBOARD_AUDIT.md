@@ -62,39 +62,25 @@ This audit documents the existing user dashboard implementation in PostureSense 
 
 ---
 
-# 3. Client-Side Polling Architecture
+# 3. Client-Side Polling Architecture (REMOVED & RESOLVED)
 
-- **Polling Logic in `dashboard.html`:**
-```javascript
-setInterval(updateDashboard, 3000);
-document.addEventListener('visibilitychange', function() {
-  if (!document.hidden) updateDashboard();
-});
-```
-- **Execution:** Every 3 seconds, `updateDashboard()` issues `fetch('/api/dashboard_stats')`.
-- **Performance Evaluation:** Polling database every 3 seconds for static session history causes unnecessary server load and SQL queries, especially when no active pose detection session is running.
+- **Previous Polling Logic:** `setInterval(updateDashboard, 3000)` has been **eliminated**.
+- **Current V2 Refresh Architecture:** Initial page load, timeframe filter toggle, manual retry button, and window visibility tab re-focus (throttled to at most once per 30s).
 
 ---
 
-# 4. Dead Data, Mock Data & Limitations
+# 4. Audit Resolutions in Dashboard V2
 
-1. **Dead / Unused JS Service:**
-   - `static/assets/js/services/dashboard_service.js` exports `DashboardService.fetchStats()`, but `dashboard.html` defines an inline `fetch('/api/dashboard_stats')` directly rather than importing `DashboardService`.
-
-2. **Hardcoded / Fallback Analytics in Backend:**
-   - In `ReportService.generate_session_report()`, reps and tracking quality are hardcoded (`completed_reps: 10`, `tracking_quality: 100.0`) due to missing database columns.
-   - `AnalyticsRepository` hardcodes `streak_days: 0`.
-
-3. **Missing Essential Dashboard Features:**
-   - **No Charts:** No historical line charts for score trends over 7/30 days.
-   - **No Biomechanics Analytics:** No cards or breakdown for Symmetry, Balance, Stability, or ROM.
-   - **No Personal Records Card:** Does not display user achievements (Highest Score, Longest Hold).
-   - **No Session Comparison:** Cannot compare current session performance to previous session.
-   - **No Filter Controls:** No date range or pose filter options.
-
-4. **Missing UX States:**
-   - **Loading State:** No loading skeletons or spinners on page initialization.
-   - **Error State:** If `fetch` fails or user session expires, it only logs `console.error` without alerting the user or displaying a retry button.
-
-5. **Naming Inconsistencies:**
-   - The UI refers to posture score as **"Accuracy"** (`avg_accuracy`, `badge-accuracy`), whereas perception engine contracts call it **`overall_score`** or **`posture_score`**.
+1. **JS Service Integration:** ✅ **RESOLVED**. `static/assets/js/services/dashboard_service.js` exports `fetchOverview()` and `fetchStats()` for modular fetch calls.
+2. **Hardcoded / Fallback Analytics:** ✅ **RESOLVED**. `ReportService` and `AnalyticsRepository` now aggregate real DB values; hardcoded fallbacks eliminated.
+3. **Dashboard V2 Features:**
+   - **Score Trend Chart:** ✅ **RESOLVED**. Integrated Chart.js interactive line chart with 7d/30d/all toggles.
+   - **Biomechanics Analytics:** ✅ **RESOLVED**. Added Movement Quality horizontal bars (Symmetry, Balance, Stability, ROM) + Tracking Quality card.
+   - **Personal Records Card:** ✅ **RESOLVED**. Achievements grid displaying Highest Score, Longest Hold, Best Symmetry, Best Balance, Best ROM, Most Reps.
+   - **Session Comparison:** ✅ **RESOLVED**. Latest vs Previous session metric comparison table with semantic color deltas.
+   - **Filter Controls:** ✅ **RESOLVED**. 7 Days, 30 Days, All Time timeframe selectors.
+4. **UX States:**
+   - **Loading State:** ✅ **RESOLVED**. Shimmering skeleton placeholders implemented.
+   - **Error State:** ✅ **RESOLVED**. Visible red alert banner with manual `[ Retry ]` button.
+   - **Empty State:** ✅ **RESOLVED**. Friendly onboarding card for `total_sessions == 0`.
+5. **Naming Inconsistencies:** ✅ **RESOLVED**. UI labels updated to `"Posture Score"` and `"Overall Score"`.

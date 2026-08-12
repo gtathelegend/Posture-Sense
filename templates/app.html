@@ -167,6 +167,7 @@
 {% block extra_scripts %}
 <script type="module">
   import { PosePipelineController } from '/static/assets/js/controllers/pose_pipeline_controller.js';
+  import { SessionService } from '/static/assets/js/services/session_service.js';
 
   document.addEventListener('DOMContentLoaded', async function() {
     const startButton = document.getElementById('startCameraButton');
@@ -194,6 +195,18 @@
     let poseStartTime = null;
     let currentOverallScore = 0;
 
+    const savedSessionKeys = new Set();
+    let latestTelemetry = {
+      symmetry_score: 100.0,
+      balance_score: 100.0,
+      stability_score: 100.0,
+      rom_score: 100.0,
+      hold_time: 0.0,
+      reps: 0,
+      tracking_quality: 100.0,
+      failed_rules: []
+    };
+
     async function initPipeline() {
       try {
         controller = new PosePipelineController();
@@ -202,7 +215,7 @@
           canvasElement: canvasElement
         });
 
-        // Wire EventBus events to UI updates
+        // Wire EventBus events to UI updates & telemetry state
         controller.eventBus.subscribe('camera.started', (e) => {
           console.log('[PostureSense][Camera] Stream active:', e.data);
           videoElement.style.display = 'block';
@@ -225,11 +238,18 @@
           if (landmarkStatusEl) {
             landmarkStatusEl.textContent = `${count} / 33`;
           }
+          if (e.data.confidence !== undefined) {
+            latestTelemetry.tracking_quality = Math.round(e.data.confidence * 100);
+          }
         });
 
         controller.eventBus.subscribe('biomechanics.updated', (e) => {
-          if (symmetryScoreEl && e.data.symmetry_score !== undefined) {
-            symmetryScoreEl.textContent = `${Math.round(e.data.symmetry_score)}%`;
+          if (e.data.symmetry_score !== undefined) {
+            latestTelemetry.symmetry_score = Number(e.data.symmetry_score);
+            if (symmetryScoreEl) symmetryScoreEl.textContent = `${Math.round(e.data.symmetry_score)}%`;
+          }
+          if (e.data.balance_score !== undefined) {
+            latestTelemetry.balance_score = Number(e.data.balance_score);
           }
         });
 
@@ -255,11 +275,29 @@
           if (formScoreEl) {
             formScoreEl.textContent = `${score}/100`;
           }
+          if (e.data.components) {
+            if (e.data.components.stability?.score !== undefined) {
+              latestTelemetry.stability_score = Number(e.data.components.stability.score);
+            }
+            if (e.data.components.rom?.score !== undefined) {
+              latestTelemetry.rom_score = Number(e.data.components.rom.score);
+            }
+          }
+        });
+
+        controller.eventBus.subscribe('exercise.rep_completed', (e) => {
+          if (e.data) {
+            latestTelemetry.reps = e.data.rep_count || latestTelemetry.reps;
+            latestTelemetry.hold_time = e.data.hold_time || latestTelemetry.hold_time;
+          }
         });
 
         controller.eventBus.subscribe('feedback.generated', (e) => {
           if (e.data && e.data.message) {
             feedbackText.textContent = e.data.message;
+          }
+          if (e.data && e.data.rule_triggered && !latestTelemetry.failed_rules.includes(e.data.rule_triggered)) {
+            latestTelemetry.failed_rules.push(e.data.rule_triggered);
           }
         });
 
@@ -357,23 +395,36 @@
     async function saveSession(poseLabel, durationMs, accuracy) {
       const durationSec = durationMs / 1000;
       if (durationSec < 2.0) return;
+
+      // Idempotency check: prevent duplicate saves for the exact same pose & start timestamp
+      const sessionKey = `${poseLabel}_${poseStartTime}_${Math.floor(durationSec)}`;
+      if (savedSessionKeys.has(sessionKey)) return;
+      savedSessionKeys.add(sessionKey);
+
       try {
-        const response = await fetch('/api/save_pose_session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({
-            pose_label: poseLabel,
-            duration: durationSec,
-            accuracy: accuracy
-          })
-        });
-        if (response.ok) {
+        const payload = {
+          pose_label: poseLabel,
+          duration: durationSec,
+          accuracy: accuracy,
+          reps: latestTelemetry.reps,
+          symmetry_score: latestTelemetry.symmetry_score,
+          balance_score: latestTelemetry.balance_score,
+          stability_score: latestTelemetry.stability_score,
+          rom_score: latestTelemetry.rom_score,
+          hold_time: latestTelemetry.hold_time,
+          tracking_quality: latestTelemetry.tracking_quality,
+          failed_rules: [...latestTelemetry.failed_rules]
+        };
+
+        const res = await SessionService.savePoseSession(payload);
+        if (res && res.status === 'success') {
           console.log(`[PostureSense][Session] Pose session saved: ${poseLabel} (${durationSec.toFixed(1)}s, Score: ${accuracy})`);
         }
       } catch (err) {
         console.error('[PostureSense][Session] Error saving pose session:', err);
       }
     }
+
 
     function updateStatusDots(current, last) {
       if (statusDot) statusDot.className = 'status-dot ' + getStatusClass(current);

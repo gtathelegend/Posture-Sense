@@ -38,12 +38,12 @@ class SessionRepository:
         duration,
         accuracy,
         reps=0,
-        symmetry_score=100.0,
-        balance_score=100.0,
-        stability_score=100.0,
-        rom_score=100.0,
+        symmetry_score=None,
+        balance_score=None,
+        stability_score=None,
+        rom_score=None,
         hold_time=0.0,
-        tracking_quality=100.0,
+        tracking_quality=None,
         failed_rules=None
     ):
         payload = {
@@ -52,14 +52,15 @@ class SessionRepository:
             'duration': float(duration or 0.0),
             'accuracy': float(accuracy or 0.0),
             'reps': int(reps or 0),
-            'symmetry_score': float(symmetry_score if symmetry_score is not None else 100.0),
-            'balance_score': float(balance_score if balance_score is not None else 100.0),
-            'stability_score': float(stability_score if stability_score is not None else 100.0),
-            'rom_score': float(rom_score if rom_score is not None else 100.0),
+            'symmetry_score': float(symmetry_score) if symmetry_score is not None else None,
+            'balance_score': float(balance_score) if balance_score is not None else None,
+            'stability_score': float(stability_score) if stability_score is not None else None,
+            'rom_score': float(rom_score) if rom_score is not None else None,
             'hold_time': float(hold_time or 0.0),
-            'tracking_quality': float(tracking_quality if tracking_quality is not None else 100.0),
+            'tracking_quality': float(tracking_quality) if tracking_quality is not None else None,
             'failed_rules': failed_rules if isinstance(failed_rules, list) else []
         }
         response = require_supabase().table('pose_sessions').insert(payload).execute()
         data = response.data or []
         return build_pose_session(data[0]) if data else None
+

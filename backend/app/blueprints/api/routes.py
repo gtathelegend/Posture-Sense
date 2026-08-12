@@ -35,20 +35,24 @@ def stop_camera():
 @login_required
 def save_pose_session():
     data = request.get_json() or {}
+    
+    # Ignore any client-provided user_id and strictly enforce authenticated current_user.id
+    user_id = current_user.id
+
     pose_label = data.get('pose_label')
     duration = data.get('duration', 0.0)
-    accuracy = data.get('accuracy', 0.0)
+    accuracy = data.get('accuracy') if 'accuracy' in data else data.get('overall_score', 0.0)
     reps = data.get('reps', 0)
-    symmetry_score = data.get('symmetry_score', 100.0)
-    balance_score = data.get('balance_score', 100.0)
-    stability_score = data.get('stability_score', 100.0)
-    rom_score = data.get('rom_score', 100.0)
+    symmetry_score = data.get('symmetry_score')
+    balance_score = data.get('balance_score')
+    stability_score = data.get('stability_score')
+    rom_score = data.get('rom_score')
     hold_time = data.get('hold_time', 0.0)
-    tracking_quality = data.get('tracking_quality', 100.0)
+    tracking_quality = data.get('tracking_quality')
     failed_rules = data.get('failed_rules', [])
 
     session, error = SessionService.save_session(
-        user_id=current_user.id,
+        user_id=user_id,
         pose_label=pose_label,
         duration=duration,
         accuracy=accuracy,
@@ -64,6 +68,7 @@ def save_pose_session():
     if session:
         return jsonify({'status': 'success', 'message': 'Pose session saved', 'session_id': session.id})
     return jsonify({'status': 'error', 'message': error or 'Invalid pose data'}), 400
+
 
 
 

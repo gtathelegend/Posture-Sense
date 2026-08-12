@@ -39,20 +39,24 @@ class DashboardService:
         # 3. 7-Day Score Delta
         seven_day_delta = DashboardService._calculate_seven_day_delta(all_sessions)
 
-        # 4. Biomechanics Aggregation (Exclude legacy rows if non-legacy exist)
-        non_legacy = [s for s in filtered_sessions if not DashboardService._is_legacy_session(s)]
-        bio_source = non_legacy if non_legacy else filtered_sessions
+        # 4. Biomechanics Aggregation (Filter out None / NULL metrics)
+        symm_vals = [s.symmetry_score for s in filtered_sessions if getattr(s, 'symmetry_score', None) is not None]
+        bal_vals = [s.balance_score for s in filtered_sessions if getattr(s, 'balance_score', None) is not None]
+        stab_vals = [s.stability_score for s in filtered_sessions if getattr(s, 'stability_score', None) is not None]
+        rom_vals = [s.rom_score for s in filtered_sessions if getattr(s, 'rom_score', None) is not None]
+        tq_vals = [s.tracking_quality for s in filtered_sessions if getattr(s, 'tracking_quality', None) is not None]
 
-        avg_symmetry = sum(s.symmetry_score for s in bio_source) / len(bio_source) if bio_source else 100.0
-        avg_balance = sum(s.balance_score for s in bio_source) / len(bio_source) if bio_source else 100.0
-        avg_stability = sum(s.stability_score for s in bio_source) / len(bio_source) if bio_source else 100.0
-        avg_rom = sum(s.rom_score for s in bio_source) / len(bio_source) if bio_source else 100.0
-        avg_tracking_quality = sum(s.tracking_quality for s in bio_source) / len(bio_source) if bio_source else 100.0
+        avg_symmetry = round(sum(symm_vals) / len(symm_vals), 1) if symm_vals else None
+        avg_balance = round(sum(bal_vals) / len(bal_vals), 1) if bal_vals else None
+        avg_stability = round(sum(stab_vals) / len(stab_vals), 1) if stab_vals else None
+        avg_rom = round(sum(rom_vals) / len(rom_vals), 1) if rom_vals else None
+        avg_tracking_quality = round(sum(tq_vals) / len(tq_vals), 1) if tq_vals else None
 
         total_reps = sum(s.reps for s in filtered_sessions)
         total_hold_time = sum(s.hold_time for s in filtered_sessions)
 
-        tracking_quality_status = DashboardService._get_tracking_quality_status(avg_tracking_quality)
+        tracking_quality_status = DashboardService._get_tracking_quality_status(avg_tracking_quality) if avg_tracking_quality is not None else 'Not Available'
+
 
         # 5. Score Trend Line & Points (Chronological)
         chronological = list(reversed(filtered_sessions))
@@ -86,8 +90,12 @@ class DashboardService:
             best_score = max(s.accuracy for s in p_sessions)
             avg_hold = sum(s.hold_time for s in p_sessions) / count
             best_hold = max(s.hold_time for s in p_sessions)
-            best_symm = max(s.symmetry_score for s in p_sessions)
-            best_rom = max(s.rom_score for s in p_sessions)
+
+            p_symms = [s.symmetry_score for s in p_sessions if getattr(s, 'symmetry_score', None) is not None]
+            best_symm = max(p_symms) if p_symms else None
+
+            p_roms = [s.rom_score for s in p_sessions if getattr(s, 'rom_score', None) is not None]
+            best_rom = max(p_roms) if p_roms else None
 
             pose_cards.append({
                 'pose_label': label,
@@ -96,9 +104,10 @@ class DashboardService:
                 'best_score': round(best_score, 1),
                 'avg_hold': round(avg_hold, 1),
                 'best_hold': round(best_hold, 1),
-                'best_symmetry': round(best_symm, 1),
-                'best_rom': round(best_rom, 1)
+                'best_symmetry': round(best_symm, 1) if best_symm is not None else None,
+                'best_rom': round(best_rom, 1) if best_rom is not None else None
             })
+
 
         pose_cards.sort(key=lambda p: p['avg_score'], reverse=True)
         strongest_pose = pose_cards[0] if len(pose_cards) >= 2 else None
@@ -130,12 +139,12 @@ class DashboardService:
                 'duration': round(s.duration, 1),
                 'accuracy': round(s.accuracy, 1),
                 'reps': s.reps,
-                'symmetry_score': round(s.symmetry_score, 1),
-                'balance_score': round(s.balance_score, 1),
-                'stability_score': round(s.stability_score, 1),
-                'rom_score': round(s.rom_score, 1),
+                'symmetry_score': round(s.symmetry_score, 1) if s.symmetry_score is not None else None,
+                'balance_score': round(s.balance_score, 1) if s.balance_score is not None else None,
+                'stability_score': round(s.stability_score, 1) if s.stability_score is not None else None,
+                'rom_score': round(s.rom_score, 1) if s.rom_score is not None else None,
                 'hold_time': round(s.hold_time, 1),
-                'tracking_quality': round(s.tracking_quality, 1),
+                'tracking_quality': round(s.tracking_quality, 1) if s.tracking_quality is not None else None,
                 'failed_rules': s.failed_rules,
                 'is_legacy': is_legacy
             })
@@ -151,13 +160,14 @@ class DashboardService:
             'streak_days': streak_days,
             'seven_day_delta': round(seven_day_delta, 1) if seven_day_delta is not None else None,
             'biomechanics': {
-                'symmetry': round(avg_symmetry, 1),
-                'balance': round(avg_balance, 1),
-                'stability': round(avg_stability, 1),
-                'rom': round(avg_rom, 1),
-                'tracking_quality': round(avg_tracking_quality, 1),
+                'symmetry': round(avg_symmetry, 1) if avg_symmetry is not None else None,
+                'balance': round(avg_balance, 1) if avg_balance is not None else None,
+                'stability': round(avg_stability, 1) if avg_stability is not None else None,
+                'rom': round(avg_rom, 1) if avg_rom is not None else None,
+                'tracking_quality': round(avg_tracking_quality, 1) if avg_tracking_quality is not None else None,
                 'tracking_status': tracking_quality_status
             },
+
             'totals': {
                 'reps': total_reps,
                 'hold_time': round(total_hold_time, 1)
@@ -185,17 +195,18 @@ class DashboardService:
     @staticmethod
     def _is_legacy_session(session: Any) -> bool:
         """
-        A session is legacy if default schema fallback values are intact and no real telemetry was set.
+        A session is legacy if analytics metrics are None/NULL or default fallbacks without real telemetry.
         """
-        return (
-            getattr(session, 'symmetry_score', 100.0) == 100.0 and
-            getattr(session, 'balance_score', 100.0) == 100.0 and
-            getattr(session, 'stability_score', 100.0) == 100.0 and
-            getattr(session, 'rom_score', 100.0) == 100.0 and
-            getattr(session, 'reps', 0) == 0 and
-            getattr(session, 'hold_time', 0.0) == 0.0 and
-            getattr(session, 'failed_rules', []) == []
-        )
+        symm = getattr(session, 'symmetry_score', None)
+        bal = getattr(session, 'balance_score', None)
+        stab = getattr(session, 'stability_score', None)
+        reps = getattr(session, 'reps', 0)
+        failed = getattr(session, 'failed_rules', [])
+
+        if symm is None or bal is None or stab is None:
+            return True
+        return (symm == 100.0 and bal == 100.0 and stab == 100.0 and reps == 0 and not failed)
+
 
     @staticmethod
     def _filter_by_timeframe(sessions: List[Any], timeframe: str) -> List[Any]:
@@ -328,63 +339,83 @@ class DashboardService:
         if not sessions:
             return []
 
-        best_score = max(sessions, key=lambda s: s.accuracy)
-        longest_hold = max(sessions, key=lambda s: s.hold_time if s.hold_time > 0 else s.duration)
-        best_symm = max(sessions, key=lambda s: s.symmetry_score)
-        best_bal = max(sessions, key=lambda s: s.balance_score)
-        best_rom = max(sessions, key=lambda s: s.rom_score)
-        most_reps = max(sessions, key=lambda s: s.reps)
-
         def format_date(s):
             ts = getattr(s, 'timestamp', '')
             if hasattr(ts, 'strftime'):
                 return ts.strftime('%b %d, %Y')
             return str(ts)[:10] if ts else 'Recent'
 
-        records = [
-            {
+        records = []
+
+        # 1. Highest Score
+        score_sessions = [s for s in sessions if getattr(s, 'accuracy', None) is not None]
+        if score_sessions:
+            best_score = max(score_sessions, key=lambda s: s.accuracy)
+            records.append({
                 'id': 'rec_score',
                 'record_type': 'Highest Score',
                 'pose_label': best_score.pose_label,
                 'value': round(best_score.accuracy, 1),
                 'unit': 'pts',
                 'date': format_date(best_score)
-            },
-            {
+            })
+
+        # 2. Longest Hold
+        hold_sessions = [s for s in sessions if getattr(s, 'hold_time', 0.0) > 0 or getattr(s, 'duration', 0.0) > 0]
+        if hold_sessions:
+            longest_hold = max(hold_sessions, key=lambda s: s.hold_time if s.hold_time > 0 else s.duration)
+            records.append({
                 'id': 'rec_hold',
                 'record_type': 'Longest Hold',
                 'pose_label': longest_hold.pose_label,
                 'value': round(longest_hold.hold_time if longest_hold.hold_time > 0 else longest_hold.duration, 1),
                 'unit': 's',
                 'date': format_date(longest_hold)
-            },
-            {
+            })
+
+        # 3. Best Symmetry
+        symm_sessions = [s for s in sessions if getattr(s, 'symmetry_score', None) is not None]
+        if symm_sessions:
+            best_symm = max(symm_sessions, key=lambda s: s.symmetry_score)
+            records.append({
                 'id': 'rec_symm',
                 'record_type': 'Best Symmetry',
                 'pose_label': best_symm.pose_label,
                 'value': round(best_symm.symmetry_score, 1),
                 'unit': '%',
                 'date': format_date(best_symm)
-            },
-            {
+            })
+
+        # 4. Best Balance
+        bal_sessions = [s for s in sessions if getattr(s, 'balance_score', None) is not None]
+        if bal_sessions:
+            best_bal = max(bal_sessions, key=lambda s: s.balance_score)
+            records.append({
                 'id': 'rec_bal',
                 'record_type': 'Best Balance',
                 'pose_label': best_bal.pose_label,
                 'value': round(best_bal.balance_score, 1),
                 'unit': '%',
                 'date': format_date(best_bal)
-            },
-            {
+            })
+
+        # 5. Best ROM
+        rom_sessions = [s for s in sessions if getattr(s, 'rom_score', None) is not None]
+        if rom_sessions:
+            best_rom = max(rom_sessions, key=lambda s: s.rom_score)
+            records.append({
                 'id': 'rec_rom',
                 'record_type': 'Best ROM',
                 'pose_label': best_rom.pose_label,
                 'value': round(best_rom.rom_score, 1),
                 'unit': '%',
                 'date': format_date(best_rom)
-            }
-        ]
+            })
 
-        if most_reps.reps > 0:
+        # 6. Most Repetitions
+        rep_sessions = [s for s in sessions if getattr(s, 'reps', 0) > 0]
+        if rep_sessions:
+            most_reps = max(rep_sessions, key=lambda s: s.reps)
             records.append({
                 'id': 'rec_reps',
                 'record_type': 'Most Repetitions',
@@ -395,6 +426,7 @@ class DashboardService:
             })
 
         return records
+
 
     @staticmethod
     def _evaluate_deterministic_insights(
@@ -501,6 +533,13 @@ class DashboardService:
             }
 
         def comp_metric(curr_val, prev_val, higher_is_better=True):
+            if curr_val is None or prev_val is None:
+                return {
+                    'prev': round(prev_val, 1) if prev_val is not None else None,
+                    'latest': round(curr_val, 1) if curr_val is not None else None,
+                    'delta': 'N/A',
+                    'semantic': 'neutral'
+                }
             delta = round(curr_val - prev_val, 1)
             if delta > 0:
                 semantic = 'positive' if higher_is_better else 'negative'
@@ -514,6 +553,7 @@ class DashboardService:
                 'delta': f'+{delta}' if delta > 0 else str(delta),
                 'semantic': semantic
             }
+
 
         return {
             'has_comparison': True,

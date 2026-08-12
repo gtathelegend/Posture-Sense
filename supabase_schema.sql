@@ -2,13 +2,6 @@
 -- Run this in the Supabase SQL editor.
 -- Use your Supabase secret key on the Flask backend.
 
-create extension if not exists pgcrypto;
-
-create table if not exists public.users (
-    id uuid primary key default gen_random_uuid(),
--- Supabase schema for Posture Sense
--- Run this in the Supabase SQL editor.
--- Use your Supabase secret key on the Flask backend.
 
 create extension if not exists pgcrypto;
 

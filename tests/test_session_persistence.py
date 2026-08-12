@@ -66,13 +66,14 @@ def test_pose_session_model_legacy_defaults():
     session = build_pose_session(record)
     assert session.id == 50
     assert session.reps == 0
-    assert session.symmetry_score == 100.0
-    assert session.balance_score == 100.0
-    assert session.stability_score == 100.0
-    assert session.rom_score == 100.0
+    assert session.symmetry_score is None
+    assert session.balance_score is None
+    assert session.stability_score is None
+    assert session.rom_score is None
     assert session.hold_time == 0.0
-    assert session.tracking_quality == 100.0
+    assert session.tracking_quality is None
     assert session.failed_rules == []
+
 
 
 # ---------------------------------------------------------------------------

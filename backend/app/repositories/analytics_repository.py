@@ -3,10 +3,41 @@ AnalyticsRepository
 ===================
 Data access layer for user progress analytics, trends, exercise histories, and personal records.
 Scoped strictly to user_id for strict user data isolation.
+Only aggregates non-NULL metrics; returns None for unavailable metrics.
 """
 
 from typing import Dict, Any, List, Optional
+from datetime import datetime, timezone, timedelta
 from backend.app.repositories.session_repository import SessionRepository
+
+
+def filter_sessions_by_timeframe(sessions: List[Any], timeframe: str) -> List[Any]:
+    """Helper function to filter sessions by timeframe ('7d', '30d', 'all')."""
+    if timeframe == 'all' or not timeframe:
+        return sessions
+
+    days = 7 if timeframe == '7d' else (30 if timeframe == '30d' else None)
+    if days is None:
+        return sessions
+
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=days)
+
+    filtered = []
+    for s in sessions:
+        ts = getattr(s, 'timestamp', None)
+        if ts is None:
+            continue
+        if isinstance(ts, str):
+            try:
+                ts = datetime.fromisoformat(ts.replace('Z', '+00:00'))
+            except ValueError:
+                continue
+        if hasattr(ts, 'tzinfo') and ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
+        if ts >= cutoff:
+            filtered.append(s)
+    return filtered
 
 
 class AnalyticsRepository:
@@ -16,42 +47,47 @@ class AnalyticsRepository:
     """
 
     @staticmethod
-    def get_user_analytics_summary(user_id: Any) -> Dict[str, Any]:
-        sessions = SessionRepository.fetch_sessions_by_user_id(user_id)
+    def get_user_analytics_summary(user_id: Any, timeframe: str = 'all') -> Dict[str, Any]:
+        all_sessions = SessionRepository.fetch_sessions_by_user_id(user_id)
+        sessions = filter_sessions_by_timeframe(all_sessions, timeframe)
         total_sessions = len(sessions)
         total_duration = sum(s.duration for s in sessions)
         avg_accuracy = sum(s.accuracy for s in sessions) / total_sessions if total_sessions > 0 else 0.0
 
-        avg_symmetry = sum(s.symmetry_score for s in sessions) / total_sessions if total_sessions > 0 else 100.0
-        avg_balance = sum(s.balance_score for s in sessions) / total_sessions if total_sessions > 0 else 100.0
-        avg_stability = sum(s.stability_score for s in sessions) / total_sessions if total_sessions > 0 else 100.0
-        avg_rom = sum(s.rom_score for s in sessions) / total_sessions if total_sessions > 0 else 100.0
-        avg_tracking_quality = sum(s.tracking_quality for s in sessions) / total_sessions if total_sessions > 0 else 100.0
+        symm_vals = [s.symmetry_score for s in sessions if getattr(s, 'symmetry_score', None) is not None]
+        bal_vals = [s.balance_score for s in sessions if getattr(s, 'balance_score', None) is not None]
+        stab_vals = [s.stability_score for s in sessions if getattr(s, 'stability_score', None) is not None]
+        rom_vals = [s.rom_score for s in sessions if getattr(s, 'rom_score', None) is not None]
+        tq_vals = [s.tracking_quality for s in sessions if getattr(s, 'tracking_quality', None) is not None]
+
+        avg_symmetry = round(sum(symm_vals) / len(symm_vals), 1) if symm_vals else None
+        avg_balance = round(sum(bal_vals) / len(bal_vals), 1) if bal_vals else None
+        avg_stability = round(sum(stab_vals) / len(stab_vals), 1) if stab_vals else None
+        avg_rom = round(sum(rom_vals) / len(rom_vals), 1) if rom_vals else None
+        avg_tracking_quality = round(sum(tq_vals) / len(tq_vals), 1) if tq_vals else None
 
         total_reps = sum(s.reps for s in sessions)
         total_hold_time = sum(s.hold_time for s in sessions)
 
-        # Exercise history breakdown
         exercise_counts = {}
         for session in sessions:
             label = session.pose_label
             exercise_counts[label] = exercise_counts.get(label, 0) + 1
 
-        recent_sessions = []
-        for session in sessions[:10]:
-            recent_sessions.append(session.to_dict())
+        recent_sessions = [s.to_dict() for s in sessions[:10]]
 
         return {
             'user_id': str(user_id),
+            'timeframe': timeframe,
             'total_sessions': total_sessions,
             'total_duration': round(total_duration, 1),
             'overall_average_score': round(avg_accuracy, 1),
             'biomechanics': {
-                'average_symmetry': round(avg_symmetry, 1),
-                'average_balance': round(avg_balance, 1),
-                'average_stability': round(avg_stability, 1),
-                'average_rom': round(avg_rom, 1),
-                'average_tracking_quality': round(avg_tracking_quality, 1)
+                'average_symmetry': avg_symmetry,
+                'average_balance': avg_balance,
+                'average_stability': avg_stability,
+                'average_rom': avg_rom,
+                'average_tracking_quality': avg_tracking_quality
             },
             'totals': {
                 'total_reps': total_reps,
@@ -62,19 +98,25 @@ class AnalyticsRepository:
         }
 
     @staticmethod
-    def get_user_progress(user_id: Any) -> Dict[str, Any]:
-        summary = AnalyticsRepository.get_user_analytics_summary(user_id)
-        sessions = SessionRepository.fetch_sessions_by_user_id(user_id)
-        
+    def get_user_progress(user_id: Any, timeframe: str = 'all') -> Dict[str, Any]:
+        summary = AnalyticsRepository.get_user_analytics_summary(user_id, timeframe=timeframe)
+        all_sessions = SessionRepository.fetch_sessions_by_user_id(user_id)
+        sessions = filter_sessions_by_timeframe(all_sessions, timeframe)
+
         scores = [s.accuracy for s in sessions]
         improvement_pct = 0.0
         if len(scores) >= 2 and scores[-1] > 0:
-            first_score = scores[-1] # oldest session
-            latest_score = scores[0]  # newest session
+            first_score = scores[-1]
+            latest_score = scores[0]
             improvement_pct = ((latest_score - first_score) / first_score) * 100.0
 
         latest = sessions[0] if sessions else None
         prev = sessions[1] if len(sessions) >= 2 else None
+
+        def safe_delta(curr, previous):
+            if curr is None or previous is None:
+                return None
+            return round(curr - previous, 1)
 
         session_comparison = {}
         if latest:
@@ -82,14 +124,15 @@ class AnalyticsRepository:
                 'latest_session': latest.to_dict(),
                 'previous_session': prev.to_dict() if prev else None,
                 'score_delta': round(latest.accuracy - prev.accuracy, 1) if prev else 0.0,
-                'symmetry_delta': round(latest.symmetry_score - prev.symmetry_score, 1) if prev else 0.0,
-                'balance_delta': round(latest.balance_score - prev.balance_score, 1) if prev else 0.0,
-                'stability_delta': round(latest.stability_score - prev.stability_score, 1) if prev else 0.0,
-                'rom_delta': round(latest.rom_score - prev.rom_score, 1) if prev else 0.0,
+                'symmetry_delta': safe_delta(latest.symmetry_score, prev.symmetry_score) if prev else None,
+                'balance_delta': safe_delta(latest.balance_score, prev.balance_score) if prev else None,
+                'stability_delta': safe_delta(latest.stability_score, prev.stability_score) if prev else None,
+                'rom_delta': safe_delta(latest.rom_score, prev.rom_score) if prev else None,
             }
 
         return {
             'user_id': str(user_id),
+            'timeframe': timeframe,
             'total_sessions': summary['total_sessions'],
             'latest_score': scores[0] if scores else 0.0,
             'overall_average': summary['overall_average_score'],
@@ -100,8 +143,9 @@ class AnalyticsRepository:
         }
 
     @staticmethod
-    def get_exercise_history(user_id: Any) -> Dict[str, Any]:
-        sessions = SessionRepository.fetch_sessions_by_user_id(user_id)
+    def get_exercise_history(user_id: Any, timeframe: str = 'all') -> Dict[str, Any]:
+        all_sessions = SessionRepository.fetch_sessions_by_user_id(user_id)
+        sessions = filter_sessions_by_timeframe(all_sessions, timeframe)
         exercises = {}
         for s in sessions:
             label = s.pose_label
@@ -127,11 +171,16 @@ class AnalyticsRepository:
             ex['total_hold_time'] += s.hold_time
             ex['best_score'] = max(ex['best_score'], s.accuracy)
             ex['scores'].append(s.accuracy)
-            ex['symmetry_scores'].append(s.symmetry_score)
-            ex['balance_scores'].append(s.balance_score)
-            ex['stability_scores'].append(s.stability_score)
-            ex['rom_scores'].append(s.rom_score)
-            ex['tracking_qualities'].append(s.tracking_quality)
+            if s.symmetry_score is not None:
+                ex['symmetry_scores'].append(s.symmetry_score)
+            if s.balance_score is not None:
+                ex['balance_scores'].append(s.balance_score)
+            if s.stability_score is not None:
+                ex['stability_scores'].append(s.stability_score)
+            if s.rom_score is not None:
+                ex['rom_scores'].append(s.rom_score)
+            if s.tracking_quality is not None:
+                ex['tracking_qualities'].append(s.tracking_quality)
 
         for ex in exercises.values():
             scores = ex.pop('scores')
@@ -143,28 +192,31 @@ class AnalyticsRepository:
 
             count = len(scores)
             ex['average_score'] = round(sum(scores) / count, 1) if count else 0.0
-            ex['average_symmetry'] = round(sum(symm) / count, 1) if count else 100.0
-            ex['average_balance'] = round(sum(bal) / count, 1) if count else 100.0
-            ex['average_stability'] = round(sum(stab) / count, 1) if count else 100.0
-            ex['average_rom'] = round(sum(rom) / count, 1) if count else 100.0
-            ex['average_tracking_quality'] = round(sum(tq) / count, 1) if count else 100.0
+            ex['average_symmetry'] = round(sum(symm) / len(symm), 1) if symm else None
+            ex['average_balance'] = round(sum(bal) / len(bal), 1) if bal else None
+            ex['average_stability'] = round(sum(stab) / len(stab), 1) if stab else None
+            ex['average_rom'] = round(sum(rom) / len(rom), 1) if rom else None
+            ex['average_tracking_quality'] = round(sum(tq) / len(tq), 1) if tq else None
             ex['best_score'] = round(ex['best_score'], 1)
             ex['total_duration'] = round(ex['total_duration'], 1)
             ex['total_hold_time'] = round(ex['total_hold_time'], 1)
 
         return {
             'user_id': str(user_id),
+            'timeframe': timeframe,
             'exercises': exercises
         }
 
     @staticmethod
-    def get_user_trends(user_id: Any) -> Dict[str, Any]:
-        sessions = SessionRepository.fetch_sessions_by_user_id(user_id)
-        chronological_sessions = list(reversed(sessions[:10]))
-        scores = [s.accuracy for s in chronological_sessions]
-        symmetries = [s.symmetry_score for s in chronological_sessions]
-        stabilities = [s.stability_score for s in chronological_sessions]
-        roms = [s.rom_score for s in chronological_sessions]
+    def get_user_trends(user_id: Any, timeframe: str = 'all') -> Dict[str, Any]:
+        all_sessions = SessionRepository.fetch_sessions_by_user_id(user_id)
+        sessions = filter_sessions_by_timeframe(all_sessions, timeframe)
+        chronological = list(reversed(sessions[:10]))
+
+        scores = [s.accuracy for s in chronological if getattr(s, 'accuracy', None) is not None]
+        symmetries = [s.symmetry_score for s in chronological if getattr(s, 'symmetry_score', None) is not None]
+        stabilities = [s.stability_score for s in chronological if getattr(s, 'stability_score', None) is not None]
+        roms = [s.rom_score for s in chronological if getattr(s, 'rom_score', None) is not None]
 
         def compute_trend_dict(values, name):
             direction = "INSUFFICIENT_DATA"
@@ -189,6 +241,7 @@ class AnalyticsRepository:
 
         return {
             'user_id': str(user_id),
+            'timeframe': timeframe,
             'overall_score_trend': compute_trend_dict(scores, 'overall_score'),
             'symmetry_trend': compute_trend_dict(symmetries, 'symmetry_score'),
             'stability_trend': compute_trend_dict(stabilities, 'stability_score'),
@@ -201,58 +254,89 @@ class AnalyticsRepository:
         if not sessions:
             return []
 
-        best_score_sess = max(sessions, key=lambda s: s.accuracy)
-        longest_sess = max(sessions, key=lambda s: s.duration)
-        best_symm_sess = max(sessions, key=lambda s: s.symmetry_score)
-        best_bal_sess = max(sessions, key=lambda s: s.balance_score)
-        best_stab_sess = max(sessions, key=lambda s: s.stability_score)
-        best_rom_sess = max(sessions, key=lambda s: s.rom_score)
-        most_reps_sess = max(sessions, key=lambda s: s.reps)
+        def format_date(s):
+            ts = getattr(s, 'timestamp', '')
+            if hasattr(ts, 'strftime'):
+                return ts.strftime('%b %d, %Y')
+            return str(ts)[:10] if ts else 'Recent'
 
-        records = [
-            {
+        records = []
+
+        # 1. Highest Score
+        score_sessions = [s for s in sessions if getattr(s, 'accuracy', None) is not None]
+        if score_sessions:
+            best_score = max(score_sessions, key=lambda s: s.accuracy)
+            records.append({
                 'record_type': 'Highest Score',
-                'exercise_id': best_score_sess.pose_label,
-                'value': round(best_score_sess.accuracy, 1),
+                'exercise_id': best_score.pose_label,
+                'value': round(best_score.accuracy, 1),
                 'unit': 'points'
-            },
-            {
-                'record_type': 'Longest Hold / Duration',
-                'exercise_id': longest_sess.pose_label,
-                'value': round(longest_sess.duration, 1),
-                'unit': 'seconds'
-            },
-            {
-                'record_type': 'Best Symmetry',
-                'exercise_id': best_symm_sess.pose_label,
-                'value': round(best_symm_sess.symmetry_score, 1),
-                'unit': '%'
-            },
-            {
-                'record_type': 'Best Balance',
-                'exercise_id': best_bal_sess.pose_label,
-                'value': round(best_bal_sess.balance_score, 1),
-                'unit': '%'
-            },
-            {
-                'record_type': 'Best Stability',
-                'exercise_id': best_stab_sess.pose_label,
-                'value': round(best_stab_sess.stability_score, 1),
-                'unit': '%'
-            },
-            {
-                'record_type': 'Best ROM',
-                'exercise_id': best_rom_sess.pose_label,
-                'value': round(best_rom_sess.rom_score, 1),
-                'unit': '%'
-            }
-        ]
+            })
 
-        if most_reps_sess.reps > 0:
+        # 2. Longest Hold / Duration
+        hold_sessions = [s for s in sessions if getattr(s, 'duration', 0.0) > 0]
+        if hold_sessions:
+            longest = max(hold_sessions, key=lambda s: s.duration)
+            records.append({
+                'record_type': 'Longest Hold / Duration',
+                'exercise_id': longest.pose_label,
+                'value': round(longest.duration, 1),
+                'unit': 'seconds'
+            })
+
+
+        # 3. Best Symmetry
+        symm_sessions = [s for s in sessions if getattr(s, 'symmetry_score', None) is not None]
+        if symm_sessions:
+            best_symm = max(symm_sessions, key=lambda s: s.symmetry_score)
+            records.append({
+                'record_type': 'Best Symmetry',
+                'exercise_id': best_symm.pose_label,
+                'value': round(best_symm.symmetry_score, 1),
+                'unit': '%'
+            })
+
+        # 4. Best Balance
+        bal_sessions = [s for s in sessions if getattr(s, 'balance_score', None) is not None]
+        if bal_sessions:
+            best_bal = max(bal_sessions, key=lambda s: s.balance_score)
+            records.append({
+                'record_type': 'Best Balance',
+                'exercise_id': best_bal.pose_label,
+                'value': round(best_bal.balance_score, 1),
+                'unit': '%'
+            })
+
+        # 5. Best Stability
+        stab_sessions = [s for s in sessions if getattr(s, 'stability_score', None) is not None]
+        if stab_sessions:
+            best_stab = max(stab_sessions, key=lambda s: s.stability_score)
+            records.append({
+                'record_type': 'Best Stability',
+                'exercise_id': best_stab.pose_label,
+                'value': round(best_stab.stability_score, 1),
+                'unit': '%'
+            })
+
+        # 6. Best ROM
+        rom_sessions = [s for s in sessions if getattr(s, 'rom_score', None) is not None]
+        if rom_sessions:
+            best_rom = max(rom_sessions, key=lambda s: s.rom_score)
+            records.append({
+                'record_type': 'Best ROM',
+                'exercise_id': best_rom.pose_label,
+                'value': round(best_rom.rom_score, 1),
+                'unit': '%'
+            })
+
+        # 7. Most Repetitions
+        rep_sessions = [s for s in sessions if getattr(s, 'reps', 0) > 0]
+        if rep_sessions:
+            most_reps = max(rep_sessions, key=lambda s: s.reps)
             records.append({
                 'record_type': 'Most Repetitions',
-                'exercise_id': most_reps_sess.pose_label,
-                'value': float(most_reps_sess.reps),
+                'exercise_id': most_reps.pose_label,
+                'value': float(most_reps.reps),
                 'unit': 'reps'
             })
 

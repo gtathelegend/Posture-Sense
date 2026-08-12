@@ -38,11 +38,33 @@ def save_pose_session():
     pose_label = data.get('pose_label')
     duration = data.get('duration', 0.0)
     accuracy = data.get('accuracy', 0.0)
+    reps = data.get('reps', 0)
+    symmetry_score = data.get('symmetry_score', 100.0)
+    balance_score = data.get('balance_score', 100.0)
+    stability_score = data.get('stability_score', 100.0)
+    rom_score = data.get('rom_score', 100.0)
+    hold_time = data.get('hold_time', 0.0)
+    tracking_quality = data.get('tracking_quality', 100.0)
+    failed_rules = data.get('failed_rules', [])
 
-    session, error = SessionService.save_session(current_user.id, pose_label, duration, accuracy)
+    session, error = SessionService.save_session(
+        user_id=current_user.id,
+        pose_label=pose_label,
+        duration=duration,
+        accuracy=accuracy,
+        reps=reps,
+        symmetry_score=symmetry_score,
+        balance_score=balance_score,
+        stability_score=stability_score,
+        rom_score=rom_score,
+        hold_time=hold_time,
+        tracking_quality=tracking_quality,
+        failed_rules=failed_rules
+    )
     if session:
-        return jsonify({'status': 'success', 'message': 'Pose session saved'})
-    return jsonify({'status': 'error', 'message': error or 'Invalid pose data'})
+        return jsonify({'status': 'success', 'message': 'Pose session saved', 'session_id': session.id})
+    return jsonify({'status': 'error', 'message': error or 'Invalid pose data'}), 400
+
 
 
 @api_bp.route('/video_feed')

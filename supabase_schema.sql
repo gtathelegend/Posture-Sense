@@ -18,8 +18,28 @@ create table if not exists public.pose_sessions (
     pose_label text not null,
     timestamp timestamptz not null default timezone('utc', now()),
     duration double precision not null default 0,
-    accuracy double precision not null default 0
+    accuracy double precision not null default 0,
+    reps integer not null default 0,
+    symmetry_score double precision not null default 100.0,
+    balance_score double precision not null default 100.0,
+    stability_score double precision not null default 100.0,
+    rom_score double precision not null default 100.0,
+    hold_time double precision not null default 0.0,
+    tracking_quality double precision not null default 100.0,
+    failed_rules jsonb not null default '[]'::jsonb
 );
+
+-- Idempotent column additions for existing deployments
+ALTER TABLE public.pose_sessions
+    ADD COLUMN IF NOT EXISTS reps integer NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS symmetry_score double precision NOT NULL DEFAULT 100.0,
+    ADD COLUMN IF NOT EXISTS balance_score double precision NOT NULL DEFAULT 100.0,
+    ADD COLUMN IF NOT EXISTS stability_score double precision NOT NULL DEFAULT 100.0,
+    ADD COLUMN IF NOT EXISTS rom_score double precision NOT NULL DEFAULT 100.0,
+    ADD COLUMN IF NOT EXISTS hold_time double precision NOT NULL DEFAULT 0.0,
+    ADD COLUMN IF NOT EXISTS tracking_quality double precision NOT NULL DEFAULT 100.0,
+    ADD COLUMN IF NOT EXISTS failed_rules jsonb NOT NULL DEFAULT '[]'::jsonb;
 
 create index if not exists idx_pose_sessions_user_id on public.pose_sessions (user_id);
 create index if not exists idx_pose_sessions_timestamp on public.pose_sessions (timestamp desc);
+

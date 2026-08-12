@@ -184,8 +184,8 @@ export class LandmarkEngine {
         if (!landmarks || landmarks.length === 0) return [];
 
         return landmarks.map((lm, i) => {
-            const vis = lm.visibility !== undefined && lm.visibility !== null ? lm.visibility : 0.0;
-            const pres = lm.presence !== undefined && lm.presence !== null ? lm.presence : 0.0;
+            const vis = lm.visibility !== undefined && lm.visibility !== null ? lm.visibility : 1.0;
+            const pres = lm.presence !== undefined && lm.presence !== null ? lm.presence : 1.0;
 
             const isVisValid = vis >= this.config.visibilityThreshold;
             const isPresValid = pres >= this.config.presenceThreshold;

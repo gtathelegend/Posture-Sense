@@ -280,8 +280,8 @@ self.onmessage = async (e) => {
                 x:          lm.x,
                 y:          lm.y,
                 z:          lm.z          !== undefined && lm.z          !== null ? lm.z          : 0.0,
-                visibility: lm.visibility !== undefined && lm.visibility !== null ? lm.visibility : 0.0,
-                presence:   lm.presence   !== undefined && lm.presence   !== null ? lm.presence   : 0.0
+                visibility: lm.visibility !== undefined && lm.visibility !== null ? lm.visibility : 1.0,
+                presence:   lm.presence   !== undefined && lm.presence   !== null ? lm.presence   : 1.0
             }));
 
             self.postMessage({

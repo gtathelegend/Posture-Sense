@@ -23,6 +23,14 @@ export class EngineAdapter {
         });
 
         // Translate Pose Events
+        this._subscribe('pose.detected', (event) => {
+            const data = event.data || {};
+            this.engineContext.updateState({
+                currentPose: data.pose_name || 'Unknown Pose',
+                status: data.pose_name && data.pose_name !== 'Unknown Pose' ? 'tracking' : 'idle'
+            });
+        });
+
         this._subscribe('pose.recognized', (event) => {
             const data = event.data || {};
             this.engineContext.updateState({

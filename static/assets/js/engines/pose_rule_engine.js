@@ -51,6 +51,20 @@ export class PoseRuleEngine {
                     spine: [0, 15]
                 }
             },
+            t_pose: {
+                id: 't_pose',
+                name: 'T Pose',
+                minHoldTime: 2.0,
+                required_landmarks: ['left_shoulder', 'right_shoulder', 'left_elbow', 'right_elbow', 'left_hip', 'right_hip', 'left_knee', 'right_knee'],
+                constraints: {
+                    left_elbow: [160, 195],
+                    right_elbow: [160, 195],
+                    left_shoulder: [80, 110],
+                    right_shoulder: [80, 110],
+                    left_knee: [160, 195],
+                    right_knee: [160, 195]
+                }
+            },
             tree_pose: {
                 id: 'tree_pose',
                 name: 'Tree Pose',

@@ -242,6 +242,9 @@ export class BiomechanicsEngine {
 }
 
 function calcAngle3P(p1, p2, p3) {
+    if (!p1 || !p2 || !p3 || p1.x === undefined || p2.x === undefined || p3.x === undefined) {
+        return null;
+    }
     const x1 = p1.x, y1 = p1.y;
     const x2 = p2.x, y2 = p2.y;
     const x3 = p3.x, y3 = p3.y;

@@ -204,6 +204,7 @@ class AnalyticsRepository:
         best_score_sess = max(sessions, key=lambda s: s.accuracy)
         longest_sess = max(sessions, key=lambda s: s.duration)
         best_symm_sess = max(sessions, key=lambda s: s.symmetry_score)
+        best_bal_sess = max(sessions, key=lambda s: s.balance_score)
         best_stab_sess = max(sessions, key=lambda s: s.stability_score)
         best_rom_sess = max(sessions, key=lambda s: s.rom_score)
         most_reps_sess = max(sessions, key=lambda s: s.reps)
@@ -225,6 +226,12 @@ class AnalyticsRepository:
                 'record_type': 'Best Symmetry',
                 'exercise_id': best_symm_sess.pose_label,
                 'value': round(best_symm_sess.symmetry_score, 1),
+                'unit': '%'
+            },
+            {
+                'record_type': 'Best Balance',
+                'exercise_id': best_bal_sess.pose_label,
+                'value': round(best_bal_sess.balance_score, 1),
                 'unit': '%'
             },
             {
@@ -250,4 +257,5 @@ class AnalyticsRepository:
             })
 
         return records
+
 

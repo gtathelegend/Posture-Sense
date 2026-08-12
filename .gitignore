@@ -40,8 +40,8 @@ venv/
 .venv/
 env/
 ENV/
-mediapipe/
-mediapipe_old/
+/mediapipe/
+/mediapipe_old/
 install/
 
 # Database & local runtime files

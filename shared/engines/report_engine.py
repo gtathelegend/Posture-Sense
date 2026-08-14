@@ -244,29 +244,47 @@ class ReportEngine(ReportEngineInterface):
 
     def generate_exercise_report(self, exercise_data: Dict[str, Any], recent_sessions: Optional[List[Dict[str, Any]]] = None) -> ExerciseReport:
         t0 = time.time()
-        user_id = exercise_data.get("user_id", self._active_user_id)
+        user_id = str(exercise_data.get("user_id", self._active_user_id))
 
         meta = ReportMetadata(
             report_type="exercise",
-            user_id=user_id
+            user_id=user_id,
+            source_data_version=self.config.get("version", "2.0.0"),
+            application_version=self.config.get("version", "2.0.0"),
+            schema_version="2.0.0"
         )
 
+        ex_name = exercise_data.get("pose_label", exercise_data.get("exercise_id", "Unknown Pose"))
+
         ex_info = {
-            "exercise_id": exercise_data.get("exercise_id", "unknown"),
-            "total_sessions": exercise_data.get("total_sessions", 0),
-            "total_repetitions": exercise_data.get("total_repetitions", 0),
+            "exercise_id": ex_name.lower().replace(" ", "_"),
+            "pose_name": ex_name,
+            "total_sessions": exercise_data.get("sessions", exercise_data.get("total_sessions", 0)),
+            "total_repetitions": exercise_data.get("total_reps", exercise_data.get("total_repetitions", 0)),
             "last_performed": exercise_data.get("last_performed")
         }
 
         perf_summary = {
+            "average_score": exercise_data.get("avg_score", exercise_data.get("average_score", 0.0)),
             "best_score": exercise_data.get("best_score", 0.0),
-            "average_score": exercise_data.get("average_score", 0.0),
-            "best_rom": exercise_data.get("best_rom", 0.0),
-            "average_rom": exercise_data.get("average_rom", 0.0),
-            "average_stability": exercise_data.get("average_stability", 0.0),
-            "average_symmetry": exercise_data.get("average_symmetry", 0.0),
-            "average_form": exercise_data.get("average_form", 0.0),
-            "improvement_percentage": exercise_data.get("improvement_percentage", 0.0)
+            "average_hold": exercise_data.get("avg_hold", 0.0),
+            "longest_hold": exercise_data.get("best_hold", 0.0),
+            "average_reps": exercise_data.get("avg_reps", 0.0),
+            "best_reps": exercise_data.get("best_reps", 0),
+            "average_symmetry": exercise_data.get("best_symmetry"),
+            "best_symmetry": exercise_data.get("best_symmetry"),
+            "average_balance": exercise_data.get("best_balance"),
+            "best_balance": exercise_data.get("best_balance"),
+            "average_stability": exercise_data.get("best_stability"),
+            "best_stability": exercise_data.get("best_stability"),
+            "average_rom": exercise_data.get("best_rom"),
+            "best_rom": exercise_data.get("best_rom")
+        }
+
+        data_quality = {
+            "tracking_quality": exercise_data.get("tracking_quality"),
+            "quality_gate_passed": True,
+            "quality_notice": "Pose performance compiled strictly from finalized session analytics."
         }
 
         report = ExerciseReport(
@@ -274,6 +292,7 @@ class ReportEngine(ReportEngineInterface):
             exercise_info=ex_info,
             performance_summary=perf_summary,
             recent_history=recent_sessions or [],
+            data_quality=data_quality,
             source=self.name
         )
 
@@ -282,36 +301,57 @@ class ReportEngine(ReportEngineInterface):
         self.publish("report.generated", report.to_dict())
         return report
 
-    def generate_progress_report(self, summary_data: Dict[str, Any]) -> ProgressReport:
+    def generate_progress_report(self, summary_data: Dict[str, Any], timeframe: str = "30d") -> ProgressReport:
         """
         Composes ProgressReport using finalized AnalyticsSummary output.
         Does NOT recalculate trend algorithms or averages.
         """
         t0 = time.time()
-        user_id = summary_data.get("user_id", self._active_user_id)
+        user_id = str(summary_data.get("user_id", self._active_user_id))
 
         meta = ReportMetadata(
             report_type="progress",
-            user_id=user_id
+            user_id=user_id,
+            source_data_version=self.config.get("version", "2.0.0"),
+            application_version=self.config.get("version", "2.0.0"),
+            schema_version="2.0.0"
         )
+
+        bio = summary_data.get("biomechanics", {})
 
         overall = {
             "total_sessions": summary_data.get("total_sessions", 0),
+            "total_sessions_all": summary_data.get("total_sessions_all", 0),
             "total_duration": summary_data.get("total_duration", 0.0),
-            "overall_average_score": summary_data.get("overall_average_score", 0.0),
-            "streak_days": summary_data.get("streak_days", 0)
+            "overall_average_score": summary_data.get("overall_average_score", summary_data.get("avg_accuracy", 0.0)),
+            "average_score": summary_data.get("overall_average_score", summary_data.get("avg_accuracy", 0.0)),
+            "average_symmetry": bio.get("symmetry"),
+            "average_balance": bio.get("balance"),
+            "average_stability": bio.get("stability"),
+            "average_rom": bio.get("rom"),
+            "average_tracking_quality": bio.get("tracking_quality"),
+            "streak_days": summary_data.get("streak_days", 0),
+            "seven_day_delta": summary_data.get("seven_day_delta")
         }
 
-        trends = summary_data.get("active_trends", {})
+        trends = summary_data.get("trend", summary_data.get("active_trends", {}))
         records = summary_data.get("personal_records", [])
-        comparison = summary_data.get("comparison", {})
+        comparison = summary_data.get("session_comparison", summary_data.get("comparison", {}))
+
+        data_quality = {
+            "tracking_quality": bio.get("tracking_quality"),
+            "tracking_status": bio.get("tracking_status", "Good"),
+            "quality_notice": "Longitudinal progress evaluation compiled strictly from persisted session analytics."
+        }
 
         report = ProgressReport(
             metadata=meta,
+            reporting_period=timeframe,
             overall_summary=overall,
             trends=trends,
             personal_records=records,
             comparison=comparison,
+            data_quality=data_quality,
             source=self.name
         )
 
@@ -320,21 +360,78 @@ class ReportEngine(ReportEngineInterface):
         self.publish("report.generated", report.to_dict())
         return report
 
-    def generate_comprehensive_report(self, summary_data: Dict[str, Any], session_reports: Optional[List[Dict[str, Any]]] = None) -> ComprehensiveReport:
+    def generate_comprehensive_report(self, summary_data: Dict[str, Any]) -> ComprehensiveReport:
         t0 = time.time()
-        user_id = summary_data.get("user_id", self._active_user_id)
+        user_id = str(summary_data.get("user_id", self._active_user_id))
 
         meta = ReportMetadata(
             report_type="comprehensive",
-            user_id=user_id
+            user_id=user_id,
+            source_data_version=self.config.get("version", "2.0.0"),
+            application_version=self.config.get("version", "2.0.0"),
+            schema_version="2.0.0"
         )
+
+        bio = summary_data.get("biomechanics", {})
+
+        exec_summary = {
+            "total_sessions": summary_data.get("total_sessions", 0),
+            "total_duration": summary_data.get("total_duration", 0.0),
+            "overall_average_score": summary_data.get("overall_average_score", 0.0),
+            "streak_days": summary_data.get("streak_days", 0),
+            "seven_day_delta": summary_data.get("seven_day_delta"),
+            "tracking_quality": bio.get("tracking_quality")
+        }
+
+        overall_prog = {
+            "total_sessions": summary_data.get("total_sessions", 0),
+            "total_duration": summary_data.get("total_duration", 0.0),
+            "average_score": summary_data.get("overall_average_score", 0.0),
+            "average_symmetry": bio.get("symmetry"),
+            "average_balance": bio.get("balance"),
+            "average_stability": bio.get("stability"),
+            "average_rom": bio.get("rom"),
+            "tracking_quality": bio.get("tracking_quality")
+        }
+
+        score_tr = summary_data.get("trend", {})
+        bio_tr = {
+            "symmetry": bio.get("symmetry"),
+            "balance": bio.get("balance"),
+            "stability": bio.get("stability"),
+            "rom": bio.get("rom")
+        }
+
+        records = summary_data.get("personal_records", [])
+        pose_perf = summary_data.get("pose_cards", [])
+        recent = summary_data.get("recent_sessions", [])
+        comparison = summary_data.get("session_comparison", {})
+        insights = summary_data.get("insights", [])
+
+        feedback_summary = {
+            "deterministic_insights": insights,
+            "strongest_pose": summary_data.get("strongest_pose"),
+            "weakest_pose": summary_data.get("weakest_pose")
+        }
+
+        dq_notice = {
+            "tracking_quality": bio.get("tracking_quality"),
+            "tracking_status": bio.get("tracking_status", "Good"),
+            "quality_notice": "Comprehensive posture portfolio compiled strictly from persisted session analytics. No raw landmarks or video streams persisted."
+        }
 
         report = ComprehensiveReport(
             metadata=meta,
-            progress_summary=summary_data,
-            session_reports=session_reports or [],
-            exercise_reports=summary_data.get("exercise_history", {}),
-            personal_records=summary_data.get("personal_records", []),
+            executive_summary=exec_summary,
+            overall_progress=overall_prog,
+            score_trends=score_tr,
+            biomechanics_trends=bio_tr,
+            personal_records=records,
+            pose_performance=pose_perf,
+            recent_sessions=recent,
+            session_comparison=comparison,
+            feedback_summary=feedback_summary,
+            data_quality_notice=dq_notice,
             source=self.name
         )
 

@@ -73,29 +73,63 @@ class ReportService:
 
 
     @staticmethod
-    def generate_progress_report(user_id: Any) -> Dict[str, Any]:
+    def generate_progress_report(user_id: Any, timeframe: str = "30d") -> Dict[str, Any]:
+        from backend.app.services.dashboard_service import DashboardService
         ReportService._engine.set_active_user(str(user_id))
-        summary_dict = AnalyticsRepository.get_user_analytics_summary(user_id)
-        report = ReportService._engine.generate_progress_report(summary_dict)
+        overview_dict = DashboardService.get_user_dashboard_overview(user_id, timeframe=timeframe)
+        report = ReportService._engine.generate_progress_report(overview_dict, timeframe=timeframe)
         return report.to_dict()
 
     @staticmethod
     def generate_exercise_report(user_id: Any, exercise_id: str) -> Dict[str, Any]:
+        from backend.app.services.dashboard_service import DashboardService
         ReportService._engine.set_active_user(str(user_id))
-        ex_history = AnalyticsRepository.get_exercise_history(user_id)
-        ex_data = ex_history.get("exercises", {}).get(exercise_id, {
-            "exercise_id": exercise_id,
-            "total_sessions": 0,
-            "average_score": 0.0
-        })
-        report = ReportService._engine.generate_exercise_report(ex_data)
+        overview_dict = DashboardService.get_user_dashboard_overview(user_id, timeframe="all")
+        pose_cards = overview_dict.get("pose_cards", [])
+        
+        target_card = None
+        for p in pose_cards:
+            p_label = p.get("pose_label", "")
+            if p_label.lower().replace(" ", "_") == exercise_id.lower().replace(" ", "_") or p_label.lower() == exercise_id.lower():
+                target_card = p
+                break
+
+        if not target_card:
+            target_card = {
+                "exercise_id": exercise_id,
+                "pose_label": exercise_id,
+                "sessions": 0,
+                "avg_score": 0.0
+            }
+
+        sessions = SessionRepository.fetch_sessions_by_user_id(user_id)
+        recent_for_pose = []
+        for s in sessions:
+            if s.pose_label.lower().replace(" ", "_") == exercise_id.lower().replace(" ", "_") or s.pose_label.lower() == exercise_id.lower():
+                ts_str = s.timestamp.strftime('%Y-%m-%d %H:%M:%S') if hasattr(s.timestamp, 'strftime') else str(s.timestamp)
+                recent_for_pose.append({
+                    "session_id": str(s.id),
+                    "timestamp": ts_str,
+                    "pose_label": s.pose_label,
+                    "accuracy": round(s.accuracy, 1),
+                    "duration": round(s.duration, 1),
+                    "hold_time": round(s.hold_time, 1),
+                    "reps": s.reps,
+                    "symmetry_score": round(s.symmetry_score, 1) if s.symmetry_score is not None else None,
+                    "balance_score": round(s.balance_score, 1) if s.balance_score is not None else None,
+                    "stability_score": round(s.stability_score, 1) if s.stability_score is not None else None,
+                    "rom_score": round(s.rom_score, 1) if s.rom_score is not None else None
+                })
+
+        report = ReportService._engine.generate_exercise_report(target_card, recent_sessions=recent_for_pose)
         return report.to_dict()
 
     @staticmethod
     def generate_comprehensive_report(user_id: Any) -> Dict[str, Any]:
+        from backend.app.services.dashboard_service import DashboardService
         ReportService._engine.set_active_user(str(user_id))
-        summary_dict = AnalyticsRepository.get_user_analytics_summary(user_id)
-        report = ReportService._engine.generate_comprehensive_report(summary_dict)
+        overview_dict = DashboardService.get_user_dashboard_overview(user_id, timeframe="all")
+        report = ReportService._engine.generate_comprehensive_report(overview_dict)
         return report.to_dict()
 
     @staticmethod
@@ -111,8 +145,9 @@ class ReportService:
         return export_res.to_dict()
 
     @staticmethod
-    def export_progress_csv(user_id: Any) -> Dict[str, Any]:
-        summary_dict = AnalyticsRepository.get_user_analytics_summary(user_id)
-        recent_sessions = summary_dict.get("recent_sessions", [])
+    def export_progress_csv(user_id: Any, timeframe: str = "30d") -> Dict[str, Any]:
+        from backend.app.services.dashboard_service import DashboardService
+        overview_dict = DashboardService.get_user_dashboard_overview(user_id, timeframe=timeframe)
+        recent_sessions = overview_dict.get("recent_sessions", [])
         export_res = ReportService._engine.export_csv(recent_sessions)
         return export_res.to_dict()

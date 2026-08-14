@@ -466,30 +466,47 @@ class ReportEngine(ReportEngineInterface):
         return res
 
     def export_csv(self, sessions_list: List[Dict[str, Any]]) -> ExportResult:
-        """Formats session history into spreadsheet-compatible CSV."""
+        """Formats session history into spreadsheet-compatible RFC-4180 CSV."""
         t0 = time.time()
         filename = f"posturesense_progress_{int(time.time())}.csv"
         output = io.StringIO()
         writer = csv.writer(output)
 
-        # Header row
         writer.writerow([
-            "Date", "Exercise", "Score", "ROM", "Stability",
-            "Symmetry", "Cadence", "Repetitions", "Duration", "Tracking Quality"
+            "Date", "Pose", "Exercise", "Score", "Score Category",
+            "Duration", "Repetitions", "Hold Time", "Cadence",
+            "Symmetry", "Balance", "Stability", "ROM", "Tracking Quality", "Failed Rules"
         ])
 
         for s in sessions_list:
+            ts = s.get("timestamp", s.get("started_at", "N/A"))
+            pose = s.get("pose_label", s.get("pose_name", "Unknown"))
+            ex = s.get("exercise_id", pose.lower().replace(" ", "_"))
+            score_val = s.get("accuracy", s.get("average_score", s.get("overall_score")))
+            
+            if score_val is not None:
+                score = round(float(score_val), 1)
+                cat = "Excellent" if score >= 90.0 else ("Good" if score >= 75.0 else ("Fair" if score >= 50.0 else "Needs Improvement"))
+            else:
+                score = "N/A"
+                cat = "N/A"
+
+            dur = round(float(s.get("duration", 0.0)), 1)
+            reps = s.get("reps", s.get("completed_reps", 0))
+            hold = round(float(s.get("hold_time", 0.0)), 1)
+            cadence = round(float(s.get("average_cadence", 0.0)), 1)
+
+            symm = round(float(s.get("symmetry_score")), 1) if s.get("symmetry_score") is not None else "N/A"
+            bal = round(float(s.get("balance_score")), 1) if s.get("balance_score") is not None else "N/A"
+            stab = round(float(s.get("stability_score")), 1) if s.get("stability_score") is not None else "N/A"
+            rom = round(float(s.get("rom_score")), 1) if s.get("rom_score") is not None else "N/A"
+            tq = round(float(s.get("tracking_quality")), 1) if s.get("tracking_quality") is not None else "N/A"
+
+            failed = s.get("failed_rules", [])
+            failed_str = "; ".join(failed) if failed else "None"
+
             writer.writerow([
-                s.get("timestamp", "N/A"),
-                s.get("exercise_id", "unknown"),
-                s.get("average_score", s.get("accuracy", 0.0)),
-                s.get("rom", "N/A"),
-                s.get("stability", "N/A"),
-                s.get("symmetry", "N/A"),
-                s.get("cadence", "N/A"),
-                s.get("completed_reps", s.get("total_reps", 0)),
-                s.get("duration", 0.0),
-                s.get("tracking_quality", 100.0)
+                ts, pose, ex, score, cat, dur, reps, hold, cadence, symm, bal, stab, rom, tq, failed_str
             ])
 
         content = output.getvalue()
@@ -509,63 +526,136 @@ class ReportEngine(ReportEngineInterface):
 
     def export_pdf(self, report_dict: Dict[str, Any]) -> ExportResult:
         """
-        Renders a clean, styled HTML/PDF report featuring PostureSense branding,
-        title, metric summary cards, score breakdown, feedback, and data quality notice.
+        Renders a clean, styled HTML/PDF assessment report featuring PostureSense branding,
+        summary metrics, posture score, biomechanics metrics, movement metrics,
+        feedback summary, and explicit data quality notice.
         """
         t0 = time.time()
         meta = report_dict.get("metadata", {})
         rep_type = meta.get("report_type", "session").upper()
         user_id = meta.get("user_id", "anonymous")
-        filename = f"posturesense_{rep_type.lower()}_report_{int(time.time())}.pdf.html"
+        filename = f"posturesense_{rep_type.lower()}_report_{int(time.time())}.html"
 
+        s_info = report_dict.get("session_info", {})
         perf = report_dict.get("performance", report_dict.get("overall_summary", {}))
-        overall_score = perf.get("overall_score", perf.get("overall_average_score", 0.0))
-        quality = report_dict.get("data_quality", {})
+        bio = report_dict.get("biomechanics", {})
+        mov = report_dict.get("movement", {})
+        dq = report_dict.get("data_quality", report_dict.get("data_quality_notice", {}))
+        fb = report_dict.get("feedback", report_dict.get("feedback_summary", {}))
+        rules = report_dict.get("pose_rules", {})
+
+        overall_score = perf.get("overall_score", perf.get("average_score", 0.0))
+        score_cat = perf.get("score_category", "Evaluated")
+
+        symm_str = f"{bio.get('symmetry_score'):.1f}%" if bio.get("symmetry_score") is not None else "Not available"
+        bal_str = f"{bio.get('balance_score'):.1f}%" if bio.get("balance_score") is not None else "Not available"
+        stab_str = f"{bio.get('stability_score'):.1f}%" if bio.get("stability_score") is not None else "Not available"
+        rom_str = f"{bio.get('rom_score'):.1f}%" if bio.get("rom_score") is not None else "Not available"
+        tq_str = f"{dq.get('tracking_quality'):.1f}%" if dq.get("tracking_quality") is not None else "Not available"
+
+        failed = rules.get("failed_rules", [])
+        failed_html = f"<span style='color:#ef4444;'>{', '.join(failed)}</span>" if failed else "<span style='color:#22c55e;'>All pose rules satisfied</span>"
+
+        strengths_html = "".join([f"<li>{s}</li>" for s in fb.get("strengths", ["Good form alignment"])])
 
         html_content = f"""<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <title>PostureSense AI — {rep_type} REPORT</title>
     <style>
-        body {{ font-family: 'Helvetica Neue', Arial, sans-serif; margin: 20px; background: #0f172a; color: #f8fafc; }}
-        .header {{ border-bottom: 2px solid #38bdf8; padding-bottom: 12px; margin-bottom: 20px; }}
-        .header h1 {{ margin: 0; color: #38bdf8; font-size: 24px; }}
-        .header p {{ margin: 4px 0 0 0; color: #94a3b8; font-size: 12px; }}
-        .card {{ background: #1e293b; border-radius: 8px; padding: 16px; margin-bottom: 16px; border: 1px solid #334155; }}
-        .metric-title {{ color: #94a3b8; font-size: 11px; text-transform: uppercase; font-weight: 700; }}
-        .metric-score {{ color: #4ade80; font-size: 28px; font-weight: 700; margin: 4px 0; }}
-        table {{ width: 100%; border-collapse: collapse; margin-top: 10px; }}
-        th, td {{ padding: 8px 12px; text-align: left; border-bottom: 1px solid #334155; font-size: 13px; }}
-        th {{ color: #38bdf8; font-weight: 600; background: #0f172a; }}
-        .notice {{ background: #0f172a; border-left: 4px solid #eab308; padding: 8px 12px; font-size: 11px; color: #cbd5e1; margin-top: 20px; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 30px; background: #0b0f19; color: #f3f4f6; line-height: 1.5; }}
+        .header {{ border-bottom: 2px solid #00d2ff; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }}
+        .brand {{ color: #00d2ff; font-size: 26px; font-weight: 800; letter-spacing: -0.03em; margin: 0; }}
+        .subtitle {{ color: #9ca3af; font-size: 13px; margin-top: 4px; }}
+        .meta-pill {{ background: rgba(0, 210, 255, 0.1); border: 1px solid rgba(0, 210, 255, 0.2); color: #00d2ff; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }}
+        .grid-4 {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }}
+        .card {{ background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; }}
+        .card-sm {{ padding: 12px; }}
+        .label {{ font-size: 11px; color: #9ca3af; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }}
+        .val {{ font-size: 24px; font-weight: 700; color: #f8fafc; margin-top: 4px; font-family: monospace; }}
+        .section-title {{ font-size: 16px; font-weight: 700; color: #f8fafc; margin-bottom: 12px; border-left: 3px solid #00d2ff; padding-left: 8px; }}
+        table {{ width: 100%; border-collapse: collapse; margin-top: 8px; }}
+        th, td {{ padding: 10px 14px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.06); font-size: 13px; }}
+        th {{ color: #00d2ff; font-weight: 600; background: rgba(0, 0, 0, 0.2); text-transform: uppercase; font-size: 11px; }}
+        .notice {{ background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.25); border-left: 4px solid #eab308; border-radius: 8px; padding: 14px 16px; font-size: 12px; color: #fef08a; margin-top: 28px; }}
+        .footer {{ margin-top: 36px; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; color: #6b7280; font-size: 11px; }}
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>🏆 PostureSense AI Performance Report</h1>
-        <p>Report Type: {rep_type} | User: {user_id} | Generated: {meta.get("generated_at", "N/A")} | Schema v{meta.get("schema_version", "2.0.0")}</p>
+        <div>
+            <h1 class="brand">POSTURESENSE AI</h1>
+            <div class="subtitle">Longitudinal Assessment &amp; Fitness Intelligence Report</div>
+        </div>
+        <div class="meta-pill">{rep_type} REPORT</div>
     </div>
 
-    <div class="card">
-        <div class="metric-title">OVERALL PERFORMANCE SCORE</div>
-        <div class="metric-score">{overall_score:.1f} / 100</div>
-        <p style="color:#94a3b8;font-size:12px;margin:0;">Status: {report_dict.get("performance", {}).get("category", "Evaluated")}</p>
+    <div style="margin-bottom:20px;font-size:13px;color:#9ca3af">
+        <strong>User ID:</strong> {user_id} &bull; 
+        <strong>Pose:</strong> {s_info.get('pose_name', 'All Poses')} &bull; 
+        <strong>Generated:</strong> {meta.get('generated_at', 'N/A')} &bull; 
+        <strong>Schema:</strong> v{meta.get('schema_version', '2.0.0')}
     </div>
 
-    <div class="card">
-        <div class="metric-title">SESSION DETAILS</div>
+    <div class="grid-4">
+        <div class="card">
+            <div class="label">Posture Score</div>
+            <div class="val" style="color:#00e676">{overall_score:.1f}%</div>
+            <div style="font-size:12px;color:#9ca3af;margin-top:2px">{score_cat}</div>
+        </div>
+        <div class="card">
+            <div class="label">Duration</div>
+            <div class="val">{s_info.get('duration', 0.0)}s</div>
+            <div style="font-size:12px;color:#9ca3af;margin-top:2px">Hold: {mov.get('hold_time', 0.0)}s</div>
+        </div>
+        <div class="card">
+            <div class="label">Repetitions</div>
+            <div class="val">{mov.get('reps', 0)}</div>
+            <div style="font-size:12px;color:#9ca3af;margin-top:2px">Cadence: {mov.get('average_cadence', 0.0)} rpm</div>
+        </div>
+        <div class="card">
+            <div class="label">Tracking Quality</div>
+            <div class="val">{tq_str}</div>
+            <div style="font-size:12px;color:#9ca3af;margin-top:2px">Gate: {"PASSED" if dq.get("quality_gate_passed", True) else "WARNING"}</div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom:24px">
+        <div class="section-title">Biomechanics Movement Quality</div>
         <table>
-            <tr><th>Metric</th><th>Value</th></tr>
-            <tr><td>Duration</td><td>{report_dict.get("session_info", {}).get("duration", 0.0)}s</td></tr>
-            <tr><td>Completed Reps</td><td>{report_dict.get("session_info", {}).get("completed_reps", 0)}</td></tr>
-            <tr><td>Tracking Quality</td><td>{quality.get("tracking_quality", 100.0)}%</td></tr>
-            <tr><td>Quality Gate</td><td>{"PASSED" if quality.get("quality_gate_passed", True) else "WARNING"}</td></tr>
+            <thead>
+                <tr>
+                    <th>Dimension</th>
+                    <th>Measured Score</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Symmetry (Bilateral Alignment)</td><td><strong>{symm_str}</strong></td><td>{ 'Measured' if symm_str != 'Not available' else 'Legacy / Unmeasured' }</td></tr>
+                <tr><td>Balance (Center of Mass)</td><td><strong>{bal_str}</strong></td><td>{ 'Measured' if bal_str != 'Not available' else 'Legacy / Unmeasured' }</td></tr>
+                <tr><td>Stability (Postural Steadiness)</td><td><strong>{stab_str}</strong></td><td>{ 'Measured' if stab_str != 'Not available' else 'Legacy / Unmeasured' }</td></tr>
+                <tr><td>Range of Motion (ROM Depth)</td><td><strong>{rom_str}</strong></td><td>{ 'Measured' if rom_str != 'Not available' else 'Legacy / Unmeasured' }</td></tr>
+            </tbody>
         </table>
     </div>
 
+    <div class="card" style="margin-bottom:24px">
+        <div class="section-title">Pose Rule &amp; Feedback Analysis</div>
+        <p style="font-size:13px;margin:0 0 8px 0"><strong>Form Evaluation:</strong> {failed_html}</p>
+        <ul style="font-size:13px;margin:0;padding-left:20px;color:#cbd5e1">
+            {strengths_html}
+        </ul>
+    </div>
+
     <div class="notice">
-        <strong>DATA QUALITY NOTICE:</strong> Generated deterministically by PostureSense v2 Report Engine. Upstream posture, score, and feedback metrics are preserved without modification.
+        <strong>DATA QUALITY &amp; PRIVACY NOTICE:</strong><br>
+        {dq.get('quality_notice', 'Generated deterministically from persisted session analytics.')}<br>
+        <em>Privacy Guarantee: No raw camera video streams or landmark coordinates leave your local device memory.</em>
+    </div>
+
+    <div class="footer">
+        PostureSense v2 &bull; Engine v{self.version} &bull; Schema v{meta.get('schema_version', '2.0.0')}
     </div>
 </body>
 </html>"""

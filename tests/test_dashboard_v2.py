@@ -7,6 +7,7 @@ deterministic insights rule evaluation, latest vs previous session comparison,
 legacy session handling, empty user state, and API endpoint integration.
 """
 
+from datetime import datetime, timedelta, timezone
 import pytest
 from unittest.mock import patch
 
@@ -19,22 +20,28 @@ from backend.app.repositories.session_repository import SessionRepository
 def mock_user_sessions():
     """
     Sample multi-session fixture for user progress intelligence testing.
+    Uses relative UTC timestamps so streak calculations pass consistently.
     """
+    now = datetime.now(timezone.utc)
+    t3 = (now - timedelta(hours=1)).isoformat()
+    t2 = (now - timedelta(days=1)).isoformat()
+    t1 = (now - timedelta(days=2)).isoformat()
+
     s1 = PoseSession(
         id=101, user_id="u_dash_v2", pose_label="Tree Pose",
-        timestamp="2026-08-10T10:00:00Z", duration=30.0, accuracy=75.0,
+        timestamp=t1, duration=30.0, accuracy=75.0,
         reps=0, symmetry_score=80.0, balance_score=78.0, stability_score=82.0,
         rom_score=85.0, hold_time=25.0, tracking_quality=95.0, failed_rules=[]
     )
     s2 = PoseSession(
         id=102, user_id="u_dash_v2", pose_label="Warrior II",
-        timestamp="2026-08-11T10:00:00Z", duration=45.0, accuracy=85.0,
+        timestamp=t2, duration=45.0, accuracy=85.0,
         reps=0, symmetry_score=88.0, balance_score=85.0, stability_score=87.0,
         rom_score=90.0, hold_time=40.0, tracking_quality=98.0, failed_rules=["left_knee_angle_low"]
     )
     s3 = PoseSession(
         id=103, user_id="u_dash_v2", pose_label="Tree Pose",
-        timestamp="2026-08-12T10:00:00Z", duration=50.0, accuracy=92.0,
+        timestamp=t3, duration=50.0, accuracy=92.0,
         reps=0, symmetry_score=94.0, balance_score=92.0, stability_score=95.0,
         rom_score=96.0, hold_time=48.0, tracking_quality=99.0, failed_rules=[]
     )
@@ -53,7 +60,7 @@ def test_dashboard_overview_structure(mock_user_sessions):
         assert data['total_sessions_all'] == 3
         assert data['total_duration'] == 125.0
         assert data['overall_average_score'] == 84.0  # (92 + 85 + 75) / 3
-        assert data['streak_days'] >= 1
+        assert data['streak_days'] == 3
 
         bio = data['biomechanics']
         assert bio['symmetry'] == 87.3  # (94 + 88 + 80) / 3
@@ -101,7 +108,7 @@ def test_deterministic_insights_empty_user():
         assert data['total_sessions_all'] == 0
         assert len(data['insights']) == 1
         assert data['insights'][0]['id'] == 'insight_empty'
-        assert "2 more sessions" in data['insights'][0]['message']
+        assert "first pose session" in data['insights'][0]['message']
 
 
 # ---------------------------------------------------------------------------
@@ -139,3 +146,27 @@ def test_legacy_session_detection():
     with patch.object(SessionRepository, 'fetch_sessions_by_user_id', return_value=[session]):
         data = DashboardService.get_user_dashboard_overview("u_leg", timeframe="30d")
         assert data['recent_sessions'][0]['is_legacy'] is True
+
+
+# ---------------------------------------------------------------------------
+# 6. Personal Records & User Isolation
+# ---------------------------------------------------------------------------
+
+def test_personal_records_evaluation(mock_user_sessions):
+    records = DashboardService._calculate_personal_records(mock_user_sessions)
+    rec_types = [r['record_type'] for r in records]
+
+    assert 'Highest Score' in rec_types
+    assert 'Longest Hold' in rec_types
+    assert 'Best Symmetry' in rec_types
+    assert 'Best Balance' in rec_types
+    assert 'Best Stability' in rec_types
+    assert 'Best ROM' in rec_types
+
+
+def test_user_isolation_query():
+    with patch.object(SessionRepository, 'fetch_sessions_by_user_id', return_value=[]) as mock_fetch:
+        data = DashboardService.get_user_dashboard_overview("user_isolated_123", timeframe="30d")
+        mock_fetch.assert_called_once_with("user_isolated_123")
+        assert data['total_sessions'] == 0
+

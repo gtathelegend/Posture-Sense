@@ -399,7 +399,20 @@ class DashboardService:
                 'date': format_date(best_bal)
             })
 
-        # 5. Best ROM
+        # 5. Best Stability
+        stab_sessions = [s for s in sessions if getattr(s, 'stability_score', None) is not None]
+        if stab_sessions:
+            best_stab = max(stab_sessions, key=lambda s: s.stability_score)
+            records.append({
+                'id': 'rec_stab',
+                'record_type': 'Best Stability',
+                'pose_label': best_stab.pose_label,
+                'value': round(best_stab.stability_score, 1),
+                'unit': '%',
+                'date': format_date(best_stab)
+            })
+
+        # 6. Best ROM
         rom_sessions = [s for s in sessions if getattr(s, 'rom_score', None) is not None]
         if rom_sessions:
             best_rom = max(rom_sessions, key=lambda s: s.rom_score)
@@ -412,7 +425,7 @@ class DashboardService:
                 'date': format_date(best_rom)
             })
 
-        # 6. Most Repetitions
+        # 7. Most Repetitions
         rep_sessions = [s for s in sessions if getattr(s, 'reps', 0) > 0]
         if rep_sessions:
             most_reps = max(rep_sessions, key=lambda s: s.reps)
@@ -437,11 +450,21 @@ class DashboardService:
     ) -> List[Dict[str, Any]]:
         insights = []
 
-        if len(all_sessions) < 2:
+        if len(all_sessions) == 0:
             insights.append({
                 'id': 'insight_empty',
-                'title': 'Building Baseline',
-                'message': 'Complete 2 more sessions to establish a progress trend.',
+                'title': 'Welcome to PostureSense',
+                'message': 'Complete your first pose session to start building your progress history.',
+                'type': 'info',
+                'icon': '💡'
+            })
+            return insights
+
+        if len(all_sessions) in [1, 2]:
+            insights.append({
+                'id': 'insight_baseline',
+                'title': 'Establishing Trend',
+                'message': 'Complete one more session to establish a meaningful performance trend.',
                 'type': 'info',
                 'icon': '💡'
             })
@@ -458,8 +481,8 @@ class DashboardService:
                     if pct_imp >= 10.0:
                         insights.append({
                             'id': f'insight_score_imp_{pose}',
-                            'title': 'Pose Mastered',
-                            'message': f'Your {pose} score improved {round(pct_imp, 1)}% over your last {len(p_sessions)} sessions.',
+                            'title': 'Pose Progress',
+                            'message': f'Your {pose} score improved {round(pct_imp, 1)}% across your recent sessions.',
                             'type': 'achievement',
                             'icon': '📈'
                         })
@@ -487,8 +510,8 @@ class DashboardService:
             if prev_holds and latest.hold_time > max(prev_holds):
                 insights.append({
                     'id': 'insight_hold_pr',
-                    'title': 'New Hold PR',
-                    'message': f'New record: {latest.pose_label} hold for {round(latest.hold_time, 1)}s.',
+                    'title': 'New Personal Record',
+                    'message': f'New personal record: {latest.pose_label} held for {round(latest.hold_time, 1)}s.',
                     'type': 'record',
                     'icon': '⏱️'
                 })
@@ -500,7 +523,7 @@ class DashboardService:
             insights.append({
                 'id': 'insight_consistency',
                 'title': 'Great Consistency',
-                'message': f'Great consistency — {high_count} of your last {len(recent_10)} sessions scored 80+.',
+                'message': f'{high_count} of your last {len(recent_10)} sessions scored above 80.',
                 'type': 'habit',
                 'icon': '🎯'
             })

@@ -138,6 +138,11 @@ class ReportEngine(ReportEngineInterface):
 
         ts_str = session_data.get("timestamp")
 
+        reps = int(session_data.get("reps", session_data.get("completed_reps", 0)))
+        hold_time = float(session_data.get("hold_time", 0.0))
+        cadence = float(session_data.get("average_cadence", (reps / (duration / 60.0)) if duration > 0 and reps > 0 else 0.0))
+        rep_dur = float(session_data.get("average_rep_duration", (duration / reps) if reps > 0 else 0.0))
+
         session_info = {
             "session_id": session_id,
             "pose_id": pose_label.lower().replace(" ", "_"),
@@ -147,7 +152,8 @@ class ReportEngine(ReportEngineInterface):
             "started_at": ts_str,
             "completed_at": ts_str,
             "timestamp": ts_str,
-            "duration": round(duration, 1)
+            "duration": round(duration, 1),
+            "completed_reps": reps
         }
 
         perf = {
@@ -155,11 +161,6 @@ class ReportEngine(ReportEngineInterface):
             "score_confidence": float(session_data.get("score_confidence", 1.0)),
             "score_category": score_category
         }
-
-        reps = int(session_data.get("reps", session_data.get("completed_reps", 0)))
-        hold_time = float(session_data.get("hold_time", 0.0))
-        cadence = float(session_data.get("average_cadence", (reps / (duration / 60.0)) if duration > 0 and reps > 0 else 0.0))
-        rep_dur = float(session_data.get("average_rep_duration", (duration / reps) if reps > 0 else 0.0))
 
         rom_val = session_data.get("rom_score")
 

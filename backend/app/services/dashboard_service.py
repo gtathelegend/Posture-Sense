@@ -97,6 +97,8 @@ class DashboardService:
             p_roms = [s.rom_score for s in p_sessions if getattr(s, 'rom_score', None) is not None]
             best_rom = max(p_roms) if p_roms else None
 
+            avg_reps = round(sum(s.reps for s in p_sessions) / count, 1)
+
             pose_cards.append({
                 'pose_label': label,
                 'sessions': count,
@@ -104,6 +106,7 @@ class DashboardService:
                 'best_score': round(best_score, 1),
                 'avg_hold': round(avg_hold, 1),
                 'best_hold': round(best_hold, 1),
+                'avg_reps': avg_reps,
                 'best_symmetry': round(best_symm, 1) if best_symm is not None else None,
                 'best_rom': round(best_rom, 1) if best_rom is not None else None
             })

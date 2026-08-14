@@ -960,14 +960,17 @@
 
       var html = '';
       cards.forEach(function(p) {
+        var symmStr = (p.best_symmetry !== null && p.best_symmetry !== undefined) ? (p.best_symmetry + '%') : 'N/A';
+        var romStr = (p.best_rom !== null && p.best_rom !== undefined) ? (p.best_rom + '%') : 'N/A';
         html += '<div class="pose-card">'
           + '<div class="pose-card-title"><span>' + p.pose_label + '</span><span class="chip mono">' + p.sessions + ' sess</span></div>'
           + '<div class="pose-stat-row"><span>Average Score</span><strong>' + p.avg_score + '%</strong></div>'
           + '<div class="pose-stat-row"><span>Best Score</span><strong>' + p.best_score + '%</strong></div>'
           + '<div class="pose-stat-row"><span>Avg Hold</span><strong>' + p.avg_hold + 's</strong></div>'
           + '<div class="pose-stat-row"><span>Best Hold</span><strong>' + p.best_hold + 's</strong></div>'
-          + '<div class="pose-stat-row"><span>Best Symmetry</span><strong>' + p.best_symmetry + '%</strong></div>'
-          + '<div class="pose-stat-row"><span>Best ROM</span><strong>' + p.best_rom + '%</strong></div>'
+          + (p.avg_reps > 0 ? ('<div class="pose-stat-row"><span>Average Reps</span><strong>' + p.avg_reps + '</strong></div>') : '')
+          + '<div class="pose-stat-row"><span>Best Symmetry</span><strong>' + symmStr + '</strong></div>'
+          + '<div class="pose-stat-row"><span>Best ROM</span><strong>' + romStr + '</strong></div>'
           + '</div>';
       });
       grid.innerHTML = html;
@@ -1014,10 +1017,12 @@
       for (var key in m) {
         var item = m[key];
         var semClass = item.semantic === 'positive' ? 'delta-pos' : (item.semantic === 'negative' ? 'delta-neg' : 'delta-neu');
+        var prevVal = (item.prev !== null && item.prev !== undefined) ? item.prev : 'N/A';
+        var latestVal = (item.latest !== null && item.latest !== undefined) ? item.latest : 'N/A';
         html += '<tr>'
           + '<td><strong>' + (labels[key] || key) + '</strong></td>'
-          + '<td style="color:var(--fg-3)">' + item.prev + '</td>'
-          + '<td><strong>' + item.latest + '</strong></td>'
+          + '<td style="color:var(--fg-3)">' + prevVal + '</td>'
+          + '<td><strong>' + latestVal + '</strong></td>'
           + '<td><span class="ov-delta ' + semClass + '">' + item.delta + '</span></td>'
           + '</tr>';
       }
@@ -1037,6 +1042,10 @@
       sessions.forEach(function(s, idx) {
         var detailId = 'detRow_' + idx;
         var isLeg = s.is_legacy;
+        var tqBadge = (s.tracking_quality !== null && s.tracking_quality !== undefined)
+          ? ('<span class="tq-status-badge tq-' + (s.tracking_quality >= 90 ? 'excellent' : (s.tracking_quality >= 75 ? 'good' : 'fair')) + '">' + s.tracking_quality + '%</span>')
+          : '<span style="color:var(--fg-3)">N/A</span>';
+
         html += '<tr class="exp-row-toggle" onclick="toggleRow(\'' + detailId + '\')">'
           + '<td style="color:var(--fg-2);font-size:12px">' + s.timestamp + '</td>'
           + '<td><span class="badge-pose">' + s.pose_label + '</span></td>'
@@ -1044,7 +1053,7 @@
           + '<td style="color:var(--fg-2)">' + s.duration + 's</td>'
           + '<td style="color:var(--fg-2)">' + s.hold_time + 's</td>'
           + '<td style="color:var(--fg-2)">' + s.reps + '</td>'
-          + '<td><span class="tq-status-badge tq-' + (s.tracking_quality >= 90 ? 'excellent' : (s.tracking_quality >= 75 ? 'good' : 'fair')) + '">' + s.tracking_quality + '%</span></td>'
+          + '<td>' + tqBadge + '</td>'
           + '<td><span style="color:#00d2ff;font-size:12px;font-weight:600">Details ▼</span></td>'
           + '</tr>'
           + '<tr id="' + detailId + '" class="exp-detail-row">'
@@ -1052,13 +1061,18 @@
           + '<div class="exp-detail-content">';
 
         if (isLeg) {
-          html += '<div style="color:#ffc107;font-size:13px">⚠️ Detailed biomechanics unavailable for this legacy session.</div>';
+          html += '<div style="color:#ffc107;font-size:13px">⚠️ Detailed analytics unavailable for this session.</div>';
         } else {
+          var symm = s.symmetry_score !== null ? (s.symmetry_score + '%') : 'N/A';
+          var bal = s.balance_score !== null ? (s.balance_score + '%') : 'N/A';
+          var stab = s.stability_score !== null ? (s.stability_score + '%') : 'N/A';
+          var rom = s.rom_score !== null ? (s.rom_score + '%') : 'N/A';
+
           html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:10px;font-size:12px">'
-            + '<div>Symmetry: <strong>' + s.symmetry_score + '%</strong></div>'
-            + '<div>Balance: <strong>' + s.balance_score + '%</strong></div>'
-            + '<div>Stability: <strong>' + s.stability_score + '%</strong></div>'
-            + '<div>ROM: <strong>' + s.rom_score + '%</strong></div>'
+            + '<div>Symmetry: <strong>' + symm + '</strong></div>'
+            + '<div>Balance: <strong>' + bal + '</strong></div>'
+            + '<div>Stability: <strong>' + stab + '</strong></div>'
+            + '<div>ROM: <strong>' + rom + '</strong></div>'
             + '</div>';
           if (s.failed_rules && s.failed_rules.length > 0) {
             html += '<div style="font-size:12px;color:#ff5252">Form corrections: ' + s.failed_rules.join(', ') + '</div>';

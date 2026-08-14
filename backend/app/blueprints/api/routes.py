@@ -175,7 +175,8 @@ def get_exercise_report(exercise_id):
 @login_required
 def get_progress_report():
     from backend.app.services.report_service import ReportService
-    rep = ReportService.generate_progress_report(current_user.id)
+    timeframe = request.args.get('timeframe', '30d')
+    rep = ReportService.generate_progress_report(current_user.id, timeframe=timeframe)
     return jsonify(rep)
 
 
@@ -211,7 +212,8 @@ def get_session_report_json(session_id):
 @login_required
 def get_progress_csv():
     from backend.app.services.report_service import ReportService
-    export_res = ReportService.export_progress_csv(current_user.id)
+    timeframe = request.args.get('timeframe', '30d')
+    export_res = ReportService.export_progress_csv(current_user.id, timeframe=timeframe)
     return Response(export_res['content'], mimetype='text/csv', headers={
         'Content-Disposition': f'attachment; filename="{export_res["filename"]}"'
     })

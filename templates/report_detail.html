@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostureSense AI — Performance Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --ps-bg: #0b0f19;
+            --ps-card-bg: rgba(30, 41, 59, 0.7);
+            --ps-border: rgba(255, 255, 255, 0.08);
+            --ps-accent: #00d2ff;
+            --ps-text: #f8fafc;
+            --ps-text-muted: #9ca3af;
+        }
+
+        body {
+            background-color: var(--ps-bg);
+            color: var(--ps-text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding-bottom: 50px;
+        }
+
+        .report-header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--ps-border);
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+
+        .glass-card {
+            background: var(--ps-card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--ps-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .metric-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--ps-text-muted);
+            font-weight: 700;
+        }
+
+        .metric-val {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--ps-accent);
+            font-family: monospace;
+        }
+
+        .btn-export {
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 8px 16px;
+        }
+
+        .notice-box {
+            background: rgba(234, 179, 8, 0.1);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+            border-left: 4px solid #eab308;
+            border-radius: 12px;
+            padding: 16px;
+            color: #fef08a;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="report-header">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div>
+                <a href="/dashboard" class="text-decoration-none text-muted small mb-1 d-inline-block">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard
+                </a>
+                <h2 class="m-0 font-weight-bold" style="color: var(--ps-accent);"><i class="fa-solid fa-file-contract me-2"></i>PostureSense AI Report</h2>
+                <div class="text-muted small">
+                    Type: <span class="badge bg-primary text-uppercase">{{ report_type }}</span> &bull; 
+                    User: <code>{{ report.metadata.user_id }}</code> &bull; 
+                    Generated: {{ report.metadata.generated_at or 'Now' }}
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                {% if report_type == 'session' %}
+                <a href="/api/reports/session/{{ session_id }}/pdf" target="_blank" class="btn btn-outline-info btn-export">
+                    <i class="fa-solid fa-file-pdf me-1"></i> HTML / PDF
+                </a>
+                <a href="/api/reports/session/{{ session_id }}/json" class="btn btn-outline-light btn-export">
+                    <i class="fa-solid fa-file-code me-1"></i> JSON
+                </a>
+                {% else %}
+                <a href="/api/reports/progress.csv{% if timeframe %}?timeframe={{ timeframe }}{% endif %}" class="btn btn-outline-success btn-export">
+                    <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- Top Metrics Row -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="glass-card">
+                    <div class="metric-title">Overall Performance</div>
+                    <div class="metric-val">
+                        {% if report_type == 'session' %}
+                            {{ "%.1f"|format(report.performance.overall_score) }}%
+                        {% elif report_type == 'progress' %}
+                            {{ "%.1f"|format(report.overall_summary.average_score) }}%
+                        {% else %}
+                            {{ "%.1f"|format(report.executive_summary.overall_average_score) }}%
+                        {% endif %}
+                    </div>
+                    <div class="small text-muted">Category: {{ report.performance.score_category if report.performance else 'Evaluated' }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card">
+                    <div class="metric-title">Duration / Sessions</div>
+                    <div class="metric-val">
+                        {% if report_type == 'session' %}
+                            {{ report.session_info.duration }}s
+                        {% elif report_type == 'progress' %}
+                            {{ report.overall_summary.total_sessions }} sess
+                        {% else %}
+                            {{ report.executive_summary.total_sessions }} sess
+                        {% endif %}
+                    </div>
+                    <div class="small text-muted">
+                        {% if report_type == 'session' %}
+                            Hold Time: {{ report.movement.hold_time }}s
+                        {% else %}
+                            Total Duration: {{ "%.1f"|format(report.overall_summary.total_duration if report_type=='progress' else report.executive_summary.total_duration) }}s
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card">
+                    <div class="metric-title">Repetitions / Cadence</div>
+                    <div class="metric-val">
+                        {% if report_type == 'session' %}
+                            {{ report.movement.reps }}
+                        {% else %}
+                            {{ report.overall_summary.streak_days if report_type=='progress' else report.executive_summary.streak_days }}d streak
+                        {% endif %}
+                    </div>
+                    <div class="small text-muted">
+                        {% if report_type == 'session' %}
+                            Cadence: {{ report.movement.average_cadence }} rpm
+                        {% else %}
+                            Streak Status
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="glass-card">
+                    <div class="metric-title">Tracking Quality</div>
+                    <div class="metric-val">
+                        {% set tq = report.tracking.tracking_quality if report_type=='session' else report.data_quality.tracking_quality %}
+                        {% if tq is not none and tq != 'N/A' %}
+                            {{ "%.1f"|format(tq) }}%
+                        {% else %}
+                            <span class="text-muted fs-5">N/A</span>
+                        {% endif %}
+                    </div>
+                    <div class="small text-muted">Quality Gate Passed</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biomechanics Grid -->
+        <div class="glass-card">
+            <h5 class="mb-3 text-info"><i class="fa-solid fa-person-running me-2"></i>Biomechanics Analysis</h5>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Dimension</th>
+                            <th>Value</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set bio = report.biomechanics if report_type=='session' else (report.overall_summary if report_type=='progress' else report.overall_progress) %}
+                        <tr>
+                            <td>Symmetry (Bilateral)</td>
+                            <td>
+                                {% set symm = bio.symmetry_score if report_type=='session' else bio.average_symmetry %}
+                                {% if symm is not none %}<strong>{{ "%.1f"|format(symm) }}%</strong>{% else %}<span class="text-warning">Not available</span>{% endif %}
+                            </td>
+                            <td>{% if symm is not none %}<span class="badge bg-success">Measured</span>{% else %}<span class="badge bg-secondary">Legacy Session</span>{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <td>Balance (Center of Mass)</td>
+                            <td>
+                                {% set bal = bio.balance_score if report_type=='session' else bio.average_balance %}
+                                {% if bal is not none %}<strong>{{ "%.1f"|format(bal) }}%</strong>{% else %}<span class="text-warning">Not available</span>{% endif %}
+                            </td>
+                            <td>{% if bal is not none %}<span class="badge bg-success">Measured</span>{% else %}<span class="badge bg-secondary">Legacy Session</span>{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <td>Stability (Steadiness)</td>
+                            <td>
+                                {% set stab = bio.stability_score if report_type=='session' else bio.average_stability %}
+                                {% if stab is not none %}<strong>{{ "%.1f"|format(stab) }}%</strong>{% else %}<span class="text-warning">Not available</span>{% endif %}
+                            </td>
+                            <td>{% if stab is not none %}<span class="badge bg-success">Measured</span>{% else %}<span class="badge bg-secondary">Legacy Session</span>{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <td>Range of Motion (ROM)</td>
+                            <td>
+                                {% set rom = bio.rom_score if report_type=='session' else bio.average_rom %}
+                                {% if rom is not none %}<strong>{{ "%.1f"|format(rom) }}%</strong>{% else %}<span class="text-warning">Not available</span>{% endif %}
+                            </td>
+                            <td>{% if rom is not none %}<span class="badge bg-success">Measured</span>{% else %}<span class="badge bg-secondary">Legacy Session</span>{% endif %}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Data Quality Notice -->
+        <div class="notice-box mt-4">
+            <h6 class="fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation me-2"></i>Data Quality &amp; Privacy Notice</h6>
+            <div>{{ report.data_quality.quality_notice if report.data_quality else (report.data_quality_notice.quality_notice if report.data_quality_notice else 'Generated deterministically from persisted session analytics.') }}</div>
+            <div class="small opacity-75 mt-1">Privacy Guarantee: PostureSense v2 processes camera frames strictly in browser memory. Only derived numerical analytics are saved.</div>
+        </div>
+
+    </div>
+
+</body>
+</html>

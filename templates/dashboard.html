@@ -429,6 +429,17 @@
         <button class="tf-btn active" data-tf="30d">30 Days</button>
         <button class="tf-btn" data-tf="all">All Time</button>
       </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <a href="/reports/view/progress?timeframe=30d" id="btnProgressReport" class="btn btn-sm btn-outline-info" style="font-size:12px">
+          📄 Progress Report
+        </a>
+        <a href="/reports/view/comprehensive" class="btn btn-sm btn-outline-light" style="font-size:12px">
+          📊 Comprehensive Report
+        </a>
+        <a href="/api/reports/progress.csv?timeframe=30d" id="btnExportCsv" class="btn btn-sm btn-outline-success" style="font-size:12px">
+          📥 Export CSV
+        </a>
+      </div>
       <div style="font-size:12px;color:var(--fg-3)" id="lastUpdatedStr">
         Updated just now
       </div>
@@ -685,6 +696,12 @@
           btns.forEach(function(b) { b.classList.remove('active'); });
           this.classList.add('active');
           currentTimeframe = this.getAttribute('data-tf');
+
+          var btnProg = document.getElementById('btnProgressReport');
+          if (btnProg) btnProg.href = '/reports/view/progress?timeframe=' + currentTimeframe;
+          var btnCsv = document.getElementById('btnExportCsv');
+          if (btnCsv) btnCsv.href = '/api/reports/progress.csv?timeframe=' + currentTimeframe;
+
           fetchDashboardData(currentTimeframe);
         });
       });
@@ -1086,6 +1103,9 @@
             html += '<div style="font-size:12px;color:#00e676">All configured pose rules satisfied.</div>';
           }
         }
+
+        var sessIdStr = s.session_id || s.id;
+        html += '<div style="margin-top:10px;text-align:right"><a href="/reports/view/session/' + sessIdStr + '" class="btn btn-sm btn-outline-info" style="font-size:11px;padding:3px 10px"><i class="fa-solid fa-file-contract me-1"></i> View Full Report &rarr;</a></div>';
 
         html += '</div></td></tr>';
       });

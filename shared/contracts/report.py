@@ -1,3 +1,10 @@
+"""
+shared/contracts/report.py
+==========================
+Data contracts for PostureSense v2 Reports & Export Subsystem.
+Canonical schemas for Session, Exercise, Progress, Comprehensive reports and ExportResult payloads.
+"""
+
 from typing import List, Dict, Any, Optional
 from shared.contracts.base import BaseContract
 
@@ -7,7 +14,7 @@ class ReportMetadata(BaseContract):
 
     def __init__(
         self,
-        report_type: str,  # session, exercise, progress, personal_record, comprehensive
+        report_type: str,  # session, exercise, progress, comprehensive
         user_id: str = "anonymous",
         generated_at: Optional[str] = None,
         source_data_version: str = "2.0.0",
@@ -58,7 +65,11 @@ class SessionReport(BaseContract):
         metadata: ReportMetadata,
         session_info: Dict[str, Any],
         performance: Dict[str, Any],
-        assessment: Dict[str, Any],
+        movement: Dict[str, Any],
+        biomechanics: Dict[str, Any],
+        tracking: Dict[str, Any],
+        pose_rules: Dict[str, Any],
+        feedback: Dict[str, Any],
         data_quality: Dict[str, Any],
         id: Optional[str] = None,
         timestamp: Optional[str] = None,
@@ -69,7 +80,11 @@ class SessionReport(BaseContract):
         self.metadata = metadata
         self.session_info = session_info
         self.performance = performance
-        self.assessment = assessment
+        self.movement = movement
+        self.biomechanics = biomechanics
+        self.tracking = tracking
+        self.pose_rules = pose_rules
+        self.feedback = feedback
         self.data_quality = data_quality
 
     def to_dict(self) -> Dict[str, Any]:
@@ -78,7 +93,11 @@ class SessionReport(BaseContract):
             "metadata": self.metadata.to_dict() if isinstance(self.metadata, ReportMetadata) else self.metadata,
             "session_info": self.session_info,
             "performance": self.performance,
-            "assessment": self.assessment,
+            "movement": self.movement,
+            "biomechanics": self.biomechanics,
+            "tracking": self.tracking,
+            "pose_rules": self.pose_rules,
+            "feedback": self.feedback,
             "data_quality": self.data_quality,
         })
         return data
@@ -91,7 +110,11 @@ class SessionReport(BaseContract):
             metadata=metadata_obj,
             session_info=data.get("session_info", {}),
             performance=data.get("performance", {}),
-            assessment=data.get("assessment", {}),
+            movement=data.get("movement", {}),
+            biomechanics=data.get("biomechanics", {}),
+            tracking=data.get("tracking", {}),
+            pose_rules=data.get("pose_rules", {}),
+            feedback=data.get("feedback", {}),
             data_quality=data.get("data_quality", {}),
             id=data.get("id"),
             timestamp=data.get("timestamp"),
@@ -109,6 +132,7 @@ class ExerciseReport(BaseContract):
         exercise_info: Dict[str, Any],
         performance_summary: Dict[str, Any],
         recent_history: List[Dict[str, Any]],
+        data_quality: Dict[str, Any],
         id: Optional[str] = None,
         timestamp: Optional[str] = None,
         schema_version: str = "2.0.0",
@@ -119,6 +143,7 @@ class ExerciseReport(BaseContract):
         self.exercise_info = exercise_info
         self.performance_summary = performance_summary
         self.recent_history = recent_history
+        self.data_quality = data_quality
 
     def to_dict(self) -> Dict[str, Any]:
         data = super().to_dict()
@@ -127,6 +152,7 @@ class ExerciseReport(BaseContract):
             "exercise_info": self.exercise_info,
             "performance_summary": self.performance_summary,
             "recent_history": self.recent_history,
+            "data_quality": self.data_quality,
         })
         return data
 
@@ -139,6 +165,7 @@ class ExerciseReport(BaseContract):
             exercise_info=data.get("exercise_info", {}),
             performance_summary=data.get("performance_summary", {}),
             recent_history=data.get("recent_history", []),
+            data_quality=data.get("data_quality", {}),
             id=data.get("id"),
             timestamp=data.get("timestamp"),
             schema_version=data.get("schema_version", "2.0.0"),
@@ -152,10 +179,12 @@ class ProgressReport(BaseContract):
     def __init__(
         self,
         metadata: ReportMetadata,
+        reporting_period: str,
         overall_summary: Dict[str, Any],
         trends: Dict[str, Any],
         personal_records: List[Dict[str, Any]],
         comparison: Dict[str, Any],
+        data_quality: Dict[str, Any],
         id: Optional[str] = None,
         timestamp: Optional[str] = None,
         schema_version: str = "2.0.0",
@@ -163,19 +192,23 @@ class ProgressReport(BaseContract):
     ):
         super().__init__(id=id, timestamp=timestamp, schema_version=schema_version, source=source)
         self.metadata = metadata
+        self.reporting_period = reporting_period
         self.overall_summary = overall_summary
         self.trends = trends
         self.personal_records = personal_records
         self.comparison = comparison
+        self.data_quality = data_quality
 
     def to_dict(self) -> Dict[str, Any]:
         data = super().to_dict()
         data.update({
             "metadata": self.metadata.to_dict() if isinstance(self.metadata, ReportMetadata) else self.metadata,
+            "reporting_period": self.reporting_period,
             "overall_summary": self.overall_summary,
             "trends": self.trends,
             "personal_records": self.personal_records,
             "comparison": self.comparison,
+            "data_quality": self.data_quality,
         })
         return data
 
@@ -185,10 +218,12 @@ class ProgressReport(BaseContract):
         metadata_obj = ReportMetadata.from_dict(meta) if isinstance(meta, dict) else meta
         return cls(
             metadata=metadata_obj,
+            reporting_period=data.get("reporting_period", "30d"),
             overall_summary=data.get("overall_summary", {}),
             trends=data.get("trends", {}),
             personal_records=data.get("personal_records", []),
             comparison=data.get("comparison", {}),
+            data_quality=data.get("data_quality", {}),
             id=data.get("id"),
             timestamp=data.get("timestamp"),
             schema_version=data.get("schema_version", "2.0.0"),
@@ -202,10 +237,16 @@ class ComprehensiveReport(BaseContract):
     def __init__(
         self,
         metadata: ReportMetadata,
-        progress_summary: Dict[str, Any],
-        session_reports: List[Dict[str, Any]],
-        exercise_reports: Dict[str, Any],
+        executive_summary: Dict[str, Any],
+        overall_progress: Dict[str, Any],
+        score_trends: Dict[str, Any],
+        biomechanics_trends: Dict[str, Any],
         personal_records: List[Dict[str, Any]],
+        pose_performance: List[Dict[str, Any]],
+        recent_sessions: List[Dict[str, Any]],
+        session_comparison: Dict[str, Any],
+        feedback_summary: Dict[str, Any],
+        data_quality_notice: Dict[str, Any],
         id: Optional[str] = None,
         timestamp: Optional[str] = None,
         schema_version: str = "2.0.0",
@@ -213,19 +254,31 @@ class ComprehensiveReport(BaseContract):
     ):
         super().__init__(id=id, timestamp=timestamp, schema_version=schema_version, source=source)
         self.metadata = metadata
-        self.progress_summary = progress_summary
-        self.session_reports = session_reports
-        self.exercise_reports = exercise_reports
+        self.executive_summary = executive_summary
+        self.overall_progress = overall_progress
+        self.score_trends = score_trends
+        self.biomechanics_trends = biomechanics_trends
         self.personal_records = personal_records
+        self.pose_performance = pose_performance
+        self.recent_sessions = recent_sessions
+        self.session_comparison = session_comparison
+        self.feedback_summary = feedback_summary
+        self.data_quality_notice = data_quality_notice
 
     def to_dict(self) -> Dict[str, Any]:
         data = super().to_dict()
         data.update({
             "metadata": self.metadata.to_dict() if isinstance(self.metadata, ReportMetadata) else self.metadata,
-            "progress_summary": self.progress_summary,
-            "session_reports": self.session_reports,
-            "exercise_reports": self.exercise_reports,
+            "executive_summary": self.executive_summary,
+            "overall_progress": self.overall_progress,
+            "score_trends": self.score_trends,
+            "biomechanics_trends": self.biomechanics_trends,
             "personal_records": self.personal_records,
+            "pose_performance": self.pose_performance,
+            "recent_sessions": self.recent_sessions,
+            "session_comparison": self.session_comparison,
+            "feedback_summary": self.feedback_summary,
+            "data_quality_notice": self.data_quality_notice,
         })
         return data
 
@@ -235,10 +288,16 @@ class ComprehensiveReport(BaseContract):
         metadata_obj = ReportMetadata.from_dict(meta) if isinstance(meta, dict) else meta
         return cls(
             metadata=metadata_obj,
-            progress_summary=data.get("progress_summary", {}),
-            session_reports=data.get("session_reports", []),
-            exercise_reports=data.get("exercise_reports", {}),
+            executive_summary=data.get("executive_summary", {}),
+            overall_progress=data.get("overall_progress", {}),
+            score_trends=data.get("score_trends", {}),
+            biomechanics_trends=data.get("biomechanics_trends", {}),
             personal_records=data.get("personal_records", []),
+            pose_performance=data.get("pose_performance", []),
+            recent_sessions=data.get("recent_sessions", []),
+            session_comparison=data.get("session_comparison", {}),
+            feedback_summary=data.get("feedback_summary", {}),
+            data_quality_notice=data.get("data_quality_notice", {}),
             id=data.get("id"),
             timestamp=data.get("timestamp"),
             schema_version=data.get("schema_version", "2.0.0"),

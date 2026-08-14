@@ -409,7 +409,7 @@
     <!-- Header Section -->
     <div class="v2-header">
       <div>
-        <h1 class="v2-greeting" id="v2Greeting">Good evening, {{ current_user.username or 'Vedaang' }}</h1>
+        <h1 class="v2-greeting" id="v2Greeting">Good day, {{ current_user.username or 'User' }}</h1>
         <p class="v2-subtext" id="v2DateStr">Your posture practice intelligence &amp; longitudinal progress</p>
       </div>
       <div class="v2-header-meta">
@@ -777,7 +777,7 @@
           durEl.textContent = hrs + 'h ' + mins + 'm';
         } else {
           var mins = Math.round(totalSec / 60);
-          durEl.textContent = mins + ' mins';
+          durEl.textContent = mins + ' min';
         }
       }
 
@@ -797,7 +797,14 @@
       }
 
       var streakEl = document.getElementById('statStreak');
-      if (streakEl) streakEl.textContent = '🔥 ' + (data.streak_days || 0) + ' Days';
+      var streakSubEl = document.getElementById('statStreakSub');
+      var sDays = data.streak_days || 0;
+      if (streakEl) {
+        streakEl.textContent = sDays > 0 ? ('🔥 ' + sDays + ' Days') : '0 Days';
+      }
+      if (streakSubEl) {
+        streakSubEl.textContent = sDays > 0 ? 'Active daily habit' : 'Start your streak today';
+      }
     }
 
     function renderScoreChart(trend) {

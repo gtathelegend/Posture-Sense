@@ -23,42 +23,50 @@ class ReportService:
         
         target = None
         for s in sessions:
-            if str(getattr(s, 'id', '')) == str(session_id) or str(session_id).startswith("sess_"):
+            if str(getattr(s, 'id', '')) == str(session_id):
                 target = s
                 break
 
-        if not target and sessions:
+        if not target and sessions and (str(session_id).startswith("sess_") or session_id == "latest"):
             target = sessions[0]
 
-        reps_val = getattr(target, 'reps', 0) if target else 0
-        tq_val = getattr(target, 'tracking_quality', None) if target else None
-        symm_val = getattr(target, 'symmetry_score', None) if target else None
-        bal_val = getattr(target, 'balance_score', None) if target else None
-        stab_val = getattr(target, 'stability_score', None) if target else None
-        rom_val = getattr(target, 'rom_score', None) if target else None
-        hold_val = getattr(target, 'hold_time', 0.0) if target else 0.0
-        rules_val = getattr(target, 'failed_rules', []) if target else []
-
-        session_dict = {
-            "session_id": str(getattr(target, 'id', session_id)) if target else session_id,
-            "user_id": str(user_id),
-            "exercise_id": target.pose_label if target else "unknown",
-            "duration": target.duration if target else 0.0,
-            "average_score": target.accuracy if target else 0.0,
-            "best_score": target.accuracy if target else 0.0,
-            "worst_score": target.accuracy if target else 0.0,
-            "completed_reps": reps_val,
-            "valid_reps": reps_val,
-            "invalid_reps": 0,
-            "hold_time": hold_val,
-            "symmetry_score": symm_val,
-            "balance_score": bal_val,
-            "stability_score": stab_val,
-            "rom_score": rom_val,
-            "tracking_quality": tq_val,
-            "failed_rules": rules_val
-        }
-
+        if not target:
+            session_dict = {
+                "session_id": str(session_id),
+                "user_id": str(user_id),
+                "pose_label": "Unknown Pose",
+                "duration": 0.0,
+                "accuracy": 0.0,
+                "reps": 0,
+                "hold_time": 0.0,
+                "symmetry_score": None,
+                "balance_score": None,
+                "stability_score": None,
+                "rom_score": None,
+                "tracking_quality": None,
+                "failed_rules": []
+            }
+        else:
+            ts = target.timestamp
+            ts_str = ts.strftime('%Y-%m-%dT%H:%M:%SZ') if hasattr(ts, 'strftime') else str(ts)
+            session_dict = {
+                "session_id": str(target.id),
+                "user_id": str(user_id),
+                "pose_label": target.pose_label,
+                "exercise_id": target.pose_label,
+                "timestamp": ts_str,
+                "duration": target.duration,
+                "accuracy": target.accuracy,
+                "average_score": target.accuracy,
+                "reps": target.reps,
+                "hold_time": target.hold_time,
+                "symmetry_score": target.symmetry_score,
+                "balance_score": target.balance_score,
+                "stability_score": target.stability_score,
+                "rom_score": target.rom_score,
+                "tracking_quality": target.tracking_quality,
+                "failed_rules": target.failed_rules
+            }
 
         report = ReportService._engine.generate_session_report(session_dict)
         return report.to_dict()

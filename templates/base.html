@@ -37,13 +37,13 @@
 <!-- Nav -->
 <nav class="ps-nav">
   <div class="ps-nav-inner">
-    <a href="{{ url_for('landing') }}" class="ps-logo">
+    <a href="{{ url_for('index') }}" class="ps-logo">
       <img src="{{ url_for('static', filename='assets/img/vgu.png') }}" alt="VGU Logo" style="height:32px;width:auto;border-radius:6px">
       <span>posture<span class="dot">.</span>sense</span>
     </a>
 
     <div class="ps-navmenu" id="psNavMenu">
-      <a href="{{ url_for('landing') }}" {% if active_page == 'home' %}class="active"{% endif %}>home</a>
+      <a href="{{ url_for('index') }}" {% if active_page == 'home' %}class="active"{% endif %}>home</a>
       <a href="{{ url_for('pose_detection') }}" {% if active_page == 'demo' %}class="active"{% endif %}>live demo</a>
       <a href="{{ url_for('yoga_poses') }}" {% if active_page == 'poses' %}class="active"{% endif %}>poses</a>
       {% if current_user.is_authenticated %}
@@ -77,7 +77,7 @@
   <div class="wrap">
     <div class="ps-footer-grid">
       <div>
-        <a href="{{ url_for('landing') }}" class="ps-logo">
+        <a href="{{ url_for('index') }}" class="ps-logo">
           <img src="{{ url_for('static', filename='assets/img/vgu.png') }}" alt="VGU Logo" style="height:32px;width:auto;border-radius:6px">
           <span>posture<span class="dot">.</span>sense</span>
         </a>
@@ -92,7 +92,7 @@
       <div>
         <h4>Product</h4>
         <ul>
-          <li><a href="{{ url_for('landing') }}#features">Features</a></li>
+          <li><a href="{{ url_for('index') }}#features">Features</a></li>
           <li><a href="{{ url_for('pose_detection') }}">Live demo</a></li>
           <li><a href="{{ url_for('yoga_poses') }}">Pose library</a></li>
           <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>

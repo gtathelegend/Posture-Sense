@@ -18,7 +18,7 @@ def index():
 
 @main_bp.route('/landing')
 def landing():
-    return render_template('landing.html')
+    return redirect('/', code=302)
 
 
 @main_bp.route('/favicon.ico')

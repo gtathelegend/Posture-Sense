@@ -2,7 +2,7 @@
 const { useState, useEffect, useRef } = React;
 
 const NAV_LINKS = [
-  { id: 'home',      label: 'home',      href: '/landing' },
+  { id: 'home',      label: 'home',      href: '/' },
   { id: 'demo',      label: 'live demo', href: '/pose_detection' },
   { id: 'poses',     label: 'poses',     href: '/yoga-poses' },
   { id: 'dashboard', label: 'dashboard', href: '/dashboard' },
@@ -29,7 +29,7 @@ function useAuth() {
 
 function Logo() {
   return (
-    <a href="/landing" className="ps-logo">
+    <a href="/" className="ps-logo">
       <div className="ps-logo-mark"></div>
       <span>posture<span className="dot">.</span>sense</span>
     </a>
@@ -54,7 +54,7 @@ function TopNav({ active }) {
                 <span className="pulse-dot" style={{ width: 6, height: 6 }}></span>
                 {user.username}
               </span>
-              <button className="btn btn-sm btn-ghost" onClick={() => { logout(); location.href = '/landing'; }}>logout</button>
+              <button className="btn btn-sm btn-ghost" onClick={() => { logout(); location.href = '/'; }}>logout</button>
             </>
           ) : (
             <>
@@ -85,7 +85,7 @@ function Footer() {
           <div>
             <h4>Product</h4>
             <ul>
-              <li><a href="/landing#features">Features</a></li>
+              <li><a href="/#features">Features</a></li>
               <li><a href="/pose_detection">Live demo</a></li>
               <li><a href="/yoga-poses">Pose library</a></li>
               <li><a href="/dashboard">Dashboard</a></li>
@@ -94,7 +94,7 @@ function Footer() {
           <div>
             <h4>Company</h4>
             <ul>
-              <li><a href="/landing#about">About</a></li>
+              <li><a href="/#about">About</a></li>
               <li><a href="#">Research</a></li>
               <li><a href="#">Changelog</a></li>
               <li><a href="/contact">Contact</a></li>

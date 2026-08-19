@@ -43,7 +43,7 @@ Supabase PostgreSQL DB <── Flask REST APIs <── 8D Scoring & Feedback Eng
 2. **Sub-50ms Perception Latency**: Achieved an average $12.5\text{ms}$ WASM inference latency and $<38\text{ms}$ total end-to-end pipeline processing latency at 30–60 FPS.
 3. **WebWorker Off-Main-Thread Execution**: Offloaded MediaPipe WASM execution into a dedicated Web Worker with backpressure frame-dropping (`isInferenceBusy` gate), keeping main-thread scripting overhead $<3.5\%$.
 4. **EMA Keypoint Filtering & NaN Recovery**: Implemented Exponential Moving Average (EMA) keypoint smoothing to eliminate high-frequency keypoint jitter and gracefully recover from tracking occlusion.
-5. **Configuration-Driven Rules**: Replaced hardcoded classification thresholds with version-controlled YAML configuration files for 12 posture rules, 10 exercises, and scoring weight vectors.
+5. **Configuration-Driven Rules**: Replaced hardcoded classification thresholds with version-controlled YAML configuration files for 4 posture and yoga rules (Warrior II, T Pose, Tree Pose, Cobra Pose), exercises, and scoring weight vectors.
 6. **11-State Exercise FSM & ROM Gate**: Developed an 11-state Finite State Machine (`MovementEngine`) enforcing sequential exercise phase progression, rep debouncing, range-of-motion gates, and tempo ratio analysis.
 7. **8-Dimension Explainable Scoring**: Created a deterministic scoring model evaluating Joint Alignment, Range of Motion, Symmetry, Center of Mass Stability, Smoothness, Tempo, Hold Consistency, and Fatigue Resistance.
 8. **Authenticated PDF & Data Export**: Designed an IDOR-protected PDF report generator (`ReportEngine`) streaming authenticated performance summaries with zero public static file writing.
@@ -67,7 +67,7 @@ Supabase PostgreSQL DB <── Flask REST APIs <── 8D Scoring & Feedback Eng
 
 ## 4. Key Performance Indicators (KPIs) & Results
 
-- **Automated Test Coverage**: 111 unit, integration, and security tests passing ($100\%$ pass rate).
+- **Automated Test Coverage**: 154 unit, integration, and security tests passing ($100\%$ pass rate).
 - **Inference Speed**: 30–60 FPS sustained camera perception loop.
 - **Inference Latency**: $12.5\text{ms} - 18.2\text{ms}$ (MediaPipe WASM).
 - **Browser Memory Footprint**: $<150\text{MB}$ memory consumption.

@@ -19,4 +19,4 @@
 - [x] **Report Export Security**: PDF, JSON, and CSV exports streamed directly as authenticated downloads; zero writing to public static directories.
 - [x] **Health & Version Endpoints**: Public `/health`, `/api/health`, `/version`, `/api/version` endpoints operational.
 - [x] **Production Smoke Test Script**: `scripts/production_smoke_test.py` validates endpoint status, MIME types, content lengths, and response times.
-- [x] **Automated Test Suite**: 145 unit, integration, and security tests passing cleanly (`python -m pytest`).
+- [x] **Automated Test Suite**: 154 unit, integration, and security tests passing cleanly (`python -m pytest`).

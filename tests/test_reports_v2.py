@@ -204,3 +204,104 @@ def test_report_service_user_isolation(mock_rich_sessions):
         rep_b = ReportService.generate_session_report("user_B", "203")
         assert rep_b['metadata']['user_id'] == "user_B"
         assert rep_b['performance']['overall_score'] == 0.0
+
+
+# ---------------------------------------------------------------------------
+# 5. Route Integration & HTML Template Rendering Tests
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def app_client():
+    from backend.app import create_app
+    from backend.app.config import Config
+    app = create_app(Config)
+    app.config['TESTING'] = True
+    app.config['WTF_CSRF_ENABLED'] = False
+    return app.test_client()
+
+
+def test_comprehensive_report_route_renders_200(app_client, mock_rich_sessions):
+    from backend.app.models.user import User
+    from backend.app.services.auth_service import AuthService
+
+    dummy_user = User('00000000-0000-0000-0000-000000000001', 'testuser', 'test@example.com', 'hash')
+
+    with patch.object(AuthService, 'get_user_by_id', return_value=dummy_user):
+        with app_client.session_transaction() as sess:
+            sess['_user_id'] = '00000000-0000-0000-0000-000000000001'
+
+        with patch.object(SessionRepository, 'fetch_sessions_by_user_id', return_value=mock_rich_sessions):
+            res = app_client.get('/reports/view/comprehensive')
+            assert res.status_code == 200
+            html = res.get_data(as_text=True)
+            assert 'PostureSense AI Report' in html
+            assert 'comprehensive' in html
+            assert 'Tracking Quality' in html
+
+
+def test_comprehensive_report_route_legacy_session_no_crash(app_client, mock_legacy_session):
+    from backend.app.models.user import User
+    from backend.app.services.auth_service import AuthService
+
+    dummy_user = User('00000000-0000-0000-0000-000000000001', 'testuser', 'test@example.com', 'hash')
+
+    with patch.object(AuthService, 'get_user_by_id', return_value=dummy_user):
+        with app_client.session_transaction() as sess:
+            sess['_user_id'] = '00000000-0000-0000-0000-000000000001'
+
+        with patch.object(SessionRepository, 'fetch_sessions_by_user_id', return_value=[mock_legacy_session]):
+            res = app_client.get('/reports/view/comprehensive')
+            assert res.status_code == 200
+            html = res.get_data(as_text=True)
+            assert 'Not available' in html or 'N/A' in html
+
+
+def test_progress_report_route_renders_200(app_client, mock_rich_sessions):
+    from backend.app.models.user import User
+    from backend.app.services.auth_service import AuthService
+
+    dummy_user = User('00000000-0000-0000-0000-000000000001', 'testuser', 'test@example.com', 'hash')
+
+    with patch.object(AuthService, 'get_user_by_id', return_value=dummy_user):
+        with app_client.session_transaction() as sess:
+            sess['_user_id'] = '00000000-0000-0000-0000-000000000001'
+
+        with patch.object(SessionRepository, 'fetch_sessions_by_user_id', return_value=mock_rich_sessions):
+            res = app_client.get('/reports/view/progress?timeframe=30d')
+            assert res.status_code == 200
+            html = res.get_data(as_text=True)
+            assert 'progress' in html
+
+
+def test_session_report_route_renders_200(app_client, mock_rich_sessions):
+    from backend.app.models.user import User
+    from backend.app.services.auth_service import AuthService
+
+    dummy_user = User('00000000-0000-0000-0000-000000000001', 'testuser', 'test@example.com', 'hash')
+
+    with patch.object(AuthService, 'get_user_by_id', return_value=dummy_user):
+        with app_client.session_transaction() as sess:
+            sess['_user_id'] = '00000000-0000-0000-0000-000000000001'
+
+        with patch.object(SessionRepository, 'fetch_sessions_by_user_id', return_value=mock_rich_sessions):
+            res = app_client.get('/reports/view/session/203')
+            assert res.status_code == 200
+            html = res.get_data(as_text=True)
+            assert 'session' in html
+
+
+def test_exercise_report_route_renders_200(app_client, mock_rich_sessions):
+    from backend.app.models.user import User
+    from backend.app.services.auth_service import AuthService
+
+    dummy_user = User('00000000-0000-0000-0000-000000000001', 'testuser', 'test@example.com', 'hash')
+
+    with patch.object(AuthService, 'get_user_by_id', return_value=dummy_user):
+        with app_client.session_transaction() as sess:
+            sess['_user_id'] = '00000000-0000-0000-0000-000000000001'
+
+        with patch.object(SessionRepository, 'fetch_sessions_by_user_id', return_value=mock_rich_sessions):
+            res = app_client.get('/reports/view/exercise/tree_pose')
+            assert res.status_code == 200
+            html = res.get_data(as_text=True)
+            assert 'exercise' in html

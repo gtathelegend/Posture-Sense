@@ -30,10 +30,11 @@
 | **TD-22** | Hardcoded text strings & coaching feedback | Implemented `FeedbackEngine` with rule-based evaluation, empirical evidence models, severity ranking, deduplication, and cooldown timers. |
 | **TD-23** | Lack of longitudinal trend analytics & PR tracking | Implemented `AnalyticsEngine` with deterministic statistical trend classification, exercise performance history, personal records, calendar streaks, and REST APIs. |
 | **TD-32** | Dashboard V2 & User Progress Intelligence | Implemented Dashboard V2 overview stats, period deltas, streak calculation, biomechanics null-safety, pose performance breakdown, 7 personal record types, deterministic insights, session comparison matrix, and 136 pytest tests passing. |
-| **TD-33** | Reports V2 & Rich Analytics Export Subsystem | Implemented Reports V2 consuming persisted session analytics pipeline for Session, Progress, Exercise, and Comprehensive reports, v2.0.0 JSON, RFC-4180 CSV, styled PDF HTML exports, legacy session NULL preservation, user isolation, and 145 pytest tests passing. |
-| **TD-25** | Unvalidated end-to-end browser pipeline latency | Validated complete 11-engine pipeline, added worker backpressure (`isInferenceBusy` gate), verified $< 50$ms inference latency, tracking loss recovery, 107+ unit tests passed. |
-| **TD-26** | Lack of production security hardening | Added production secret validation guard, CORS restriction, secure cookies, security headers, zero raw video/landmark persistence, and 111 unit & security tests passed. |
+| **TD-33** | Reports V2 & Rich Analytics Export Subsystem | Implemented Reports V2 consuming persisted session analytics pipeline for Session, Progress, Exercise, and Comprehensive reports, v2.0.0 JSON, RFC-4180 CSV, styled PDF HTML exports, legacy session NULL preservation, user isolation, and 149 pytest tests passing. |
+| **TD-25** | Unvalidated end-to-end browser pipeline latency | Validated complete 11-engine pipeline, added worker backpressure (`isInferenceBusy` gate), verified $< 50$ms inference latency, tracking loss recovery, 149 unit tests passed. |
+| **TD-26** | Lack of production security hardening | Added production secret validation guard, CORS restriction, secure cookies, security headers, zero raw video/landmark persistence, and 149 unit & security tests passed. |
 | **TD-31** | Legacy `/video_feed` server-side streaming on Live Demo | Integrated browser-native `CameraEngine` (`getUserMedia`) and `PosePipelineController` into `templates/app.html`, eliminating server-side OpenCV dependencies. |
+| **TD-28** | Local MediaPipe WASM & Model Delivery | Bundled `@mediapipe/tasks-vision` WASM binaries (`vision_wasm_internal.wasm`), model file (`pose_landmarker_lite.task`), and vision bundle locally in `/static/vendor/mediapipe/v0.10.0/` for 100% offline self-reliance without external CDN dependencies. |
 
 
 ---
@@ -43,7 +44,6 @@
 | Item ID | Description | Justification & Impact |
 |---|---|---|
 | **TD-27** | Single-user local perception scoping per camera | **Accepted Design Choice**: PostureSense v2 is optimized for individual ergonomic desk monitoring, home workout evaluation, and physical therapy sessions. Single-person tracking maximizes inference framerate (60 FPS) and browser WASM responsiveness without multi-person tracking overhead. |
-| **TD-28** | Dynamic WASM Asset Loading via CDN Fallback | **Accepted Design Choice**: Serving `@mediapipe/tasks-vision` WASM binaries via CDN reduces initial repository clone size while guaranteeing browser caching across user sessions. |
 
 ---
 

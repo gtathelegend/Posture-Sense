@@ -87,3 +87,11 @@ def view_comprehensive_report():
     rep = ReportService.generate_comprehensive_report(current_user.id)
     return render_template('report_detail.html', report=rep, report_type='comprehensive')
 
+
+@dashboard_bp.route('/reports/view/exercise/<exercise_id>')
+@login_required
+def view_exercise_report(exercise_id):
+    from backend.app.services.report_service import ReportService
+    rep = ReportService.generate_exercise_report(current_user.id, exercise_id)
+    return render_template('report_detail.html', report=rep, report_type='exercise', exercise_id=exercise_id)
+

@@ -103,3 +103,15 @@ def status_alias():
     return pose_status_updates()
 
 
+@main_bp.route('/health')
+def health_alias():
+    from backend.app.blueprints.api.routes import health
+    return health()
+
+
+@main_bp.route('/version')
+def version_alias():
+    from backend.app.blueprints.api.routes import version
+    return version()
+
+

@@ -48,6 +48,7 @@
       <a href="{{ url_for('yoga_poses') }}" {% if active_page == 'poses' %}class="active"{% endif %}>poses</a>
       {% if current_user.is_authenticated %}
       <a href="{{ url_for('dashboard') }}" {% if active_page == 'dashboard' %}class="active"{% endif %}>dashboard</a>
+      <a href="{{ url_for('dashboard.view_progress_report') }}" {% if active_page == 'reports' %}class="active"{% endif %}>reports</a>
       {% endif %}
     </div>
 

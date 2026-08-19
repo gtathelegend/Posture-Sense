@@ -58,10 +58,11 @@
   }
   .timeframe-group {
     display: inline-flex;
-    background: var(--bg-surface-2, rgba(255,255,255,0.06));
-    border: 1px solid var(--border-color, rgba(255,255,255,0.1));
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(10, 11, 31, 0.08);
     border-radius: 10px;
     padding: 3px;
+    backdrop-filter: blur(12px);
   }
   .tf-btn {
     background: transparent;
@@ -69,15 +70,16 @@
     padding: 6px 16px;
     font-size: 13px;
     font-weight: 500;
-    color: var(--fg-3);
+    color: var(--fg-2, #4a4d6d);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
   }
   .tf-btn.active {
-    background: var(--primary-bg, #00d2ff);
-    color: #000;
+    background: var(--fg-0, #0a0b1f);
+    color: #ffffff;
     font-weight: 600;
+    box-shadow: 0 4px 12px rgba(10, 11, 31, 0.15);
   }
 
   /* Overview Cards Grid */
@@ -95,18 +97,20 @@
   }
 
   .ov-card {
-    background: var(--bg-card, rgba(18, 22, 32, 0.7));
-    border: 1px solid var(--border-color, rgba(255,255,255,0.08));
-    backdrop-filter: blur(12px);
+    background: var(--bg-card, rgba(255, 255, 255, 0.78));
+    border: 1px solid var(--border-color, rgba(10, 11, 31, 0.08));
+    backdrop-filter: blur(16px);
     border-radius: 16px;
     padding: 20px;
     position: relative;
     overflow: hidden;
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 8px 24px -6px rgba(10, 11, 31, 0.05);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   }
   .ov-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(0, 210, 255, 0.3);
+    border-color: rgba(2, 132, 199, 0.3);
+    box-shadow: 0 12px 28px -6px rgba(2, 132, 199, 0.12);
   }
   .ov-header {
     display: flex;
@@ -118,16 +122,16 @@
     font-size: 22px;
   }
   .ov-label {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--fg-3);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--fg-3, #7a7d9b);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
   }
   .ov-value {
     font-size: 30px;
     font-weight: 700;
-    color: var(--fg-1);
+    color: var(--fg-0, #0a0b1f);
     line-height: 1.1;
     font-family: 'Space Grotesk', sans-serif;
   }
@@ -141,9 +145,9 @@
     padding: 2px 8px;
     border-radius: 6px;
   }
-  .delta-pos { background: rgba(0, 230, 118, 0.12); color: #00e676; }
-  .delta-neg { background: rgba(255, 82, 82, 0.12); color: #ff5252; }
-  .delta-neu { background: rgba(255, 255, 255, 0.08); color: var(--fg-3); }
+  .delta-pos { background: rgba(16, 185, 129, 0.12); color: #047857; }
+  .delta-neg { background: rgba(239, 68, 68, 0.12); color: #b91c1c; }
+  .delta-neu { background: rgba(10, 11, 31, 0.05); color: var(--fg-2, #4a4d6d); }
 
   /* 2-Column Grid Layouts */
   .grid-2col {
@@ -157,11 +161,12 @@
   }
 
   .v2-panel {
-    background: var(--bg-card, rgba(18, 22, 32, 0.7));
-    border: 1px solid var(--border-color, rgba(255,255,255,0.08));
-    backdrop-filter: blur(12px);
+    background: var(--bg-card, rgba(255, 255, 255, 0.78));
+    border: 1px solid var(--border-color, rgba(10, 11, 31, 0.08));
+    backdrop-filter: blur(16px);
     border-radius: 16px;
     padding: 22px;
+    box-shadow: 0 8px 24px -6px rgba(10, 11, 31, 0.05);
   }
   .v2-panel-header {
     display: flex;
@@ -171,8 +176,9 @@
   }
   .v2-panel-title {
     font-size: 17px;
-    font-weight: 600;
-    color: var(--fg-1);
+    font-weight: 700;
+    color: var(--fg-0, #0a0b1f);
+    font-family: 'Space Grotesk', sans-serif;
     margin: 0;
     display: flex;
     align-items: center;
@@ -190,26 +196,26 @@
     font-size: 13px;
     margin-bottom: 6px;
   }
-  .bio-bar-name { font-weight: 500; color: var(--fg-2); }
-  .bio-bar-val { font-weight: 700; color: var(--fg-1); font-family: 'JetBrains Mono', monospace; }
+  .bio-bar-name { font-weight: 600; color: var(--fg-0, #0a0b1f); }
+  .bio-bar-val { font-weight: 700; color: var(--fg-0, #0a0b1f); font-family: 'JetBrains Mono', monospace; }
   .bio-track {
     height: 8px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(10, 11, 31, 0.06);
     overflow: hidden;
     position: relative;
   }
   .bio-fill {
     height: 100%;
-    border-radius: 4px;
-    background: linear-gradient(90deg, #00d2ff, #00e676);
+    border-radius: 999px;
+    background: linear-gradient(90deg, #0284c7, #10b981);
     transition: width 0.6s ease;
   }
 
   /* Data Quality Badge */
   .tq-card {
-    background: rgba(0, 210, 255, 0.05);
-    border: 1px solid rgba(0, 210, 255, 0.15);
+    background: rgba(2, 132, 199, 0.05);
+    border: 1px solid rgba(2, 132, 199, 0.18);
     border-radius: 12px;
     padding: 14px 16px;
     margin-top: 16px;
@@ -225,10 +231,10 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
-  .tq-excellent { background: rgba(0, 230, 118, 0.2); color: #00e676; }
-  .tq-good { background: rgba(0, 210, 255, 0.2); color: #00d2ff; }
-  .tq-fair { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
-  .tq-low { background: rgba(255, 82, 82, 0.2); color: #ff5252; }
+  .tq-excellent { background: rgba(16, 185, 129, 0.16); color: #047857; }
+  .tq-good { background: rgba(2, 132, 199, 0.16); color: #0284c7; }
+  .tq-fair { background: rgba(245, 158, 11, 0.16); color: #b45309; }
+  .tq-low { background: rgba(239, 68, 68, 0.16); color: #b91c1c; }
 
   /* Personal Records Cards */
   .records-grid {
@@ -240,14 +246,14 @@
     .records-grid { grid-template-columns: repeat(2, 1fr); }
   }
   .rec-item {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(10, 11, 31, 0.06);
     border-radius: 12px;
     padding: 12px;
   }
-  .rec-type { font-size: 11px; color: var(--fg-3); text-transform: uppercase; margin-bottom: 4px; }
-  .rec-val { font-size: 18px; font-weight: 700; color: var(--fg-1); font-family: 'Space Grotesk', sans-serif; }
-  .rec-pose { font-size: 12px; color: #00d2ff; margin-top: 2px; }
+  .rec-type { font-size: 11px; color: var(--fg-3, #7a7d9b); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+  .rec-val { font-size: 18px; font-weight: 700; color: var(--fg-0, #0a0b1f); font-family: 'Space Grotesk', sans-serif; }
+  .rec-pose { font-size: 12px; color: var(--ps-accent, #0284c7); font-weight: 500; margin-top: 2px; }
 
   /* Insights Feed */
   .insight-item {
@@ -256,13 +262,13 @@
     gap: 12px;
     padding: 12px;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(10, 11, 31, 0.06);
     margin-bottom: 10px;
   }
   .insight-icon { font-size: 18px; flex-shrink: 0; }
-  .insight-title { font-size: 13px; font-weight: 600; color: var(--fg-1); margin-bottom: 2px; }
-  .insight-msg { font-size: 12px; color: var(--fg-3); line-height: 1.4; }
+  .insight-title { font-size: 13px; font-weight: 600; color: var(--fg-0, #0a0b1f); margin-bottom: 2px; }
+  .insight-msg { font-size: 12px; color: var(--fg-2, #4a4d6d); line-height: 1.4; }
 
   /* Pose Cards Grid */
   .pose-grid {
@@ -278,15 +284,17 @@
     .pose-grid { grid-template-columns: 1fr; }
   }
   .pose-card {
-    background: var(--bg-card, rgba(18, 22, 32, 0.7));
-    border: 1px solid var(--border-color, rgba(255,255,255,0.08));
+    background: var(--bg-card, rgba(255, 255, 255, 0.78));
+    border: 1px solid var(--border-color, rgba(10, 11, 31, 0.08));
     border-radius: 14px;
     padding: 16px;
+    box-shadow: 0 8px 24px -6px rgba(10, 11, 31, 0.05);
   }
   .pose-card-title {
     font-size: 16px;
     font-weight: 700;
-    color: var(--fg-1);
+    color: var(--fg-0, #0a0b1f);
+    font-family: 'Space Grotesk', sans-serif;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
@@ -297,7 +305,8 @@
     justify-content: space-between;
     font-size: 12px;
     padding: 4px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--fg-2, #4a4d6d);
+    border-bottom: 1px solid rgba(10, 11, 31, 0.04);
   }
 
   /* Compare Card Callouts */
@@ -310,10 +319,10 @@
   .sw-box {
     padding: 14px;
     border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(10, 11, 31, 0.08);
   }
-  .sw-strong { background: rgba(0, 230, 118, 0.05); border-color: rgba(0, 230, 118, 0.2); }
-  .sw-weak { background: rgba(255, 193, 7, 0.05); border-color: rgba(255, 193, 7, 0.2); }
+  .sw-strong { background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.2); }
+  .sw-weak { background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.2); }
 
   /* Expandable Table */
   .exp-table {
@@ -323,25 +332,27 @@
   .exp-table th {
     text-align: left;
     padding: 10px 14px;
-    font-size: 12px;
-    color: var(--fg-3);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--fg-3, #7a7d9b);
     text-transform: uppercase;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(10, 11, 31, 0.08);
   }
   .exp-table td {
     padding: 12px 14px;
     font-size: 13px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: var(--fg-1, #1b1d35);
+    border-bottom: 1px solid rgba(10, 11, 31, 0.05);
   }
   .exp-row-toggle {
     cursor: pointer;
   }
   .exp-row-toggle:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(10, 11, 31, 0.02);
   }
   .exp-detail-row {
     display: none;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(245, 247, 255, 0.7);
   }
   .exp-detail-row.open {
     display: table-row;
@@ -860,8 +871,8 @@
       if (window.Chart) {
         var ctx = canvas.getContext('2d');
         var gradient = ctx.createLinearGradient(0, 0, 0, 200);
-        gradient.addColorStop(0, 'rgba(0, 210, 255, 0.35)');
-        gradient.addColorStop(1, 'rgba(0, 210, 255, 0.0)');
+        gradient.addColorStop(0, 'rgba(2, 132, 199, 0.22)');
+        gradient.addColorStop(1, 'rgba(2, 132, 199, 0.0)');
 
         scoreChartInstance = new Chart(ctx, {
           type: 'line',
@@ -870,12 +881,12 @@
             datasets: [{
               label: 'Posture Score',
               data: scores,
-              borderColor: '#00d2ff',
+              borderColor: '#0284c7',
               borderWidth: 3,
               backgroundColor: gradient,
               fill: true,
               tension: 0.3,
-              pointBackgroundColor: '#00e676',
+              pointBackgroundColor: '#10b981',
               pointRadius: 4
             }]
           },
@@ -894,8 +905,8 @@
               }
             },
             scales: {
-              x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.6)', font: { size: 11 } } },
-              y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.6)', font: { size: 11 } } }
+              x: { grid: { color: 'rgba(10, 11, 31, 0.06)' }, ticks: { color: '#4a4d6d', font: { size: 11 } } },
+              y: { min: 0, max: 100, grid: { color: 'rgba(10, 11, 31, 0.06)' }, ticks: { color: '#4a4d6d', font: { size: 11 } } }
             }
           }
         });

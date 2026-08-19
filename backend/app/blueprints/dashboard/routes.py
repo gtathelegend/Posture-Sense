@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, jsonify, request
+import time
+from flask import Blueprint, render_template, jsonify, request, current_app
 from flask_login import login_required, current_user
 from backend.app.services.dashboard_service import DashboardService
 
@@ -9,6 +10,8 @@ dashboard_bp = Blueprint('dashboard', __name__)
 @login_required
 def dashboard():
     timeframe = request.args.get('timeframe', '30d')
+    if timeframe not in ['7d', '30d', 'all']:
+        timeframe = '30d'
     data = DashboardService.get_user_dashboard_overview(current_user.id, timeframe=timeframe)
     return render_template(
         'dashboard.html',
@@ -25,6 +28,8 @@ def dashboard():
 @login_required
 def dashboard_stats():
     timeframe = request.args.get('timeframe', '30d')
+    if timeframe not in ['7d', '30d', 'all']:
+        return jsonify({'status': 'error', 'message': f'Invalid timeframe parameter. Allowed: 7d, 30d, all'}), 400
     data = DashboardService.get_user_dashboard_overview(current_user.id, timeframe=timeframe)
     return jsonify({
         'total_sessions': data['total_sessions'],
@@ -43,7 +48,18 @@ def dashboard_stats():
 @login_required
 def dashboard_overview():
     timeframe = request.args.get('timeframe', '30d')
-    data = DashboardService.get_user_dashboard_overview(current_user.id, timeframe=timeframe)
+    if timeframe not in ['7d', '30d', 'all']:
+        return jsonify({'status': 'error', 'message': f'Invalid timeframe parameter: {timeframe}. Allowed values: 7d, 30d, all'}), 400
+
+    start_time = time.time()
+    user_id = str(current_user.id)
+    current_app.logger.info(f"dashboard_overview request: user_id={user_id}, timeframe={timeframe}")
+
+    data = DashboardService.get_user_dashboard_overview(user_id, timeframe=timeframe)
+
+    elapsed_ms = (time.time() - start_time) * 1000
+    current_app.logger.info(f"dashboard_overview completion: user_id={user_id}, total_sessions={data.get('total_sessions', 0)}, elapsed_ms={elapsed_ms:.1f}")
+
     return jsonify(data)
 
 

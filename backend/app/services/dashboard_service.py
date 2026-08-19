@@ -154,7 +154,7 @@ class DashboardService:
 
         return {
             'timeframe': timeframe,
-            'sessions': all_sessions,
+            'sessions': [s.to_dict() if hasattr(s, 'to_dict') else s for s in all_sessions],
             'total_sessions': total_sessions,
             'total_sessions_all': total_sessions_all,
             'total_duration': round(total_duration, 1),

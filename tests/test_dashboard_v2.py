@@ -170,3 +170,97 @@ def test_user_isolation_query():
         mock_fetch.assert_called_once_with("user_isolated_123")
         assert data['total_sessions'] == 0
 
+
+# ---------------------------------------------------------------------------
+# 7. HTTP Endpoint Integration Tests (/api/dashboard/overview)
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def app_client():
+    from backend.app import create_app
+    app = create_app()
+    app.config['TESTING'] = True
+    return app.test_client()
+
+
+def test_api_dashboard_overview_unauthenticated(app_client):
+    res = app_client.get('/api/dashboard/overview?timeframe=30d')
+    assert res.status_code == 302
+    assert '/login' in res.headers['Location']
+
+
+def test_api_dashboard_overview_authenticated_valid_timeframes(app_client, mock_user_sessions):
+    from backend.app.models.user import User
+    from backend.app.services.auth_service import AuthService
+
+    dummy_user = User('00000000-0000-0000-0000-000000000001', 'testuser', 'test@example.com', 'hash')
+
+    with patch.object(AuthService, 'get_user_by_id', return_value=dummy_user):
+        with app_client.session_transaction() as sess:
+            sess['_user_id'] = '00000000-0000-0000-0000-000000000001'
+
+        with patch.object(SessionRepository, 'fetch_sessions_by_user_id', return_value=mock_user_sessions):
+            # Test 30d
+            r30 = app_client.get('/api/dashboard/overview?timeframe=30d')
+            assert r30.status_code == 200
+            assert r30.content_type == 'application/json'
+            d30 = r30.get_json()
+            assert d30['timeframe'] == '30d'
+            assert d30['total_sessions'] == 3
+            assert isinstance(d30['sessions'], list)
+
+            # Test 7d
+            r7 = app_client.get('/api/dashboard/overview?timeframe=7d')
+            assert r7.status_code == 200
+            d7 = r7.get_json()
+            assert d7['timeframe'] == '7d'
+
+            # Test all
+            r_all = app_client.get('/api/dashboard/overview?timeframe=all')
+            assert r_all.status_code == 200
+            d_all = r_all.get_json()
+            assert d_all['timeframe'] == 'all'
+
+
+def test_api_dashboard_overview_invalid_timeframe_returns_400(app_client):
+    from backend.app.models.user import User
+    from backend.app.services.auth_service import AuthService
+
+    dummy_user = User('00000000-0000-0000-0000-000000000001', 'testuser', 'test@example.com', 'hash')
+
+    with patch.object(AuthService, 'get_user_by_id', return_value=dummy_user):
+        with app_client.session_transaction() as sess:
+            sess['_user_id'] = '00000000-0000-0000-0000-000000000001'
+
+        res = app_client.get('/api/dashboard/overview?timeframe=invalid_tf')
+        assert res.status_code == 400
+        data = res.get_json()
+        assert data['status'] == 'error'
+        assert 'Invalid timeframe' in data['message']
+
+
+def test_api_dashboard_overview_legacy_null_handling(app_client):
+    from backend.app.models.user import User
+    from backend.app.services.auth_service import AuthService
+
+    dummy_user = User('00000000-0000-0000-0000-000000000001', 'testuser', 'test@example.com', 'hash')
+    legacy_rec = {
+        'id': 99, 'user_id': '00000000-0000-0000-0000-000000000001', 'pose_label': 'Plank',
+        'timestamp': '2026-01-01T00:00:00Z', 'duration': 30.0, 'accuracy': 70.0
+    }
+    legacy_session = build_pose_session(legacy_rec)
+
+    with patch.object(AuthService, 'get_user_by_id', return_value=dummy_user):
+        with app_client.session_transaction() as sess:
+            sess['_user_id'] = '00000000-0000-0000-0000-000000000001'
+
+        with patch.object(SessionRepository, 'fetch_sessions_by_user_id', return_value=[legacy_session]):
+            res = app_client.get('/api/dashboard/overview?timeframe=30d')
+            assert res.status_code == 200
+            data = res.get_json()
+            assert data['biomechanics']['symmetry'] is None
+            assert data['biomechanics']['balance'] is None
+            assert data['biomechanics']['stability'] is None
+            assert data['biomechanics']['rom'] is None
+            assert data['recent_sessions'][0]['is_legacy'] is True
+

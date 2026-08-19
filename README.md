@@ -1,7 +1,7 @@
 # PostureSense v2 — AI-Powered Real-Time Posture & Movement Analysis Platform
 
 [![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https.python.org)
-[![Tests Passing](https://img.shields.io/badge/tests-149%20passing-brightgreen.svg)](docs/TESTING.md)
+[![Tests Passing](https://img.shields.io/badge/tests-154%20passing-brightgreen.svg)](docs/TESTING.md)
 [![License](https://img.shields.io/badge/license-MIT-purple.svg)](LICENSE)
 [![Architecture](https://img.shields.io/badge/architecture-11--Engine%20Event--Driven-orange.svg)](docs/ARCHITECTURE_OVERVIEW.md)
 [![Deployment](https://img.shields.io/badge/deployment-Render%20%7C%20Supabase-informational.svg)](docs/DEPLOYMENT.md)
@@ -44,7 +44,7 @@ Unlike conventional server-side computer vision systems that require streaming h
 - **Privacy-First Browser WASM Perception**: Runs MediaPipe 33-point 3D landmark extraction inside a Web Worker. Zero webcam frames leave the user's local device.
 - **33-Point 3D Landmark Tracking**: Keypoint smoothing with Exponential Moving Average (EMA) filtering, jitter suppression, and tracking loss recovery.
 - **Biomechanical Joint Vector Analysis**: Computes 3D joint angles (knee, hip, elbow, shoulder, neck, spine), Range of Motion (ROM), bilateral symmetry, and Center of Mass (CoM) stability.
-- **Configurable Pose Recognition**: Matches 4 posture and yoga poses (Warrior II, T Pose, Tree Pose, Cobra Pose) using threshold rules and stability hold timers.
+- **Configurable Pose Recognition**: Matches 4 configured posture and yoga poses (Warrior II, T Pose, Tree Pose, Cobra Pose) using rule threshold bounds in `yoga_poses.json` and stability hold timers.
 - **Exercise State Machine**: Tracks exercise reps, 11-state phase transitions (e.g., Squat `ECCENTRIC` → `BOTTOM_HOLD` → `CONCENTRIC`), tempo ratio, and depth ROM gates.
 - **8-Dimension Performance Scoring**: Evaluates Joint Alignment, ROM, Symmetry, Stability, Smoothness, Tempo, Hold Consistency, and Fatigue Drift with customizable weights (`scoring_weights.yaml`).
 - **Dynamic Evidence-Based Coaching**: Generates immediate, deduplicated feedback with cooldown timers and severity prioritization.
@@ -68,7 +68,7 @@ PostureSense v2 uses a modular, event-driven engine architecture where 11 indepe
                                                        ▼
 ┌──────────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │  MovementEngine  │ <── │ PoseRuleEngine   │ <── │BiomechanicsEngine│
-│ (11-State FSM)   │     │ (12 Pose Rules)  │     │ (3D Vector Geometry)
+│ (11-State FSM)   │     │ (4 Config Poses) │     │ (3D Vector Geometry)
 └──────────────────┘     └──────────────────┘     └─────────────────┘
          │
          ▼
@@ -112,7 +112,7 @@ Posture-Sense/
 │       ├── repositories/     # Supabase DB data access layer
 │       └── services/         # Analytics, report & auth business logic
 ├── shared/                   # Shared Core Perception & Engine Suite
-│   ├── config/               # YAML rule definitions (poses, exercises, weights)
+│   ├── config/               # YAML/JSON definitions (poses, exercises, weights)
 │   ├── contracts/            # Engine interfaces & data schemas
 │   ├── core/                 # Base engine & runtime lifecycle state machine
 │   ├── engines/              # Python engine implementations
@@ -123,7 +123,7 @@ Posture-Sense/
 │       ├── js/engine/        # Browser JS engine implementation suite
 │       └── img/              # Branding & gallery image assets
 ├── templates/                # Jinja2 HTML Templates
-├── tests/                    # Automated Test Suite (149 passing tests)
+├── tests/                    # Automated Test Suite (154 passing tests)
 ├── docs/                     # Architectural, Security & Demo Documentation
 ├── .github/workflows/        # CI/CD GitHub Actions
 ├── app.py                    # Root WSGI Application Entrypoint
@@ -142,7 +142,7 @@ For complete file classifications, see [docs/FOLDER_AUDIT.md](docs/FOLDER_AUDIT.
 
 - **Python**: 3.12.x
 - **Git**
-- **Modern Web Browser**: Chrome, Edge, Safari, or Firefox with WebAssembly & WebGPU/WebGL support.
+- **Modern Web Browser**: Chrome, Edge, Safari, or Firefox with WebAssembly support.
 
 ### Local Installation Steps
 
@@ -236,7 +236,7 @@ python -m pytest
 
 Output:
 ```
-======================= 149 passed in 5.13s =======================
+======================= 154 passed in 7.17s =======================
 ```
 
 For testing commands, coverage reporting, and browser validation steps, see [docs/TESTING.md](docs/TESTING.md).

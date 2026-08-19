@@ -692,7 +692,7 @@
 
           <div id="messageResponse" style="margin-top:16px"></div>
 
-          <button type="submit" class="btn btn-primary" style="margin-top:24px;width:100%;justify-content:center">
+          <button type="submit" id="contact-submit-btn" class="btn btn-primary" style="margin-top:24px;width:100%;justify-content:center">
             Send Message
           </button>
         </form>
@@ -707,27 +707,52 @@
 
 {% block extra_scripts %}
 <script>
-  document.getElementById("contactForm").addEventListener("submit", function(event) {
+  document.getElementById("contactForm").addEventListener("submit", async function(event) {
     event.preventDefault();
     var form = this;
+    var submitBtn = document.getElementById("contact-submit-btn") || form.querySelector("button[type='submit']");
     var messageResponse = document.getElementById("messageResponse");
+
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Sending Message...";
     messageResponse.innerHTML = "<div class='ps-alert ps-alert-info'>Sending message&hellip;</div>";
-    var formData = new FormData(form);
-    fetch("/contact", { method: "POST", body: formData })
-      .then(function(response) {
-        if (response.ok) {
-          messageResponse.innerHTML = "<div class='ps-alert ps-alert-success'>Message sent successfully!</div>";
-          form.reset();
-          setTimeout(function() { messageResponse.innerHTML = ""; }, 5000);
-        } else {
-          throw new Error('Network response was not ok');
-        }
-      })
-      .catch(function(error) {
-        messageResponse.innerHTML = "<div class='ps-alert ps-alert-danger'>Failed to send message. Please try again.</div>";
-        console.error('Error:', error);
-        setTimeout(function() { messageResponse.innerHTML = ""; }, 5000);
+
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() { controller.abort(); }, 20000);
+
+    try {
+      var formData = new FormData(form);
+      var response = await fetch("/contact", {
+        method: "POST",
+        body: formData,
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
+      var data = {};
+      try {
+        data = await response.json();
+      } catch (e) {}
+
+      if (response.ok && (data.success || data.status === "success")) {
+        messageResponse.innerHTML = "<div class='ps-alert ps-alert-success'>" + (data.message || "Message sent successfully. We'll get back to you soon.") + "</div>";
+        form.reset();
+      } else {
+        var errorMsg = data.error || data.message || "We couldn't send your message. Please try again.";
+        messageResponse.innerHTML = "<div class='ps-alert ps-alert-danger'>" + errorMsg + "</div>";
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === "AbortError") {
+        messageResponse.innerHTML = "<div class='ps-alert ps-alert-warning'>The request timed out. Please try again.</div>";
+      } else {
+        messageResponse.innerHTML = "<div class='ps-alert ps-alert-danger'>Unable to send your message. Please try again.</div>";
+      }
+      console.error('Contact Form Submission Error:', error);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerText = "Send Message";
+    }
   });
 </script>
 {% endblock %}

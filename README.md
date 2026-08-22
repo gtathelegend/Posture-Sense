@@ -1,4 +1,4 @@
-# PostureSense v2 — AI-Powered Real-Time Posture & Movement Analysis Platform
+# PostureSense — AI-Powered Real-Time Posture & Movement Analysis Platform
 
 [![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https.python.org)
 [![Tests Passing](https://img.shields.io/badge/tests-166%20passing-brightgreen.svg)](docs/TESTING.md)
@@ -6,27 +6,15 @@
 [![Architecture](https://img.shields.io/badge/architecture-11--Engine%20Event--Driven-orange.svg)](docs/ARCHITECTURE_OVERVIEW.md)
 [![Deployment](https://img.shields.io/badge/deployment-Render%20%7C%20Supabase-informational.svg)](docs/DEPLOYMENT.md)
 
-> **PostureSense v2** is a privacy-first, browser-native AI perception and biomechanical movement analysis platform. It combines WebAssembly (WASM) MediaPipe pose estimation with an 11-engine event-driven pipeline to provide sub-50ms real-time posture classification, exercise rep/phase tracking, 8-dimensional scoring, evidence-based coaching feedback, longitudinal analytics, and authenticated PDF report generation.
-
----
-
-## Visual Overview & Screenshots
-
-| Landing & Mode Selection | Real-Time 33-Landmark Camera Overlay |
-|:-----------------------:|:------------------------------------:|
-| ![Landing Page](docs/screenshots/landing_page.svg) | ![Landmark Overlay](docs/screenshots/landmark_overlay.svg) |
-
-| 8-Dimension Scoring Dashboard | Longitudinal Analytics & Heatmaps |
-|:-----------------------------:|:----------------------------------:|
-| ![Scoring Dashboard](docs/screenshots/scoring_dashboard.svg) | ![Analytics Dashboard](docs/screenshots/analytics_dashboard.svg) |
+> **PostureSense** is a privacy-first, browser-native AI perception and biomechanical movement analysis platform. It combines WebAssembly (WASM) MediaPipe pose estimation with an 11-engine event-driven pipeline to provide sub-50ms real-time posture classification, exercise rep/phase tracking, 8-dimensional scoring, evidence-based coaching feedback, longitudinal analytics, and authenticated PDF report generation.
 
 ---
 
 ## Overview
 
-PostureSense v2 addresses modern musculoskeletal health challenges, ergonomics, athletic training, and rehabilitation by delivering real-time, explainable computer vision insights directly in the browser. 
+PostureSense addresses modern musculoskeletal health challenges, ergonomics, athletic training, and rehabilitation by delivering real-time, explainable computer vision insights directly in the browser. 
 
-Unlike conventional server-side computer vision systems that require streaming high-bandwidth video to remote cloud servers, PostureSense v2 operates **entirely client-side for pose perception**. WebAssembly MediaPipe execution processes 33 3D keypoints on-device, extracting joint angles, range of motion (ROM), symmetry, and stability without sending a single video frame over the network.
+Unlike conventional server-side computer vision systems that require streaming high-bandwidth video to remote cloud servers, PostureSense operates **entirely client-side for pose perception**. WebAssembly MediaPipe execution processes 33 3D keypoints on-device, extracting joint angles, range of motion (ROM), symmetry, and stability without sending a single video frame over the network.
 
 ---
 
@@ -55,7 +43,7 @@ Unlike conventional server-side computer vision systems that require streaming h
 
 ## Architecture
 
-PostureSense v2 uses a modular, event-driven engine architecture where 11 independent engines communicate asynchronously via a shared **Event Bus**.
+PostureSense uses a modular, event-driven engine architecture where 11 independent engines communicate asynchronously via a shared **Event Bus**.
 
 ### High-Level Engine Pipeline
 
@@ -214,7 +202,7 @@ gunicorn --bind 0.0.0.0:8080 app:app
 
 ## Deployment
 
-PostureSense v2 is architected for cloud-native deployment:
+PostureSense is architected for cloud-native deployment:
 
 - **Render.com / Railway**: Deploys the Gunicorn Flask backend via [Dockerfile](Dockerfile) or [Procfile](Procfile).
 - **Supabase**: Managed PostgreSQL hosting database schema defined in [supabase_schema.sql](supabase_schema.sql).
@@ -226,7 +214,7 @@ For step-by-step instructions, see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Testing
 
-PostureSense v2 features a comprehensive test suite covering engine unit logic, event bus message contracts, REST endpoints, and security policies.
+PostureSense features a comprehensive test suite covering engine unit logic, event bus message contracts, REST endpoints, and security policies.
 
 ### Run Automated Test Suite
 
@@ -285,4 +273,4 @@ See [docs/PRIVACY.md](docs/PRIVACY.md) for the full privacy policy and audit det
 
 ## License
 
-PostureSense v2 is released under the open-source **MIT License**. See [LICENSE](LICENSE) for details.
+PostureSense is released under the open-source **MIT License**. See [LICENSE](LICENSE) for details.

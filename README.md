@@ -10,18 +10,6 @@
 
 ---
 
-## Visual Overview & Screenshots
-
-| Landing & Mode Selection | Real-Time 33-Landmark Camera Overlay |
-|:-----------------------:|:------------------------------------:|
-| ![Landing Page](docs/screenshots/landing_page.svg) | ![Landmark Overlay](docs/screenshots/landmark_overlay.svg) |
-
-| 8-Dimension Scoring Dashboard | Longitudinal Analytics & Heatmaps |
-|:-----------------------------:|:----------------------------------:|
-| ![Scoring Dashboard](docs/screenshots/scoring_dashboard.svg) | ![Analytics Dashboard](docs/screenshots/analytics_dashboard.svg) |
-
----
-
 ## Overview
 
 PostureSense v2 addresses modern musculoskeletal health challenges, ergonomics, athletic training, and rehabilitation by delivering real-time, explainable computer vision insights directly in the browser. 

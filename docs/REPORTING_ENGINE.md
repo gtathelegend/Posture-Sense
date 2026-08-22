@@ -44,8 +44,10 @@ The `ReportEngine` (`shared/engines/report_engine.py` & `static/assets/js/engine
 ## 4. Supported Export Formats
 
 - **JSON Export**: Serializes versioned report contracts with `schema_version: "2.0.0"`.
-- **CSV Export**: Formats session records into RFC-4180 spreadsheet CSV (`Date, Exercise, Score, ROM, Stability, Symmetry, Cadence, Repetitions, Duration, Tracking Quality`).
-- **PDF Export**: Renders clean, styled HTML/PDF output with PostureSense branding, executive summary, performance cards, feedback breakdown, personal records, and data quality notice.
+- **CSV Export**: Formats session records into RFC-4180 spreadsheet CSV (`Date, Pose, Exercise, Score, Score Category, Duration, Repetitions, Hold Time, Cadence, Symmetry, Balance, Stability, ROM, Tracking Quality, Failed Rules`).
+- **PDF Export**: Renders clean, styled HTML/PDF output with PostureSense branding, executive summary, performance cards, biomechanics table, feedback breakdown, personal records, and data quality & privacy notice.
+
+See [REPORTS_V2.md](file:///d:/Github/Posture-Sense/docs/REPORTS_V2.md) for full technical documentation.
 
 ---
 

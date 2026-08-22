@@ -2,6 +2,7 @@
 -- Run this in the Supabase SQL editor.
 -- Use your Supabase secret key on the Flask backend.
 
+
 create extension if not exists pgcrypto;
 
 create table if not exists public.users (
@@ -18,8 +19,34 @@ create table if not exists public.pose_sessions (
     pose_label text not null,
     timestamp timestamptz not null default timezone('utc', now()),
     duration double precision not null default 0,
-    accuracy double precision not null default 0
+    accuracy double precision not null default 0,
+    reps integer not null default 0,
+    symmetry_score double precision null,
+    balance_score double precision null,
+    stability_score double precision null,
+    rom_score double precision null,
+    hold_time double precision not null default 0.0,
+    tracking_quality double precision null,
+    failed_rules jsonb not null default '[]'::jsonb
 );
+
+-- Idempotent column additions and default drops for existing deployments
+ALTER TABLE public.pose_sessions
+    ADD COLUMN IF NOT EXISTS reps integer NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS symmetry_score double precision NULL,
+    ADD COLUMN IF NOT EXISTS balance_score double precision NULL,
+    ADD COLUMN IF NOT EXISTS stability_score double precision NULL,
+    ADD COLUMN IF NOT EXISTS rom_score double precision NULL,
+    ADD COLUMN IF NOT EXISTS hold_time double precision NOT NULL DEFAULT 0.0,
+    ADD COLUMN IF NOT EXISTS tracking_quality double precision NULL,
+    ADD COLUMN IF NOT EXISTS failed_rules jsonb NOT NULL DEFAULT '[]'::jsonb;
+
+ALTER TABLE public.pose_sessions
+    ALTER COLUMN symmetry_score DROP DEFAULT,
+    ALTER COLUMN balance_score DROP DEFAULT,
+    ALTER COLUMN stability_score DROP DEFAULT,
+    ALTER COLUMN rom_score DROP DEFAULT,
+    ALTER COLUMN tracking_quality DROP DEFAULT;
 
 create index if not exists idx_pose_sessions_user_id on public.pose_sessions (user_id);
 create index if not exists idx_pose_sessions_timestamp on public.pose_sessions (timestamp desc);

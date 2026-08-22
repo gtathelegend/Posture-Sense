@@ -78,16 +78,8 @@ def test_generate_session_report(report_engine):
         "invalid_reps": 2,
         "tracking_quality": 98.0
     }
-    score_report = {
-        "components": {"form": {"score": 90.0}, "rom": {"score": 85.0}},
-        "quality_gate_passed": True,
-        "score_confidence": 0.95
-    }
-    feedback_items = [
-        {"message": "Keep knees tracking over toes", "severity": "medium"}
-    ]
 
-    report = report_engine.generate_session_report(session_data, score_report, feedback_items)
+    report = report_engine.generate_session_report(session_data)
     assert isinstance(report, SessionReport)
     rep_dict = report.to_dict()
 
@@ -95,7 +87,7 @@ def test_generate_session_report(report_engine):
     assert rep_dict["session_info"]["session_id"] == "sess_101"
     assert rep_dict["performance"]["overall_score"] == 88.5
     assert rep_dict["data_quality"]["tracking_quality"] == 98.0
-    assert len(rep_dict["assessment"]["feedback_messages"]) == 1
+    assert "strengths" in rep_dict["feedback"]
 
 
 # 3. JSON Export Test
@@ -123,8 +115,8 @@ def test_export_csv(report_engine):
     export_res = report_engine.export_csv(sessions)
     assert isinstance(export_res, ExportResult)
     assert export_res.format == "csv"
-    assert "Date,Exercise,Score,ROM,Stability,Symmetry,Cadence,Repetitions,Duration,Tracking Quality" in export_res.content
-    assert "2026-08-09T10:00:00Z,squat,85.0" in export_res.content
+    assert "Date,Pose,Exercise,Score,Score Category" in export_res.content
+    assert "2026-08-09T10:00:00Z,Unknown,squat,85.0" in export_res.content
 
 
 # 5. PDF HTML Generation Test
@@ -135,9 +127,9 @@ def test_export_pdf(report_engine):
     export_res = report_engine.export_pdf(report.to_dict())
     assert isinstance(export_res, ExportResult)
     assert export_res.format == "pdf"
-    assert "PostureSense AI Performance Report" in export_res.content
-    assert "92.5 / 100" in export_res.content
-    assert "DATA QUALITY NOTICE:" in export_res.content
+    assert "POSTURESENSE AI" in export_res.content
+    assert "92.5%" in export_res.content
+    assert "DATA QUALITY &amp; PRIVACY NOTICE:" in export_res.content
 
 
 # 6. Deterministic Numerical Fixture Test (70, 75, 80, 85, 90)

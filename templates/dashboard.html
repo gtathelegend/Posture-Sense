@@ -1,197 +1,1133 @@
 {% extends 'base.html' %}
 {% set active_page = 'dashboard' %}
 
-{% block title %}Dashboard &mdash; Posture Sense{% endblock %}
-{% block meta_desc %}Track your posture correction progress. Monitor session history, pose distribution, accuracy metrics, and fitness improvement with AI-powered analytics.{% endblock %}
+{% block title %}Dashboard V2 &mdash; Posture Sense{% endblock %}
+{% block meta_desc %}Track your posture correction progress. Monitor symmetry, balance, stability, range of motion, and longitudinal fitness intelligence with AI-powered analytics.{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  /* Dashboard V2 Styles */
+  .v2-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+  .v2-greeting {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--fg-1);
+    margin: 0 0 6px 0;
+    letter-spacing: -0.02em;
+  }
+  .v2-subtext {
+    color: var(--fg-3);
+    font-size: 14px;
+    margin: 0;
+  }
+  .v2-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .streak-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: rgba(255, 120, 0, 0.12);
+    border: 1px solid rgba(255, 120, 0, 0.25);
+    color: #ff6b00;
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  /* Timeframe Bar */
+  .v2-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .timeframe-group {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(10, 11, 31, 0.08);
+    border-radius: 10px;
+    padding: 3px;
+    backdrop-filter: blur(12px);
+  }
+  .tf-btn {
+    background: transparent;
+    border: none;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--fg-2, #4a4d6d);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .tf-btn.active {
+    background: var(--fg-0, #0a0b1f);
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(10, 11, 31, 0.15);
+  }
+
+  /* Overview Cards Grid */
+  .overview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 992px) {
+    .overview-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 576px) {
+    .overview-grid { grid-template-columns: 1fr; }
+  }
+
+  .ov-card {
+    background: var(--bg-card, rgba(255, 255, 255, 0.78));
+    border: 1px solid var(--border-color, rgba(10, 11, 31, 0.08));
+    backdrop-filter: blur(16px);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 24px -6px rgba(10, 11, 31, 0.05);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .ov-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(2, 132, 199, 0.3);
+    box-shadow: 0 12px 28px -6px rgba(2, 132, 199, 0.12);
+  }
+  .ov-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .ov-icon {
+    font-size: 22px;
+  }
+  .ov-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--fg-3, #7a7d9b);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .ov-value {
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--fg-0, #0a0b1f);
+    line-height: 1.1;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .ov-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 8px;
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+  .delta-pos { background: rgba(16, 185, 129, 0.12); color: #047857; }
+  .delta-neg { background: rgba(239, 68, 68, 0.12); color: #b91c1c; }
+  .delta-neu { background: rgba(10, 11, 31, 0.05); color: var(--fg-2, #4a4d6d); }
+
+  /* 2-Column Grid Layouts */
+  .grid-2col {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 22px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 992px) {
+    .grid-2col { grid-template-columns: 1fr; }
+  }
+
+  .v2-panel {
+    background: var(--bg-card, rgba(255, 255, 255, 0.78));
+    border: 1px solid var(--border-color, rgba(10, 11, 31, 0.08));
+    backdrop-filter: blur(16px);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: 0 8px 24px -6px rgba(10, 11, 31, 0.05);
+  }
+  .v2-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .v2-panel-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--fg-0, #0a0b1f);
+    font-family: 'Space Grotesk', sans-serif;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Biomechanics Metric Bars */
+  .bio-bar-item {
+    margin-bottom: 14px;
+  }
+  .bio-bar-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  .bio-bar-name { font-weight: 600; color: var(--fg-0, #0a0b1f); }
+  .bio-bar-val { font-weight: 700; color: var(--fg-0, #0a0b1f); font-family: 'JetBrains Mono', monospace; }
+  .bio-track {
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(10, 11, 31, 0.06);
+    overflow: hidden;
+    position: relative;
+  }
+  .bio-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #0284c7, #10b981);
+    transition: width 0.6s ease;
+  }
+
+  /* Data Quality Badge */
+  .tq-card {
+    background: rgba(2, 132, 199, 0.05);
+    border: 1px solid rgba(2, 132, 199, 0.18);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .tq-status-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .tq-excellent { background: rgba(16, 185, 129, 0.16); color: #047857; }
+  .tq-good { background: rgba(2, 132, 199, 0.16); color: #0284c7; }
+  .tq-fair { background: rgba(245, 158, 11, 0.16); color: #b45309; }
+  .tq-low { background: rgba(239, 68, 68, 0.16); color: #b91c1c; }
+
+  /* Personal Records Cards */
+  .records-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 576px) {
+    .records-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  .rec-item {
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(10, 11, 31, 0.06);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .rec-type { font-size: 11px; color: var(--fg-3, #7a7d9b); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+  .rec-val { font-size: 18px; font-weight: 700; color: var(--fg-0, #0a0b1f); font-family: 'Space Grotesk', sans-serif; }
+  .rec-pose { font-size: 12px; color: var(--ps-accent, #0284c7); font-weight: 500; margin-top: 2px; }
+
+  /* Insights Feed */
+  .insight-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(10, 11, 31, 0.06);
+    margin-bottom: 10px;
+  }
+  .insight-icon { font-size: 18px; flex-shrink: 0; }
+  .insight-title { font-size: 13px; font-weight: 600; color: var(--fg-0, #0a0b1f); margin-bottom: 2px; }
+  .insight-msg { font-size: 12px; color: var(--fg-2, #4a4d6d); line-height: 1.4; }
+
+  /* Pose Cards Grid */
+  .pose-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 992px) {
+    .pose-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 576px) {
+    .pose-grid { grid-template-columns: 1fr; }
+  }
+  .pose-card {
+    background: var(--bg-card, rgba(255, 255, 255, 0.78));
+    border: 1px solid var(--border-color, rgba(10, 11, 31, 0.08));
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 8px 24px -6px rgba(10, 11, 31, 0.05);
+  }
+  .pose-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--fg-0, #0a0b1f);
+    font-family: 'Space Grotesk', sans-serif;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .pose-stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 0;
+    color: var(--fg-2, #4a4d6d);
+    border-bottom: 1px solid rgba(10, 11, 31, 0.04);
+  }
+
+  /* Compare Card Callouts */
+  .strong-weak-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .sw-box {
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(10, 11, 31, 0.08);
+  }
+  .sw-strong { background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.2); }
+  .sw-weak { background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.2); }
+
+  /* Expandable Table */
+  .exp-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .exp-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--fg-3, #7a7d9b);
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(10, 11, 31, 0.08);
+  }
+  .exp-table td {
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--fg-1, #1b1d35);
+    border-bottom: 1px solid rgba(10, 11, 31, 0.05);
+  }
+  .exp-row-toggle {
+    cursor: pointer;
+  }
+  .exp-row-toggle:hover {
+    background: rgba(10, 11, 31, 0.02);
+  }
+  .exp-detail-row {
+    display: none;
+    background: rgba(245, 247, 255, 0.7);
+  }
+  .exp-detail-row.open {
+    display: table-row;
+  }
+  .exp-detail-content {
+    padding: 14px 18px;
+  }
+
+  /* Comparison Matrix Table */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  .comp-table th, .comp-table td {
+    padding: 10px 14px;
+    font-size: 13px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  /* Skeleton Loading */
+  .skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Error Banner */
+  .v2-error-banner {
+    display: none;
+    background: rgba(255, 82, 82, 0.15);
+    border: 1px solid rgba(255, 82, 82, 0.4);
+    color: #ff5252;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    align-items: center;
+    justify-content: space-between;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-
-<!-- Page hero -->
-<div class="ps-page-hero">
+<div class="ps-section" style="padding-top:30px">
   <div class="wrap">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px">
+
+    <!-- Error Banner -->
+    <div class="v2-error-banner" id="v2ErrorBanner">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">⚠️</span>
+        <div>
+          <strong style="display:block">Unable to load your progress.</strong>
+          <span style="font-size:13px;opacity:0.9">Check connection or server state.</span>
+        </div>
+      </div>
+      <button class="btn btn-sm btn-outline-danger" id="retryBtn">Retry</button>
+    </div>
+
+    <!-- Header Section -->
+    <div class="v2-header">
       <div>
-        <p class="eyebrow" style="margin-bottom:12px">
-          <span class="live-badge">
-            <span class="pulse-dot" style="width:6px;height:6px"></span>
-            live updates active
-          </span>
-        </p>
-        <h1 class="ps-page-hero" style="padding:0;border:none">Your Dashboard</h1>
-        <p style="margin-top:10px;color:var(--fg-3);font-size:15px">Track your pose sessions, accuracy, and progress.</p>
+        <h1 class="v2-greeting" id="v2Greeting">Good day, {{ current_user.username or 'User' }}</h1>
+        <p class="v2-subtext" id="v2DateStr">Your posture practice intelligence &amp; longitudinal progress</p>
       </div>
-      <a href="{{ url_for('pose_detection') }}" class="btn btn-primary">
-        Start pose detection &rarr;
-      </a>
+      <div class="v2-header-meta">
+        <div class="streak-pill">
+          🔥 <span id="headerStreakVal">0</span> day streak
+        </div>
+        <a href="{{ url_for('pose_detection') }}" class="btn btn-primary">
+          Start Pose Detection &rarr;
+        </a>
+      </div>
     </div>
+
+    <!-- Toolbar & Timeframe Filters -->
+    <div class="v2-toolbar">
+      <div class="timeframe-group" role="group" aria-label="Timeframe selector">
+        <button class="tf-btn" data-tf="7d">7 Days</button>
+        <button class="tf-btn active" data-tf="30d">30 Days</button>
+        <button class="tf-btn" data-tf="all">All Time</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <a href="/reports/view/progress?timeframe=30d" id="btnProgressReport" class="btn btn-sm btn-outline-info" style="font-size:12px">
+          📄 Progress Report
+        </a>
+        <a href="/reports/view/comprehensive" class="btn btn-sm btn-outline-light" style="font-size:12px">
+          📊 Comprehensive Report
+        </a>
+        <a href="/api/reports/progress.csv?timeframe=30d" id="btnExportCsv" class="btn btn-sm btn-outline-success" style="font-size:12px">
+          📥 Export CSV
+        </a>
+      </div>
+      <div style="font-size:12px;color:var(--fg-3)" id="lastUpdatedStr">
+        Updated just now
+      </div>
+    </div>
+
+    <!-- Empty State Container (Hidden when total_sessions > 0) -->
+    <div id="v2EmptyState" style="display:none" class="v2-panel" style="text-align:center;padding:48px 24px">
+      <div style="font-size:48px;margin-bottom:14px">🧘</div>
+      <h3 style="font-size:22px;color:var(--fg-1);margin-bottom:8px">Your progress starts here.</h3>
+      <p style="color:var(--fg-3);max-width:440px;margin:0 auto 16px auto;font-size:14px">
+        Complete your first pose session to unlock:
+      </p>
+      <ul style="list-style:none;padding:0;margin:0 auto 24px auto;max-width:260px;text-align:left;color:var(--fg-2);font-size:13px;line-height:1.8">
+        <li>✓ posture trends</li>
+        <li>✓ biomechanics analytics</li>
+        <li>✓ personal records</li>
+        <li>✓ pose comparisons</li>
+      </ul>
+      <a href="{{ url_for('pose_detection') }}" class="btn btn-primary btn-lg">Start Pose Detection &rarr;</a>
+    </div>
+
+    <!-- Dashboard Content Wrapper -->
+    <div id="v2Content">
+
+      <!-- 1. Overview Metric Cards -->
+      <div class="overview-grid">
+        <div class="ov-card">
+          <div class="ov-header">
+            <span class="ov-label">Total Sessions</span>
+            <span class="ov-icon">📷</span>
+          </div>
+          <div class="ov-value" id="statSessions">--</div>
+          <div class="ov-delta delta-neu" id="statSessionsSub">Total completed</div>
+        </div>
+
+        <div class="ov-card">
+          <div class="ov-header">
+            <span class="ov-label">Practice Time</span>
+            <span class="ov-icon">⏱️</span>
+          </div>
+          <div class="ov-value" id="statDuration">--</div>
+          <div class="ov-delta delta-neu" id="statDurationSub">Accumulated hold</div>
+        </div>
+
+        <div class="ov-card">
+          <div class="ov-header">
+            <span class="ov-label">Posture Score</span>
+            <span class="ov-icon">📈</span>
+          </div>
+          <div class="ov-value" id="statScore">--</div>
+          <div class="ov-delta delta-neu" id="statScoreDelta">7-day delta</div>
+        </div>
+
+        <div class="ov-card">
+          <div class="ov-header">
+            <span class="ov-label">Practice Streak</span>
+            <span class="ov-icon">🔥</span>
+          </div>
+          <div class="ov-value" id="statStreak">--</div>
+          <div class="ov-delta delta-neu" id="statStreakSub">Active daily habit</div>
+        </div>
+      </div>
+
+      <!-- 2. Progress Chart & Biomechanics -->
+      <div class="grid-2col">
+        <!-- Main Score Trend Chart -->
+        <div class="v2-panel">
+          <div class="v2-panel-header">
+            <h3 class="v2-panel-title">📈 Posture Score Progress</h3>
+            <span id="chartTrendBadge" class="ov-delta delta-neu">Establishing trend</span>
+          </div>
+          <div style="position:relative;height:260px;width:100%">
+            <canvas id="scoreChart"></canvas>
+            <div id="chartNotice" style="display:none;position:absolute;top:45%;left:0;right:0;text-align:center;color:var(--fg-3);font-size:14px">
+              Not enough sessions to establish a trend.
+            </div>
+          </div>
+        </div>
+
+        <!-- Biomechanics & Movement Quality -->
+        <div class="v2-panel">
+          <div class="v2-panel-header">
+            <h3 class="v2-panel-title">⚖️ Movement Quality</h3>
+            <span id="bioCompLabel" style="font-size:12px;color:var(--fg-3)">vs previous session</span>
+          </div>
+
+          <div class="bio-bar-item">
+            <div class="bio-bar-meta">
+              <span><span class="bio-bar-name">Symmetry</span> <small style="color:var(--fg-3);font-size:11px">&middot; Left/right physical alignment</small></span>
+              <span class="bio-bar-val" id="valSymm">--%</span>
+            </div>
+            <div class="bio-track"><div class="bio-fill" id="fillSymm" style="width:0%"></div></div>
+          </div>
+
+          <div class="bio-bar-item">
+            <div class="bio-bar-meta">
+              <span><span class="bio-bar-name">Balance</span> <small style="color:var(--fg-3);font-size:11px">&middot; Center of mass centering</small></span>
+              <span class="bio-bar-val" id="valBal">--%</span>
+            </div>
+            <div class="bio-track"><div class="bio-fill" id="fillBal" style="width:0%"></div></div>
+          </div>
+
+          <div class="bio-bar-item">
+            <div class="bio-bar-meta">
+              <span><span class="bio-bar-name">Stability</span> <small style="color:var(--fg-3);font-size:11px">&middot; Postural steadiness & sway control</small></span>
+              <span class="bio-bar-val" id="valStab">--%</span>
+            </div>
+            <div class="bio-track"><div class="bio-fill" id="fillStab" style="width:0%"></div></div>
+          </div>
+
+          <div class="bio-bar-item">
+            <div class="bio-bar-meta">
+              <span><span class="bio-bar-name">Range of Motion (ROM)</span> <small style="color:var(--fg-3);font-size:11px">&middot; Joint extension depth</small></span>
+              <span class="bio-bar-val" id="valRom">--%</span>
+            </div>
+            <div class="bio-track"><div class="bio-fill" id="fillRom" style="width:0%"></div></div>
+          </div>
+
+          <!-- Tracking Quality Card -->
+          <div class="tq-card">
+            <div>
+              <div style="font-size:11px;color:var(--fg-3);text-transform:uppercase">Tracking Quality</div>
+              <div style="font-size:18px;font-weight:700;color:var(--fg-1)" id="valTq">--%</div>
+            </div>
+            <span class="tq-status-badge tq-good" id="badgeTq">Good</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Personal Records & Deterministic Insights -->
+      <div class="grid-2col">
+        <!-- Personal Records -->
+        <div class="v2-panel">
+          <div class="v2-panel-header">
+            <h3 class="v2-panel-title">🏆 Personal Records</h3>
+          </div>
+          <div class="records-grid" id="recordsGrid">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Deterministic Insights -->
+        <div class="v2-panel">
+          <div class="v2-panel-header">
+            <h3 class="v2-panel-title">💡 Deterministic Intelligence</h3>
+          </div>
+          <div id="insightsList">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Pose Performance Grid -->
+      <div class="v2-panel" style="margin-bottom:28px">
+        <div class="v2-panel-header">
+          <h3 class="v2-panel-title">🤸 Pose Performance Breakdown</h3>
+        </div>
+        <div class="pose-grid" id="poseGrid">
+          <!-- Rendered dynamically -->
+        </div>
+        <div class="strong-weak-card" id="strongWeakContainer" style="display:none">
+          <div class="sw-box sw-strong">
+            <div style="font-size:11px;color:#00e676;text-transform:uppercase;font-weight:700">Strongest Pose</div>
+            <div style="font-size:18px;font-weight:700;color:var(--fg-1);margin-top:2px" id="strongPoseName">--</div>
+            <div style="font-size:12px;color:var(--fg-3)" id="strongPoseScore">-- avg score</div>
+          </div>
+          <div class="sw-box sw-weak">
+            <div style="font-size:11px;color:#ffc107;text-transform:uppercase;font-weight:700">Needs Practice</div>
+            <div style="font-size:18px;font-weight:700;color:var(--fg-1);margin-top:2px" id="weakPoseName">--</div>
+            <div style="font-size:12px;color:var(--fg-3)" id="weakPoseScore">-- avg score</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Latest vs Previous Session Comparison -->
+      <div class="v2-panel" style="margin-bottom:28px" id="sessionCompPanel">
+        <div class="v2-panel-header">
+          <h3 class="v2-panel-title">⚡ Latest vs Previous Session</h3>
+          <span style="font-size:12px;color:var(--fg-3)" id="compSubtitle">Performance Deltas</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="comp-table">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Previous Session</th>
+                <th>Latest Session</th>
+                <th>Change</th>
+              </tr>
+            </thead>
+            <tbody id="compTbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 6. Recent Sessions Table -->
+      <div class="v2-panel">
+        <div class="v2-panel-header">
+          <h3 class="v2-panel-title">📋 Recent Session History</h3>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="exp-table">
+            <thead>
+              <tr>
+                <th>Date &amp; Time</th>
+                <th>Pose</th>
+                <th>Score</th>
+                <th>Duration</th>
+                <th>Hold</th>
+                <th>Reps</th>
+                <th>Quality</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="recentSessionsTbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
   </div>
 </div>
-
-<!-- Main dashboard content -->
-<div class="ps-section">
-  <div class="wrap">
-
-    <!-- Stats cards -->
-    <div class="dash-stats">
-      <div class="dash-stat-card">
-        <div class="dash-stat-icon">&#128247;</div>
-        <div class="dash-stat-num">{{ total_sessions }}</div>
-        <div class="dash-stat-label">Total Sessions</div>
-      </div>
-      <div class="dash-stat-card">
-        <div class="dash-stat-icon">&#9203;</div>
-        <div class="dash-stat-num">{{ "%.1f"|format(total_duration / 60) }}</div>
-        <div class="dash-stat-label">Minutes Practiced</div>
-      </div>
-      <div class="dash-stat-card">
-        <div class="dash-stat-icon">&#128200;</div>
-        <div class="dash-stat-num">{{ "%.1f"|format(avg_accuracy) }}%</div>
-        <div class="dash-stat-label">Average Accuracy</div>
-      </div>
-    </div>
-
-    <!-- Pose distribution -->
-    {% if pose_counts %}
-    <div class="pose-dist-card">
-      <h3>Pose Distribution</h3>
-      {% set max_count = pose_counts.values()|max %}
-      {% for pose, count in pose_counts.items() %}
-      {% set percentage = (count * 100 / max_count) if max_count > 0 else 0 %}
-      <div class="pose-bar-row">
-        <div class="pose-bar-meta">
-          <span>{{ pose }}</span>
-          <span class="mono" style="color:var(--fg-3);font-size:12px">{{ count }} session{{ 's' if count != 1 else '' }}</span>
-        </div>
-        <div class="pose-bar-track">
-          <div class="pose-bar-fill" style="width: {{ percentage|int }}%"></div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- Recent sessions -->
-    <div class="session-table-card">
-      <h3>Recent Sessions</h3>
-      {% if sessions %}
-      <div style="overflow-x:auto">
-        <table class="ps-table">
-          <thead>
-            <tr>
-              <th>Date &amp; Time</th>
-              <th>Pose</th>
-              <th>Duration</th>
-              <th>Accuracy</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for session in sessions[:20] %}
-            <tr>
-              <td style="color:var(--fg-2);font-size:13px">{{ session.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-              <td><span class="badge-pose">{{ session.pose_label }}</span></td>
-              <td style="color:var(--fg-2)">{{ "%.1f"|format(session.duration) }}s</td>
-              <td><span class="badge-accuracy">{{ "%.1f"|format(session.accuracy) }}%</span></td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% else %}
-      <div class="empty-state">
-        <div class="empty-state-icon">&#128683;</div>
-        <p>No sessions yet. Start your first pose detection session!</p>
-        <a href="{{ url_for('pose_detection') }}" class="btn btn-primary" style="margin-top:20px">Start now &rarr;</a>
-      </div>
-      {% endif %}
-    </div>
-
-  </div>
-</div>
-
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-  function updateDashboard() {
-    fetch('/api/dashboard_stats')
-      .then(function(response) {
-        if (response.redirected) { window.location = response.url; throw new Error('Redirected'); }
-        var ct = response.headers.get('content-type') || '';
-        if (!ct.includes('application/json')) {
-          return response.text().then(function(t) { throw new Error('Non-JSON: ' + t.slice(0, 80)); });
+  (function() {
+    var currentTimeframe = '30d';
+    var scoreChartInstance = null;
+    var lastFetchTime = 0;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      setupTimeframeButtons();
+      setupRetryButton();
+      fetchDashboardData(currentTimeframe);
+
+      // Event listener for tab visibility refresh (low frequency)
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden && (Date.now() - lastFetchTime > 30000)) {
+          fetchDashboardData(currentTimeframe);
         }
-        return response.json();
-      })
-      .then(function(data) {
-        updateStatsCards(data);
-        updatePoseDistribution(data.pose_counts);
-        updateRecentSessions(data.recent_sessions);
-      })
-      .catch(function(err) { console.error('Dashboard update error:', err); });
-  }
-
-  function updateStatsCards(data) {
-    var cards = document.querySelectorAll('.dash-stat-card .dash-stat-num');
-    if (cards[0]) animateValue(cards[0], parseFloat(cards[0].textContent) || 0, data.total_sessions, 0);
-    if (cards[1]) animateValue(cards[1], parseFloat(cards[1].textContent) || 0, data.total_duration / 60, 1);
-    if (cards[2]) animateValue(cards[2], parseFloat(cards[2].textContent) || 0, data.avg_accuracy, 1, '%');
-  }
-
-  function animateValue(el, start, end, decimals, suffix) {
-    suffix = suffix || '';
-    var dur = 500, t0 = Date.now();
-    (function tick() {
-      var p = Math.min((Date.now() - t0) / dur, 1);
-      el.textContent = (start + (end - start) * p).toFixed(decimals) + suffix;
-      if (p < 1) requestAnimationFrame(tick);
-    })();
-  }
-
-  function updatePoseDistribution(poseCounts) {
-    var card = document.querySelector('.pose-dist-card');
-    if (!card || !poseCounts || Object.keys(poseCounts).length === 0) return;
-    var maxCount = Math.max.apply(null, Object.values(poseCounts));
-    if (!isFinite(maxCount) || maxCount <= 0) return;
-    var html = '<h3>Pose Distribution</h3>';
-    for (var pose in poseCounts) {
-      var count = poseCounts[pose];
-      var pct = Math.round((count / maxCount) * 100);
-      html += '<div class="pose-bar-row">'
-        + '<div class="pose-bar-meta"><span>' + pose + '</span>'
-        + '<span class="mono" style="color:var(--fg-3);font-size:12px">' + count + ' session' + (count !== 1 ? 's' : '') + '</span></div>'
-        + '<div class="pose-bar-track"><div class="pose-bar-fill" style="width:' + pct + '%"></div></div>'
-        + '</div>';
-    }
-    card.innerHTML = html;
-  }
-
-  function updateRecentSessions(sessions) {
-    var tableCard = document.querySelector('.session-table-card');
-    if (!tableCard) return;
-    if (!sessions || sessions.length === 0) {
-      tableCard.innerHTML = '<h3>Recent Sessions</h3>'
-        + '<div class="empty-state"><div class="empty-state-icon">&#128683;</div>'
-        + '<p>No sessions yet. Start your first pose detection session!</p>'
-        + '<a href="/pose_detection" class="btn btn-primary" style="margin-top:20px">Start now &rarr;</a></div>';
-      return;
-    }
-    var tbody = tableCard.querySelector('tbody');
-    if (!tbody) return;
-    var html = '';
-    sessions.forEach(function(s) {
-      html += '<tr>'
-        + '<td style="color:var(--fg-2);font-size:13px">' + s.timestamp + '</td>'
-        + '<td><span class="badge-pose">' + s.pose_label + '</span></td>'
-        + '<td style="color:var(--fg-2)">' + s.duration + 's</td>'
-        + '<td><span class="badge-accuracy">' + s.accuracy + '%</span></td>'
-        + '</tr>';
+      });
     });
-    tbody.innerHTML = html;
-  }
 
-  setInterval(updateDashboard, 3000);
-  document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) updateDashboard();
-  });
+    function setupTimeframeButtons() {
+      var btns = document.querySelectorAll('.tf-btn');
+      btns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          btns.forEach(function(b) { b.classList.remove('active'); });
+          this.classList.add('active');
+          currentTimeframe = this.getAttribute('data-tf');
+
+          var btnProg = document.getElementById('btnProgressReport');
+          if (btnProg) btnProg.href = '/reports/view/progress?timeframe=' + currentTimeframe;
+          var btnCsv = document.getElementById('btnExportCsv');
+          if (btnCsv) btnCsv.href = '/api/reports/progress.csv?timeframe=' + currentTimeframe;
+
+          fetchDashboardData(currentTimeframe);
+        });
+      });
+    }
+
+    function setupRetryButton() {
+      var btn = document.getElementById('retryBtn');
+      if (btn) {
+        btn.addEventListener('click', function() {
+          fetchDashboardData(currentTimeframe);
+        });
+      }
+    }
+
+    function fetchDashboardData(tf) {
+      showLoadingSkeletons();
+      var errBanner = document.getElementById('v2ErrorBanner');
+      if (errBanner) errBanner.style.display = 'none';
+
+      fetch('/api/dashboard/overview?timeframe=' + tf)
+        .then(function(res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(function(data) {
+          lastFetchTime = Date.now();
+          renderDashboard(data);
+        })
+        .catch(function(err) {
+          console.error('Dashboard Overview fetch failed:', err);
+          if (errBanner) errBanner.style.display = 'flex';
+        });
+    }
+
+    function showLoadingSkeletons() {
+      var lastStr = document.getElementById('lastUpdatedStr');
+      if (lastStr) lastStr.textContent = 'Updating...';
+    }
+
+    function renderDashboard(data) {
+      var lastStr = document.getElementById('lastUpdatedStr');
+      if (lastStr) lastStr.textContent = 'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+      // Check empty state
+      var emptyState = document.getElementById('v2EmptyState');
+      var contentWrapper = document.getElementById('v2Content');
+
+      if (data.total_sessions_all === 0) {
+        if (emptyState) emptyState.style.display = 'block';
+        if (contentWrapper) contentWrapper.style.display = 'none';
+        return;
+      } else {
+        if (emptyState) emptyState.style.display = 'none';
+        if (contentWrapper) contentWrapper.style.display = 'block';
+      }
+
+      // Header Streak Pill
+      var streakVal = document.getElementById('headerStreakVal');
+      if (streakVal) streakVal.textContent = data.streak_days || 0;
+
+      // Overview Cards
+      renderOverviewCards(data);
+
+      // Score Chart
+      renderScoreChart(data.trend);
+
+      // Biomechanics Bars & Data Quality Badge
+      renderBiomechanics(data.biomechanics);
+
+      // Personal Records
+      renderPersonalRecords(data.personal_records);
+
+      // Insights Feed
+      renderInsights(data.insights);
+
+      // Pose Performance Grid
+      renderPosePerformance(data.pose_cards, data.strongest_pose, data.weakest_pose);
+
+      // Latest vs Previous Comparison
+      renderSessionComparison(data.session_comparison);
+
+      // Recent Sessions Table
+      renderRecentSessions(data.recent_sessions);
+    }
+
+    function renderOverviewCards(data) {
+      var sessEl = document.getElementById('statSessions');
+      if (sessEl) sessEl.textContent = data.total_sessions || 0;
+
+      var durEl = document.getElementById('statDuration');
+      if (durEl) {
+        var totalSec = data.total_duration || 0;
+        if (totalSec >= 3600) {
+          var hrs = Math.floor(totalSec / 3600);
+          var mins = Math.floor((totalSec % 3600) / 60);
+          durEl.textContent = hrs + 'h ' + mins + 'm';
+        } else {
+          var mins = Math.round(totalSec / 60);
+          durEl.textContent = mins + ' min';
+        }
+      }
+
+      var scoreEl = document.getElementById('statScore');
+      if (scoreEl) scoreEl.textContent = (data.overall_average_score || 0).toFixed(1) + '%';
+
+      var scoreDeltaEl = document.getElementById('statScoreDelta');
+      if (scoreDeltaEl) {
+        if (data.seven_day_delta !== null && data.seven_day_delta !== undefined) {
+          var d = data.seven_day_delta;
+          scoreDeltaEl.textContent = (d > 0 ? '+' : '') + d.toFixed(1) + '% vs last week';
+          scoreDeltaEl.className = 'ov-delta ' + (d > 0 ? 'delta-pos' : (d < 0 ? 'delta-neg' : 'delta-neu'));
+        } else {
+          scoreDeltaEl.textContent = 'Baseline establishing';
+          scoreDeltaEl.className = 'ov-delta delta-neu';
+        }
+      }
+
+      var streakEl = document.getElementById('statStreak');
+      var streakSubEl = document.getElementById('statStreakSub');
+      var sDays = data.streak_days || 0;
+      if (streakEl) {
+        streakEl.textContent = sDays > 0 ? ('🔥 ' + sDays + ' Days') : '0 Days';
+      }
+      if (streakSubEl) {
+        streakSubEl.textContent = sDays > 0 ? 'Active daily habit' : 'Start your streak today';
+      }
+    }
+
+    function renderScoreChart(trend) {
+      var canvas = document.getElementById('scoreChart');
+      var notice = document.getElementById('chartNotice');
+      var badge = document.getElementById('chartTrendBadge');
+
+      if (!canvas) return;
+
+      var points = (trend && trend.points) ? trend.points : [];
+
+      if (points.length < 3) {
+        if (notice) notice.style.display = 'block';
+        if (badge) { badge.textContent = 'Insufficient data'; badge.className = 'ov-delta delta-neu'; }
+        if (scoreChartInstance) { scoreChartInstance.destroy(); scoreChartInstance = null; }
+        return;
+      } else {
+        if (notice) notice.style.display = 'none';
+        if (badge && trend.direction) {
+          badge.textContent = trend.direction + (trend.slope !== null ? ' (' + (trend.slope > 0 ? '+' : '') + trend.slope + '%)' : '');
+          badge.className = 'ov-delta ' + (trend.direction === 'IMPROVING' ? 'delta-pos' : (trend.direction === 'DECLINING' ? 'delta-neg' : 'delta-neu'));
+        }
+      }
+
+      var labels = points.map(function(p) { return p.date; });
+      var scores = points.map(function(p) { return p.score; });
+
+      if (scoreChartInstance) scoreChartInstance.destroy();
+
+      if (window.Chart) {
+        var ctx = canvas.getContext('2d');
+        var gradient = ctx.createLinearGradient(0, 0, 0, 200);
+        gradient.addColorStop(0, 'rgba(2, 132, 199, 0.22)');
+        gradient.addColorStop(1, 'rgba(2, 132, 199, 0.0)');
+
+        scoreChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Posture Score',
+              data: scores,
+              borderColor: '#0284c7',
+              borderWidth: 3,
+              backgroundColor: gradient,
+              fill: true,
+              tension: 0.3,
+              pointBackgroundColor: '#10b981',
+              pointRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    var p = points[context.dataIndex];
+                    return (p.pose_label || 'Pose') + ': ' + p.score + '% (' + p.duration + 's)';
+                  }
+                }
+              }
+            },
+            scales: {
+              x: { grid: { color: 'rgba(10, 11, 31, 0.06)' }, ticks: { color: '#4a4d6d', font: { size: 11 } } },
+              y: { min: 0, max: 100, grid: { color: 'rgba(10, 11, 31, 0.06)' }, ticks: { color: '#4a4d6d', font: { size: 11 } } }
+            }
+          }
+        });
+      }
+    }
+
+    function renderBiomechanics(bio) {
+      if (!bio) return;
+      setBar('ValSymm', 'FillSymm', bio.symmetry);
+      setBar('ValBal', 'FillBal', bio.balance);
+      setBar('ValStab', 'FillStab', bio.stability);
+      setBar('ValRom', 'FillRom', bio.rom);
+
+      var valTq = document.getElementById('valTq');
+      if (valTq) valTq.textContent = (bio.tracking_quality !== null && bio.tracking_quality !== undefined) ? bio.tracking_quality.toFixed(1) + '%' : 'N/A';
+
+      var badgeTq = document.getElementById('badgeTq');
+      if (badgeTq) {
+        var st = bio.tracking_status || 'Good';
+        badgeTq.textContent = st;
+        badgeTq.className = 'tq-status-badge tq-' + st.toLowerCase();
+      }
+    }
+
+    function setBar(valId, fillId, val) {
+      var valEl = document.getElementById('val' + valId.slice(3));
+      var fillEl = document.getElementById('fill' + fillId.slice(4));
+      if (val === null || val === undefined) {
+        if (valEl) valEl.textContent = 'N/A';
+        if (fillEl) fillEl.style.width = '0%';
+      } else {
+        if (valEl) valEl.textContent = val.toFixed(1) + '%';
+        if (fillEl) fillEl.style.width = Math.min(100, Math.max(0, val)) + '%';
+      }
+    }
+
+    function renderPersonalRecords(records) {
+      var container = document.getElementById('recordsGrid');
+      if (!container) return;
+      if (!records || records.length === 0) {
+        container.innerHTML = '<div style="color:var(--fg-3);font-size:13px;grid-column:1/-1">No record yet</div>';
+        return;
+      }
+      var html = '';
+      records.forEach(function(r) {
+        html += '<div class="rec-item">'
+          + '<div class="rec-type">' + r.record_type + '</div>'
+          + '<div class="rec-val">' + r.value + ' ' + r.unit + '</div>'
+          + '<div class="rec-pose">' + r.pose_label + '</div>'
+          + '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function renderInsights(insights) {
+      var container = document.getElementById('insightsList');
+      if (!container) return;
+      if (!insights || insights.length === 0) {
+        container.innerHTML = '<div style="color:var(--fg-3);font-size:13px">Complete your first pose session to start building your progress history.</div>';
+        return;
+      }
+      var html = '';
+      insights.forEach(function(ins) {
+        html += '<div class="insight-item">'
+          + '<span class="insight-icon">' + ins.icon + '</span>'
+          + '<div>'
+          + '<div class="insight-title">' + ins.title + '</div>'
+          + '<div class="insight-msg">' + ins.message + '</div>'
+          + '</div></div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function renderPosePerformance(cards, strongest, weakest) {
+      var grid = document.getElementById('poseGrid');
+      var swContainer = document.getElementById('strongWeakContainer');
+
+      if (!grid) return;
+
+      if (!cards || cards.length === 0) {
+        grid.innerHTML = '<div style="color:var(--fg-3);font-size:13px;grid-column:1/-1">No pose data recorded yet.</div>';
+        if (swContainer) swContainer.style.display = 'none';
+        return;
+      }
+
+      var html = '';
+      cards.forEach(function(p) {
+        var symmStr = (p.best_symmetry !== null && p.best_symmetry !== undefined) ? (p.best_symmetry + '%') : 'N/A';
+        var romStr = (p.best_rom !== null && p.best_rom !== undefined) ? (p.best_rom + '%') : 'N/A';
+        html += '<div class="pose-card">'
+          + '<div class="pose-card-title"><span>' + p.pose_label + '</span><span class="chip mono">' + p.sessions + ' sess</span></div>'
+          + '<div class="pose-stat-row"><span>Average Score</span><strong>' + p.avg_score + '%</strong></div>'
+          + '<div class="pose-stat-row"><span>Best Score</span><strong>' + p.best_score + '%</strong></div>'
+          + '<div class="pose-stat-row"><span>Avg Hold</span><strong>' + p.avg_hold + 's</strong></div>'
+          + '<div class="pose-stat-row"><span>Best Hold</span><strong>' + p.best_hold + 's</strong></div>'
+          + (p.avg_reps > 0 ? ('<div class="pose-stat-row"><span>Average Reps</span><strong>' + p.avg_reps + '</strong></div>') : '')
+          + '<div class="pose-stat-row"><span>Best Symmetry</span><strong>' + symmStr + '</strong></div>'
+          + '<div class="pose-stat-row"><span>Best ROM</span><strong>' + romStr + '</strong></div>'
+          + '</div>';
+      });
+      grid.innerHTML = html;
+
+      if (strongest && weakest && swContainer) {
+        swContainer.style.display = 'grid';
+        var spName = document.getElementById('strongPoseName');
+        var spScore = document.getElementById('strongPoseScore');
+        var wpName = document.getElementById('weakPoseName');
+        var wpScore = document.getElementById('weakPoseScore');
+
+        if (spName) spName.textContent = strongest.pose_label;
+        if (spScore) spScore.textContent = strongest.avg_score + '% avg score';
+        if (wpName) wpName.textContent = weakest.pose_label;
+        if (wpScore) wpScore.textContent = weakest.avg_score + '% avg score';
+      } else if (swContainer) {
+        swContainer.style.display = 'none';
+      }
+    }
+
+    function renderSessionComparison(comp) {
+      var panel = document.getElementById('sessionCompPanel');
+      var tbody = document.getElementById('compTbody');
+      if (!tbody || !panel) return;
+
+      if (!comp || !comp.has_comparison) {
+        tbody.innerHTML = '<tr><td colspan="4" style="color:var(--fg-3);text-align:center">First recorded session — no comparison available yet.</td></tr>';
+        return;
+      }
+
+      var m = comp.metrics;
+      var labels = {
+        overall_score: 'Overall Score',
+        symmetry: 'Symmetry',
+        balance: 'Balance',
+        stability: 'Stability',
+        rom: 'Range of Motion (ROM)',
+        hold_time: 'Hold Duration',
+        reps: 'Completed Reps',
+        tracking_quality: 'Tracking Quality'
+      };
+
+      var html = '';
+      for (var key in m) {
+        var item = m[key];
+        var semClass = item.semantic === 'positive' ? 'delta-pos' : (item.semantic === 'negative' ? 'delta-neg' : 'delta-neu');
+        var prevVal = (item.prev !== null && item.prev !== undefined) ? item.prev : 'N/A';
+        var latestVal = (item.latest !== null && item.latest !== undefined) ? item.latest : 'N/A';
+        html += '<tr>'
+          + '<td><strong>' + (labels[key] || key) + '</strong></td>'
+          + '<td style="color:var(--fg-3)">' + prevVal + '</td>'
+          + '<td><strong>' + latestVal + '</strong></td>'
+          + '<td><span class="ov-delta ' + semClass + '">' + item.delta + '</span></td>'
+          + '</tr>';
+      }
+      tbody.innerHTML = html;
+    }
+
+    function renderRecentSessions(sessions) {
+      var tbody = document.getElementById('recentSessionsTbody');
+      if (!tbody) return;
+
+      if (!sessions || sessions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="color:var(--fg-3);text-align:center">No recent sessions found.</td></tr>';
+        return;
+      }
+
+      var html = '';
+      sessions.forEach(function(s, idx) {
+        var detailId = 'detRow_' + idx;
+        var isLeg = s.is_legacy;
+        var tqBadge = (s.tracking_quality !== null && s.tracking_quality !== undefined)
+          ? ('<span class="tq-status-badge tq-' + (s.tracking_quality >= 90 ? 'excellent' : (s.tracking_quality >= 75 ? 'good' : 'fair')) + '">' + s.tracking_quality + '%</span>')
+          : '<span style="color:var(--fg-3)">N/A</span>';
+
+        html += '<tr class="exp-row-toggle" onclick="toggleRow(\'' + detailId + '\')">'
+          + '<td style="color:var(--fg-2);font-size:12px">' + s.timestamp + '</td>'
+          + '<td><span class="badge-pose">' + s.pose_label + '</span></td>'
+          + '<td><strong>' + s.accuracy + '%</strong></td>'
+          + '<td style="color:var(--fg-2)">' + s.duration + 's</td>'
+          + '<td style="color:var(--fg-2)">' + s.hold_time + 's</td>'
+          + '<td style="color:var(--fg-2)">' + s.reps + '</td>'
+          + '<td>' + tqBadge + '</td>'
+          + '<td><span style="color:#00d2ff;font-size:12px;font-weight:600">Details ▼</span></td>'
+          + '</tr>'
+          + '<tr id="' + detailId + '" class="exp-detail-row">'
+          + '<td colspan="8">'
+          + '<div class="exp-detail-content">';
+
+        if (isLeg) {
+          html += '<div style="color:#ffc107;font-size:13px">⚠️ Detailed analytics unavailable for this session.</div>';
+        } else {
+          var symm = s.symmetry_score !== null ? (s.symmetry_score + '%') : 'N/A';
+          var bal = s.balance_score !== null ? (s.balance_score + '%') : 'N/A';
+          var stab = s.stability_score !== null ? (s.stability_score + '%') : 'N/A';
+          var rom = s.rom_score !== null ? (s.rom_score + '%') : 'N/A';
+
+          html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:10px;font-size:12px">'
+            + '<div>Symmetry: <strong>' + symm + '</strong></div>'
+            + '<div>Balance: <strong>' + bal + '</strong></div>'
+            + '<div>Stability: <strong>' + stab + '</strong></div>'
+            + '<div>ROM: <strong>' + rom + '</strong></div>'
+            + '</div>';
+          if (s.failed_rules && s.failed_rules.length > 0) {
+            html += '<div style="font-size:12px;color:#ff5252">Form corrections: ' + s.failed_rules.join(', ') + '</div>';
+          } else {
+            html += '<div style="font-size:12px;color:#00e676">All configured pose rules satisfied.</div>';
+          }
+        }
+
+        var sessIdStr = s.session_id || s.id;
+        html += '<div style="margin-top:10px;text-align:right"><a href="/reports/view/session/' + sessIdStr + '" class="btn btn-sm btn-outline-info" style="font-size:11px;padding:3px 10px"><i class="fa-solid fa-file-contract me-1"></i> View Full Report &rarr;</a></div>';
+
+        html += '</div></td></tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    window.toggleRow = function(rowId) {
+      var row = document.getElementById(rowId);
+      if (row) row.classList.toggle('open');
+    };
+
+  })();
 </script>
 {% endblock %}

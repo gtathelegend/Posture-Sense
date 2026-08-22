@@ -18,7 +18,7 @@ def index():
 
 @main_bp.route('/landing')
 def landing():
-    return render_template('landing.html')
+    return redirect('/', code=302)
 
 
 @main_bp.route('/favicon.ico')
@@ -56,6 +56,11 @@ def about():
     return redirect('/#about')
 
 
+@main_bp.route('/team')
+def team():
+    return redirect('/#team')
+
+
 @main_bp.route('/yoga-poses')
 def yoga_poses():
     return render_template('yoga-poses.html')
@@ -63,7 +68,7 @@ def yoga_poses():
 
 @main_bp.route('/pricing')
 def join_now():
-    return redirect('/#pricing')
+    return redirect('/#features')
 
 
 @main_bp.route('/playground')
@@ -101,5 +106,17 @@ def save_pose_session_alias():
 def status_alias():
     from backend.app.blueprints.api.routes import pose_status_updates
     return pose_status_updates()
+
+
+@main_bp.route('/health')
+def health_alias():
+    from backend.app.blueprints.api.routes import health
+    return health()
+
+
+@main_bp.route('/version')
+def version_alias():
+    from backend.app.blueprints.api.routes import version
+    return version()
 
 

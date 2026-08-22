@@ -75,4 +75,4 @@
 **[Visual Cue]**: Display performance benchmark summary table (12ms WASM inference, 111 passing tests, MIT License).
 
 **[Narration Script]**:
-> "In empirical benchmarks, PostureSense v2 achieves sub-50ms total pipeline latency with under 150MB browser memory consumption. The repository is thoroughly tested with 111 passing automated unit, integration, and security tests, completely documented, and released under the MIT open-source license. Thank you for watching!"
+> "In empirical benchmarks, PostureSense v2 achieves sub-50ms total pipeline latency with under 150MB browser memory consumption. The repository is thoroughly tested with 149 passing automated unit, integration, and security tests, completely documented, and released under the MIT open-source license. Thank you for watching!"

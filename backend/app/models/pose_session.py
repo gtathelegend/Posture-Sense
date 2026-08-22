@@ -2,13 +2,55 @@ from backend.app.models.user import parse_timestamp
 
 
 class PoseSession:
-    def __init__(self, id, user_id, pose_label, timestamp=None, duration=0.0, accuracy=0.0):
+    def __init__(
+        self,
+        id,
+        user_id,
+        pose_label,
+        timestamp=None,
+        duration=0.0,
+        accuracy=0.0,
+        reps=0,
+        symmetry_score=None,
+        balance_score=None,
+        stability_score=None,
+        rom_score=None,
+        hold_time=0.0,
+        tracking_quality=None,
+        failed_rules=None
+    ):
         self.id = id
         self.user_id = str(user_id)
         self.pose_label = pose_label
         self.timestamp = parse_timestamp(timestamp)
         self.duration = float(duration or 0.0)
         self.accuracy = float(accuracy or 0.0)
+        self.reps = int(reps or 0)
+        self.symmetry_score = float(symmetry_score) if symmetry_score is not None else None
+        self.balance_score = float(balance_score) if balance_score is not None else None
+        self.stability_score = float(stability_score) if stability_score is not None else None
+        self.rom_score = float(rom_score) if rom_score is not None else None
+        self.hold_time = float(hold_time or 0.0)
+        self.tracking_quality = float(tracking_quality) if tracking_quality is not None else None
+        self.failed_rules = failed_rules if isinstance(failed_rules, list) else []
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'pose_label': self.pose_label,
+            'timestamp': self.timestamp.isoformat() if hasattr(self.timestamp, 'isoformat') else str(self.timestamp),
+            'duration': round(self.duration, 1),
+            'accuracy': round(self.accuracy, 1),
+            'reps': self.reps,
+            'symmetry_score': round(self.symmetry_score, 1) if self.symmetry_score is not None else None,
+            'balance_score': round(self.balance_score, 1) if self.balance_score is not None else None,
+            'stability_score': round(self.stability_score, 1) if self.stability_score is not None else None,
+            'rom_score': round(self.rom_score, 1) if self.rom_score is not None else None,
+            'hold_time': round(self.hold_time, 1),
+            'tracking_quality': round(self.tracking_quality, 1) if self.tracking_quality is not None else None,
+            'failed_rules': self.failed_rules
+        }
 
 
 def build_pose_session(record):
@@ -21,4 +63,13 @@ def build_pose_session(record):
         timestamp=record.get('timestamp'),
         duration=record.get('duration'),
         accuracy=record.get('accuracy'),
+        reps=record.get('reps', 0),
+        symmetry_score=record.get('symmetry_score'),
+        balance_score=record.get('balance_score'),
+        stability_score=record.get('stability_score'),
+        rom_score=record.get('rom_score'),
+        hold_time=record.get('hold_time', 0.0),
+        tracking_quality=record.get('tracking_quality'),
+        failed_rules=record.get('failed_rules', [])
     )
+

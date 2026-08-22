@@ -1,124 +1,327 @@
 {% extends 'base.html' %}
 {% set active_page = 'poses' %}
 
-{% block title %}Yoga Poses &mdash; Posture Sense{% endblock %}
-{% block meta_desc %}Master yoga poses with AI guidance. Posture Sense detects and analyzes Warrior II, Tree Pose, Cobra Pose, and more with real-time form correction and alignment feedback.{% endblock %}
+{% block title %}Supported Yoga Poses &mdash; PostureSense AI{% endblock %}
+{% block meta_desc %}Explore the 4 configured yoga and posture calibration poses recognized by PostureSense AI with real-time 33-landmark perception and rule-based form evaluation.{% endblock %}
 
 {% block content %}
 
 <!-- Page hero -->
 <div class="ps-page-hero">
   <div class="wrap">
-    <p class="eyebrow">Pose library</p>
-    <h1>Supported Yoga Poses</h1>
-    <p>Learn the poses that Posture Sense can detect and help you perfect in real-time.</p>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <span class="eyebrow" style="margin:0">Pose Library</span>
+      <span class="chip cyan"><span class="pulse-dot" style="width:6px;height:6px"></span> 4 Configured Poses</span>
+    </div>
+    <h1>Explore Supported Poses</h1>
+    <p>PostureSense currently recognizes configured poses using real-time body landmarks and rule-based biomechanical analysis.</p>
   </div>
 </div>
 
-<!-- Poses section -->
+<!-- Main Poses Grid -->
 <div class="ps-section">
   <div class="wrap">
 
-    <!-- Warrior II -->
-    <div class="pose-item-card">
+    <!-- 01. Warrior II -->
+    <div class="pose-item-card" style="background:rgba(255,255,255,0.82);border:1px solid rgba(10,11,31,0.08);border-radius:20px;padding:32px;box-shadow:0 8px 24px -6px rgba(10,11,31,0.05);margin-bottom:40px">
       <img
         src="{{ url_for('static', filename='assets/img/yoga-poses/warrior-ii.jpg') }}"
-        alt="Warrior II Pose"
+        alt="Warrior II Pose - Virabhadrasana II"
         loading="lazy"
+        style="border-radius:14px"
       >
       <div>
-        <p class="pose-detail-no">01 &mdash; STRENGTH</p>
-        <h2 class="pose-detail-title">Warrior II Pose</h2>
-        <p class="pose-detail-sanskrit">VIRABHADRASANA II</p>
-        <p class="pose-detail-benefits">Strengthens legs, arms, and shoulders. Improves balance, stamina, and concentration. Opens the hips and chest.</p>
-        <ul class="pose-steps-list">
-          <li>Stand with feet wide apart</li>
-          <li>Turn right foot out 90&deg;, left foot slightly in</li>
-          <li>Extend arms parallel to the floor</li>
-          <li>Bend right knee to 90&deg;</li>
-          <li>Keep torso centered between legs</li>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+          <span class="pose-detail-no" style="color:var(--cyan);font-weight:700">01 &mdash; STRENGTH & ALIGNMENT</span>
+          <span class="chip cyan">Warrior II</span>
+        </div>
+        <h2 class="pose-detail-title" style="color:var(--fg-0);margin:4px 0">Warrior II Pose</h2>
+        <p class="pose-detail-sanskrit" style="color:var(--fg-2);font-weight:600;margin-bottom:12px">VIRABHADRASANA II</p>
+        <p class="pose-detail-benefits" style="color:var(--fg-2);line-height:1.6">Strengthens legs, arms, and shoulders. Opens hips and chest while developing single-leg stability and core focus.</p>
+
+        <!-- Rule bounds & measured joint angles -->
+        <div style="margin-top:16px;background:rgba(10,11,31,0.03);border:1px solid rgba(10,11,31,0.06);border-radius:12px;padding:16px">
+          <h4 style="margin:0 0 8px 0;font-size:13px;text-transform:uppercase;letter-spacing:0.05em;color:var(--fg-0)">Configured Rule Constraints</h4>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:10px;font-size:13px;color:var(--fg-2)">
+            <div><strong>Front Knee Bend:</strong> 80&deg; &ndash; 110&deg;</div>
+            <div><strong>Rear Knee Lock:</strong> 160&deg; &ndash; 180&deg;</div>
+            <div><strong>Left Shoulder Angle:</strong> 80&deg; &ndash; 105&deg;</div>
+            <div><strong>Right Shoulder Angle:</strong> 80&deg; &ndash; 105&deg;</div>
+          </div>
+        </div>
+
+        <h4 style="margin:18px 0 8px 0;font-size:14px;color:var(--fg-0)">Execution Steps:</h4>
+        <ul class="pose-steps-list" style="color:var(--fg-2)">
+          <li>Stand with feet wide apart (approx. 3.5 &ndash; 4 feet)</li>
+          <li>Turn right foot out 90&deg;, left foot slightly inward</li>
+          <li>Extend arms parallel to the floor in opposite directions</li>
+          <li>Bend front right knee directly over right ankle to 90&deg;</li>
+          <li>Keep torso upright and centered between legs</li>
         </ul>
+
         <div style="margin-top:24px">
-          <a href="{{ url_for('pose_detection') }}" class="btn btn-primary btn-sm">Try it live &rarr;</a>
+          <a href="{{ url_for('pose_detection') }}" class="btn btn-primary btn-sm">Try Warrior II Live &rarr;</a>
         </div>
       </div>
     </div>
 
-    <!-- T Pose -->
-    <div class="pose-item-card reverse">
+    <!-- 02. T Pose -->
+    <div class="pose-item-card reverse" style="background:rgba(255,255,255,0.82);border:1px solid rgba(10,11,31,0.08);border-radius:20px;padding:32px;box-shadow:0 8px 24px -6px rgba(10,11,31,0.05);margin-bottom:40px">
       <img
         src="{{ url_for('static', filename='assets/img/yoga-poses/t-pose.jpg') }}"
-        alt="T Pose"
+        alt="T Pose - Calibration Pose"
         loading="lazy"
+        style="border-radius:14px"
       >
       <div>
-        <p class="pose-detail-no">02 &mdash; POSTURE</p>
-        <h2 class="pose-detail-title">T Pose</h2>
-        <p class="pose-detail-sanskrit">CALIBRATION POSE</p>
-        <p class="pose-detail-benefits">Improves posture alignment, strengthens the shoulder girdle and upper back muscles. Used as a reference for body landmark calibration.</p>
-        <ul class="pose-steps-list">
-          <li>Stand with feet hip-width apart</li>
-          <li>Extend arms straight out to the sides</li>
-          <li>Keep shoulders rolled down and back</li>
-          <li>Maintain a straight, neutral spine</li>
-          <li>Engage core muscles throughout</li>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+          <span class="pose-detail-no" style="color:var(--magenta);font-weight:700">02 &mdash; POSTURE BASELINE</span>
+          <span class="chip magenta">T Pose</span>
+        </div>
+        <h2 class="pose-detail-title" style="color:var(--fg-0);margin:4px 0">T Pose</h2>
+        <p class="pose-detail-sanskrit" style="color:var(--fg-2);font-weight:600;margin-bottom:12px">CALIBRATION POSE</p>
+        <p class="pose-detail-benefits" style="color:var(--fg-2);line-height:1.6">Establishes anatomical baseline alignment, evaluates shoulder levelness, and tests bilateral arm extension symmetry.</p>
+
+        <!-- Rule bounds & measured joint angles -->
+        <div style="margin-top:16px;background:rgba(10,11,31,0.03);border:1px solid rgba(10,11,31,0.06);border-radius:12px;padding:16px">
+          <h4 style="margin:0 0 8px 0;font-size:13px;text-transform:uppercase;letter-spacing:0.05em;color:var(--fg-0)">Configured Rule Constraints</h4>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:10px;font-size:13px;color:var(--fg-2)">
+            <div><strong>Left Elbow Extension:</strong> 165&deg; &ndash; 195&deg;</div>
+            <div><strong>Right Elbow Extension:</strong> 165&deg; &ndash; 195&deg;</div>
+            <div><strong>Left Shoulder Angle:</strong> 80&deg; &ndash; 110&deg;</div>
+            <div><strong>Right Shoulder Angle:</strong> 80&deg; &ndash; 110&deg;</div>
+            <div><strong>Knee Extension:</strong> 160&deg; &ndash; 195&deg;</div>
+          </div>
+        </div>
+
+        <h4 style="margin:18px 0 8px 0;font-size:14px;color:var(--fg-0)">Execution Steps:</h4>
+        <ul class="pose-steps-list" style="color:var(--fg-2)">
+          <li>Stand tall with feet hip-width apart and toes pointing forward</li>
+          <li>Extend both arms straight out to the sides horizontally</li>
+          <li>Keep palms facing forward or down with elbows fully locked</li>
+          <li>Maintain a tall, neutral spine with shoulders rolled back</li>
+          <li>Engage core muscles and hold steady for calibration</li>
         </ul>
+
         <div style="margin-top:24px">
-          <a href="{{ url_for('pose_detection') }}" class="btn btn-primary btn-sm">Try it live &rarr;</a>
+          <a href="{{ url_for('pose_detection') }}" class="btn btn-primary btn-sm">Try T Pose Live &rarr;</a>
         </div>
       </div>
     </div>
 
-    <!-- Tree Pose -->
-    <div class="pose-item-card">
+    <!-- 03. Tree Pose -->
+    <div class="pose-item-card" style="background:rgba(255,255,255,0.82);border:1px solid rgba(10,11,31,0.08);border-radius:20px;padding:32px;box-shadow:0 8px 24px -6px rgba(10,11,31,0.05);margin-bottom:40px">
       <img
         src="{{ url_for('static', filename='assets/img/yoga-poses/tree-pose.jpg') }}"
-        alt="Tree Pose"
+        alt="Tree Pose - Vrikshasana"
         loading="lazy"
+        style="border-radius:14px"
       >
       <div>
-        <p class="pose-detail-no">03 &mdash; BALANCE</p>
-        <h2 class="pose-detail-title">Tree Pose</h2>
-        <p class="pose-detail-sanskrit">VRIKSHASANA</p>
-        <p class="pose-detail-benefits">Improves balance and coordination, strengthens the legs and core, enhances focus and mental clarity.</p>
-        <ul class="pose-steps-list">
-          <li>Stand on one leg, grounded through the foot</li>
-          <li>Place opposite foot on inner thigh or calf</li>
-          <li>Bring hands to prayer position at chest</li>
-          <li>Keep hips squared forward</li>
-          <li>Fix gaze on a still point ahead for balance</li>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+          <span class="pose-detail-no" style="color:var(--lime);font-weight:700">03 &mdash; BALANCE & STABILITY</span>
+          <span class="chip lime">Tree Pose</span>
+        </div>
+        <h2 class="pose-detail-title" style="color:var(--fg-0);margin:4px 0">Tree Pose</h2>
+        <p class="pose-detail-sanskrit" style="color:var(--fg-2);font-weight:600;margin-bottom:12px">VRIKSHASANA</p>
+        <p class="pose-detail-benefits" style="color:var(--fg-2);line-height:1.6">Improves single-leg balance, ankle stability, thigh strength, and mental focus while testing lateral body equilibrium.</p>
+
+        <!-- Rule bounds & measured joint angles -->
+        <div style="margin-top:16px;background:rgba(10,11,31,0.03);border:1px solid rgba(10,11,31,0.06);border-radius:12px;padding:16px">
+          <h4 style="margin:0 0 8px 0;font-size:13px;text-transform:uppercase;letter-spacing:0.05em;color:var(--fg-0)">Configured Rule Constraints</h4>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:10px;font-size:13px;color:var(--fg-2)">
+            <div><strong>Standing Leg Knee:</strong> 160&deg; &ndash; 180&deg;</div>
+            <div><strong>Lifted Leg Knee:</strong> 30&deg; &ndash; 90&deg;</div>
+          </div>
+        </div>
+
+        <h4 style="margin:18px 0 8px 0;font-size:14px;color:var(--fg-0)">Execution Steps:</h4>
+        <ul class="pose-steps-list" style="color:var(--fg-2)">
+          <li>Shift weight onto one standing foot, rooting firmly through the heel</li>
+          <li>Place opposite foot against inner thigh or calf (avoid pressing knee)</li>
+          <li>Bring hands together in prayer position at chest height</li>
+          <li>Keep hips level and squared straight forward</li>
+          <li>Fix gaze on a still point ahead to maintain steady balance</li>
         </ul>
+
         <div style="margin-top:24px">
-          <a href="{{ url_for('pose_detection') }}" class="btn btn-primary btn-sm">Try it live &rarr;</a>
+          <a href="{{ url_for('pose_detection') }}" class="btn btn-primary btn-sm">Try Tree Pose Live &rarr;</a>
         </div>
       </div>
     </div>
 
-    <!-- Cobra Pose -->
-    <div class="pose-item-card reverse">
+    <!-- 04. Cobra Pose -->
+    <div class="pose-item-card reverse" style="background:rgba(255,255,255,0.82);border:1px solid rgba(10,11,31,0.08);border-radius:20px;padding:32px;box-shadow:0 8px 24px -6px rgba(10,11,31,0.05);margin-bottom:40px">
       <img
         src="{{ url_for('static', filename='assets/img/yoga-poses/cobra-pose.jpg') }}"
-        alt="Cobra Pose"
+        alt="Cobra Pose - Bhujangasana"
         loading="lazy"
+        style="border-radius:14px"
       >
       <div>
-        <p class="pose-detail-no">04 &mdash; FLEXIBILITY</p>
-        <h2 class="pose-detail-title">Cobra Pose</h2>
-        <p class="pose-detail-sanskrit">BHUJANGASANA</p>
-        <p class="pose-detail-benefits">Strengthens the spine and back muscles, opens the chest and lungs, improves overall flexibility and posture.</p>
-        <ul class="pose-steps-list">
-          <li>Lie on stomach with hands under shoulders</li>
-          <li>Press into hands to lift the chest off the floor</li>
-          <li>Keep elbows close to the body</li>
-          <li>Engage back muscles, not just the arms</li>
-          <li>Look slightly upward, keeping neck long</li>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+          <span class="pose-detail-no" style="color:var(--amber);font-weight:700">04 &mdash; FLEXIBILITY & MOBILITY</span>
+          <span class="chip mono">Cobra Pose</span>
+        </div>
+        <h2 class="pose-detail-title" style="color:var(--fg-0);margin:4px 0">Cobra Pose</h2>
+        <p class="pose-detail-sanskrit" style="color:var(--fg-2);font-weight:600;margin-bottom:12px">BHUJANGASANA</p>
+        <p class="pose-detail-benefits" style="color:var(--fg-2);line-height:1.6">Strengthens the spine extensors, opens chest and lungs, and evaluates thoracic extension flexibility.</p>
+
+        <!-- Rule bounds & measured joint angles -->
+        <div style="margin-top:16px;background:rgba(10,11,31,0.03);border:1px solid rgba(10,11,31,0.06);border-radius:12px;padding:16px">
+          <h4 style="margin:0 0 8px 0;font-size:13px;text-transform:uppercase;letter-spacing:0.05em;color:var(--fg-0)">Configured Rule Constraints</h4>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:10px;font-size:13px;color:var(--fg-2)">
+            <div><strong>Spine Extension Arch:</strong> 10&deg; &ndash; 45&deg;</div>
+            <div><strong>Left/Right Hip Grounding:</strong> 150&deg; &ndash; 180&deg;</div>
+            <div><strong>Knee Extension:</strong> 160&deg; &ndash; 180&deg;</div>
+          </div>
+        </div>
+
+        <h4 style="margin:18px 0 8px 0;font-size:14px;color:var(--fg-0)">Execution Steps:</h4>
+        <ul class="pose-steps-list" style="color:var(--fg-2)">
+          <li>Lie prone on stomach with tops of feet flat on floor</li>
+          <li>Place hands beneath shoulders with elbows tucked close</li>
+          <li>Inhale and lift chest off the mat using back muscles</li>
+          <li>Keep hips grounded and shoulders away from ears</li>
+          <li>Maintain a long neck with eyes looking gently forward</li>
         </ul>
+
         <div style="margin-top:24px">
-          <a href="{{ url_for('pose_detection') }}" class="btn btn-primary btn-sm">Try it live &rarr;</a>
+          <a href="{{ url_for('pose_detection') }}" class="btn btn-primary btn-sm">Try Cobra Pose Live &rarr;</a>
         </div>
       </div>
     </div>
 
+  </div>
+</div>
+
+
+<!-- ================================================
+     HOW POSE RECOGNITION WORKS (RULE-BASED EXPLANATION)
+     ================================================ -->
+<section class="ps-section home-pipeline-section" style="background:rgba(244,245,251,0.6);border-top:1px solid rgba(10,11,31,0.06);border-bottom:1px solid rgba(10,11,31,0.06)">
+  <div class="wrap">
+    <div class="section-head center">
+      <span class="eyebrow no-rule">Perception Mechanics</span>
+      <h2>How Pose Recognition Works</h2>
+      <p>PostureSense relies on objective, rule-based 3D landmark geometry — not black-box cloud AI or streaming video servers.</p>
+    </div>
+
+    <div class="home-pipeline" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr))">
+      <div class="home-pipeline-step">
+        <span class="home-step-no">/01</span>
+        <h3>Camera Capture</h3>
+        <p>30–60 FPS video input captured via HTML5 MediaDevices API directly in your browser.</p>
+      </div>
+      <div class="home-pipeline-step">
+        <span class="home-step-no">/02</span>
+        <h3>WASM Extraction</h3>
+        <p>MediaPipe Tasks Vision WebAssembly extracts 33 3D body keypoints in a dedicated WebWorker.</p>
+      </div>
+      <div class="home-pipeline-step">
+        <span class="home-step-no">/03</span>
+        <h3>Landmark Smoothing</h3>
+        <p>Exponential Moving Average (EMA) filtering removes keypoint spatial jitter and recovers missing points.</p>
+      </div>
+      <div class="home-pipeline-step">
+        <span class="home-step-no">/04</span>
+        <h3>Joint Geometry</h3>
+        <p>3D vectors calculate exact joint angles (knees, hips, shoulders, spine, elbows) per frame.</p>
+      </div>
+      <div class="home-pipeline-step">
+        <span class="home-step-no">/05</span>
+        <h3>Rule Matching</h3>
+        <p>Measured joint angles are matched against bounds defined in <code>yoga_poses.json</code>.</p>
+      </div>
+      <div class="home-pipeline-step">
+        <span class="home-step-no">/06</span>
+        <h3>Hold State Machine</h3>
+        <p>Form quality gate triggers continuous hold timer while posture alignment is sustained.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================
+     WHAT CAN BE MEASURED (METRICS SUMMARY)
+     ================================================ -->
+<section class="ps-section">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Biomechanical Telemetry</span>
+      <h2>What can be measured during practice</h2>
+      <p>Every detected pose generates 8-dimensional telemetry logged upon session save.</p>
+    </div>
+
+    <div class="feature-grid" style="grid-template-columns:repeat(auto-fit, minmax(240px, 1fr))">
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <h3>Recognition Confidence</h3>
+        <p>Percentage match index between current joint angles and target pose rule bounds.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <h3>Hold Duration (s)</h3>
+        <p>Continuous seconds held with valid posture alignment before form degradation.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <h3>Bilateral Symmetry (%)</h3>
+        <p>Comparison of left vs right arm extension, leg alignment, and shoulder levelness.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <h3>Center of Mass Balance (%)</h3>
+        <p>Assessment of weight distribution and lateral body equilibrium over support base.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <h3>Form Stability (%)</h3>
+        <p>Postural sway and spatial keypoint variance over the duration of the hold.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <h3>Range of Motion (&deg;)</h3>
+        <p>Maximum angular articulation measured across joint flexions and extensions.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <h3>Tracking Quality (%)</h3>
+        <p>Confidence score indicating landmark visibility and camera detection reliability.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <h3>Overall Form Score</h3>
+        <p>Weighted 8-dimensional score summary evaluating complete posture performance.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================
+     CLOSING CTA
+     ================================================ -->
+<section class="ps-section home-cta-section">
+  <div class="wrap-narrow">
+    <div class="home-cta-card">
+      <div class="hud-corners"></div>
+      <span class="eyebrow no-rule">Ready to Practice?</span>
+      <h2>Test your posture form in real time.</h2>
+      <p>Launch live pose detection in your browser with standard camera access.</p>
+      <div class="home-cta-actions">
+        <a href="{{ url_for('pose_detection') }}" class="btn btn-primary btn-lg">Launch Live Demo &rarr;</a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-ghost btn-lg">View Dashboard V2</a>
+      </div>
+    </div>
   </div>
 </div>
 

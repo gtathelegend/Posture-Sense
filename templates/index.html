@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 {% set active_page = 'home' %}
 
-{% block title %}Posture Sense | AI-Powered Real-Time Posture Correction{% endblock %}
-{% block meta_desc %}Revolutionary AI smart mirror that provides real-time exercise feedback and posture correction using computer vision. Improve your workouts and maintain healthy posture.{% endblock %}
+{% block title %}PostureSense AI &mdash; Real-Time Posture & Movement Intelligence{% endblock %}
+{% block meta_desc %}Browser-native AI posture analysis platform providing real-time 33-landmark pose detection, biomechanical evaluation, form correction, and longitudinal progress tracking.{% endblock %}
 
 {% block content %}
 
 <!-- ================================================
-     HERO
+     HERO SECTION
      ================================================ -->
 <section class="home-hero">
   <div class="wrap">
@@ -18,59 +18,64 @@
         <div class="home-kicker">
           <span class="chip cyan">
             <span class="pulse-dot" style="width:6px;height:6px"></span>
-            AI-POWERED &middot; REAL-TIME &middot; ZERO WEARABLES
+            BROWSER-NATIVE WASM AI &middot; REAL-TIME PERCEPTION &middot; 100% PRIVATE
           </span>
         </div>
 
         <h1>
-          Real-Time<br>Posture Correction<br>
-          with <span class="grad-text">AI</span>
+          Posture intelligence,<br>
+          running privately<br>
+          <span class="grad-text">in your browser.</span>
         </h1>
 
         <p class="home-hero-lede">
-          Revolutionary AI smart mirror that provides real-time exercise feedback and
-          posture correction using computer vision. No wearables. No guesswork.
+          PostureSense uses browser-native computer vision and MediaPipe WebAssembly to analyze body movement in real time without sending your camera stream to the server.
         </p>
 
         <div class="home-hero-actions">
           <a href="{{ url_for('pose_detection') }}" class="btn btn-primary btn-lg">
-            Launch Live Demo &rarr;
+            Start Pose Detection &rarr;
           </a>
           <a href="{{ url_for('yoga_poses') }}" class="btn btn-ghost btn-lg">
-            View Poses
+            Explore Poses
           </a>
         </div>
 
-        <!-- Trust strip — proper 3-col grid -->
+        <!-- Trust strip — 4-col architecture badge grid -->
         <div class="home-metrics">
           <div class="home-metric">
-            <div class="home-metric-value">Live</div>
-            <div class="home-metric-label">AI Feedback</div>
+            <div class="home-metric-value">Local</div>
+            <div class="home-metric-label">WASM AI</div>
           </div>
           <div class="home-metric">
-            <div class="home-metric-value">6+</div>
-            <div class="home-metric-label">Pose Models</div>
+            <div class="home-metric-value">4 Poses</div>
+            <div class="home-metric-label">Configured</div>
+          </div>
+          <div class="home-metric">
+            <div class="home-metric-value">33 Pts</div>
+            <div class="home-metric-label">Landmarks</div>
           </div>
           <div class="home-metric">
             <div class="home-metric-value">Zero</div>
-            <div class="home-metric-label">Wearables</div>
+            <div class="home-metric-label">Video Uploads</div>
           </div>
         </div>
       </div>
 
-      <!-- Right: hero image -->
+      <!-- Right: hero image container -->
       <div class="home-hero-img">
         <div class="hud-corners"></div>
         <img
           src="{{ url_for('static', filename='assets/img/hero-img.jpeg') }}"
-          alt="Posture Sense AI-Powered Smart Mirror for Real-Time Exercise Correction"
+          alt="PostureSense Real-Time Pose Detection and Biomechanical Evaluation Interface"
         >
         <div class="home-hero-img-overlay"></div>
-        <div style="position:absolute;bottom:20px;left:20px">
+        <div style="position:absolute;bottom:20px;left:20px;display:flex;gap:8px">
           <span class="chip lime">
             <span class="pulse-dot" style="width:6px;height:6px"></span>
-            LIVE DETECTION
+            LOCAL WASM ACTIVE
           </span>
+          <span class="chip mono">30–60 FPS</span>
         </div>
       </div>
 
@@ -79,40 +84,80 @@
 </section>
 
 <!-- ================================================
-     MOTION STRIP
+     MOTION CAPABILITIES MARQUEE STRIP
      ================================================ -->
-<section class="home-marquee" aria-label="Posture Sense capabilities">
+<section class="home-marquee" aria-label="PostureSense system capabilities">
   <div class="home-marquee-track">
-    <span>REAL-TIME SKELETAL TRACKING</span>
+    <span>BROWSER-NATIVE WASM</span>
     <span>MEDIAPIPE &middot; 33 LANDMARKS</span>
-    <span>POSTURE CLASSIFICATION</span>
-    <span>BIOMETRIC FEEDBACK LOOP</span>
-    <span>YOGA &middot; STRENGTH &middot; MOBILITY</span>
-    <span>ZERO WEARABLES</span>
-    <span>WEBCAM-NATIVE</span>
-    <span>REAL-TIME SKELETAL TRACKING</span>
+    <span>RULE-BASED POSE CLASSIFICATION</span>
+    <span>8D BIOMETRIC EVALUATION</span>
+    <span>OFF-MAIN-THREAD WEBWORKER</span>
+    <span>ZERO VIDEO TRANSMISSION</span>
+    <span>100% PRIVATE & ON-DEVICE</span>
+    <span>BROWSER-NATIVE WASM</span>
     <span>MEDIAPIPE &middot; 33 LANDMARKS</span>
-    <span>POSTURE CLASSIFICATION</span>
-    <span>BIOMETRIC FEEDBACK LOOP</span>
-    <span>YOGA &middot; STRENGTH &middot; MOBILITY</span>
-    <span>ZERO WEARABLES</span>
-    <span>WEBCAM-NATIVE</span>
+    <span>RULE-BASED POSE CLASSIFICATION</span>
+    <span>8D BIOMETRIC EVALUATION</span>
+    <span>OFF-MAIN-THREAD WEBWORKER</span>
+    <span>ZERO VIDEO TRANSMISSION</span>
+    <span>100% PRIVATE & ON-DEVICE</span>
   </div>
 </section>
 
 
 <!-- ================================================
-     FEATURES (#features)
+     LIVE PERCEPTION PIPELINE EXPLANATION
+     ================================================ -->
+<section class="ps-section home-pipeline-section">
+  <div class="wrap">
+    <div class="section-head center">
+      <span class="eyebrow no-rule">Live Perception Pipeline</span>
+      <h2>How on-device detection works</h2>
+      <p>Your camera feed stays in your browser. Every video frame moves through a 4-step local analysis loop.</p>
+    </div>
+
+    <div class="home-pipeline">
+      <div class="home-pipeline-step">
+        <span class="home-step-no">/01</span>
+        <h3>Camera Capture</h3>
+        <p>HTML5 MediaDevices API accesses your webcam locally. No video bytes leave your device.</p>
+        <code>MediaDevices.getUserMedia()</code>
+      </div>
+      <div class="home-pipeline-step">
+        <span class="home-step-no">/02</span>
+        <h3>WASM Inference</h3>
+        <p>MediaPipe Tasks Vision WebAssembly extracts 33 3D body keypoints off the main thread in a WebWorker.</p>
+        <code>poseLandmarker.detect()</code>
+      </div>
+      <div class="home-pipeline-step">
+        <span class="home-step-no">/03</span>
+        <h3>Biomechanics</h3>
+        <p>EMA filtering smoothes spatial jitter while joint angles, symmetry, balance, and stability are calculated.</p>
+        <code>calculateBiomechanics()</code>
+      </div>
+      <div class="home-pipeline-step">
+        <span class="home-step-no">/04</span>
+        <h3>Rule & Cues</h3>
+        <p>Measured joint angles are matched against configured rules in <code>yoga_poses.json</code> to output real-time cues.</p>
+        <code>evaluatePoseRules()</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================
+     WHAT POSTURESENSE MEASURES (METRICS GRID)
      ================================================ -->
 <section id="features" class="ps-section">
   <div class="wrap">
 
     <div class="section-head">
-      <span class="eyebrow">Capabilities</span>
-      <h2>Everything your form needs</h2>
+      <span class="eyebrow">Biomechanical Metrics</span>
+      <h2>What PostureSense measures</h2>
       <p>
-        Posture Sense combines computer vision and AI to give you a complete
-        picture of your movement, in real time.
+        Every posture session evaluates 8 core movement dimensions in real time using objective geometric calculations.
       </p>
     </div>
 
@@ -120,253 +165,83 @@
 
       <div class="feature-card">
         <div class="feature-card-bar"></div>
-        <div class="feature-card-icon">🤖</div>
-        <h3>AI Posture Detection</h3>
-        <p>MediaPipe skeleton tracking identifies joint angles and body alignment across dozens of exercise patterns.</p>
+        <div class="feature-card-icon">🎯</div>
+        <h3>Form Score (0–100%)</h3>
+        <p>Evaluates how accurately your joint positions match the target angle constraints defined in the pose configuration.</p>
       </div>
 
       <div class="feature-card">
         <div class="feature-card-bar"></div>
-        <div class="feature-card-icon">⚡</div>
-        <h3>Real-Time Feedback</h3>
-        <p>Frame-by-frame corrections delivered instantly — no delay between what your body does and what the system sees.</p>
+        <div class="feature-card-icon">⚖️</div>
+        <h3>Biomechanical Symmetry</h3>
+        <p>Compares left and right limb extension, shoulder height levelness, and lateral body alignment.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <div class="feature-card-icon">🧘</div>
+        <h3>Center of Mass Balance</h3>
+        <p>Measures body mass distribution over your support base to detect lean and sway during posture holds.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <div class="feature-card-icon">🛡️</div>
+        <h3>Form Stability</h3>
+        <p>Quantifies spatial steadiness over time, detecting subtle trembling or postural instability.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <div class="feature-card-icon">📐</div>
+        <h3>Range of Motion (ROM)</h3>
+        <p>Calculates exact joint articulation angles (knees, hips, shoulders, spine) during movement transitions.</p>
       </div>
 
       <div class="feature-card">
         <div class="feature-card-bar"></div>
         <div class="feature-card-icon">📷</div>
-        <h3>Camera-Only AI</h3>
-        <p>Works with any standard webcam. No depth sensors, no wearable hardware, no setup friction.</p>
+        <h3>Tracking Quality</h3>
+        <p>Monitors keypoint visibility confidence so you know when lighting or distance affects camera detection.</p>
       </div>
 
       <div class="feature-card">
         <div class="feature-card-bar"></div>
-        <div class="feature-card-icon" style="background:var(--lime-soft);border-color:oklch(0.88 0.22 135 / 0.2)">✅</div>
-        <h3>Correct Posture Display</h3>
-        <p>Reference skeleton overlays show ideal form side-by-side with your live movement for instant visual correction.</p>
+        <div class="feature-card-icon">⏱️</div>
+        <h3>Sustained Hold Time</h3>
+        <p>Tracks the continuous duration a recognized static pose is held with correct form.</p>
       </div>
 
       <div class="feature-card">
         <div class="feature-card-bar"></div>
-        <div class="feature-card-icon" style="background:var(--magenta-soft);border-color:oklch(0.70 0.24 330 / 0.2)">📊</div>
-        <h3>Exercise Analytics</h3>
-        <p>Rep counts, accuracy scores, and session history logged automatically to your personal dashboard.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-card-bar"></div>
-        <div class="feature-card-icon" style="background:oklch(0.82 0.18 75 / 0.15);border-color:oklch(0.82 0.18 75 / 0.2)">🎯</div>
-        <h3>Better Results</h3>
-        <p>Consistent form correction means faster progress, fewer injuries, and workouts that actually work.</p>
+        <div class="feature-card-icon">🔢</div>
+        <h3>Repetitions & Tempo</h3>
+        <p>Counts completed exercise reps using state machine transition gates and range-of-motion depth thresholds.</p>
       </div>
 
     </div>
   </div>
 </section>
 
-<!-- ================================================
-     PRODUCT LOOP
-     ================================================ -->
-<section class="ps-section home-loop-section">
-  <div class="wrap">
-    <div class="section-head home-split-head">
-      <div>
-        <span class="eyebrow">System loop</span>
-        <h2>See. Classify. Correct. Log.</h2>
-      </div>
-      <p>
-        The same motion-rich modules from the landing experience, adapted for the
-        product home page.
-      </p>
-    </div>
-
-    <div class="home-loop-grid">
-      <div class="home-loop-card accent-cyan">
-        <div class="home-loop-card-head">
-          <span class="mono">01</span>
-          <span class="chip cyan">33 pts</span>
-        </div>
-        <h3>Skeletal mesh overlay</h3>
-        <p>Tracks full-body landmarks per frame so posture cues are grounded in actual joint positions.</p>
-        <div class="home-loop-bar"></div>
-      </div>
-
-      <div class="home-loop-card accent-magenta">
-        <div class="home-loop-card-head">
-          <span class="mono">02</span>
-          <span class="chip magenta">6+ poses</span>
-        </div>
-        <h3>Posture classification</h3>
-        <p>Recognizes supported yoga and exercise patterns from live webcam movement.</p>
-        <div class="home-loop-bar"></div>
-      </div>
-
-      <div class="home-loop-card accent-lime">
-        <div class="home-loop-card-head">
-          <span class="mono">03</span>
-          <span class="chip lime">live</span>
-        </div>
-        <h3>Form correction</h3>
-        <p>Surfaces alignment issues while you move, before small mistakes become repeated habits.</p>
-        <div class="home-loop-bar"></div>
-      </div>
-
-      <div class="home-loop-card accent-cyan">
-        <div class="home-loop-card-head">
-          <span class="mono">04</span>
-          <span class="chip cyan">history</span>
-        </div>
-        <h3>Session analytics</h3>
-        <p>Logs pose history, accuracy, and progress signals inside a personal dashboard.</p>
-        <div class="home-loop-bar"></div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- ================================================
-     PIPELINE
-     ================================================ -->
-<section class="ps-section home-pipeline-section">
-  <div class="wrap">
-    <div class="section-head center">
-      <span class="eyebrow no-rule">Pipeline</span>
-      <h2>From pixels to posture cues.</h2>
-      <p>Every frame moves through a simple real-time feedback loop.</p>
-    </div>
-
-    <div class="home-pipeline">
-      <div class="home-pipeline-step">
-        <span class="home-step-no">/01</span>
-        <h3>Capture</h3>
-        <p>Your webcam feeds movement into the pose pipeline.</p>
-        <code>camera.stream()</code>
-      </div>
-      <div class="home-pipeline-step">
-        <span class="home-step-no">/02</span>
-        <h3>Infer</h3>
-        <p>MediaPipe extracts full-body landmarks in real time.</p>
-        <code>pose.estimate(frame)</code>
-      </div>
-      <div class="home-pipeline-step">
-        <span class="home-step-no">/03</span>
-        <h3>Classify</h3>
-        <p>Angles and proportions are scored against pose rules.</p>
-        <code>classify(angles)</code>
-      </div>
-      <div class="home-pipeline-step">
-        <span class="home-step-no">/04</span>
-        <h3>Feedback</h3>
-        <p>Corrections appear instantly so you can adjust form.</p>
-        <code>render(cue)</code>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- ================================================
-     DETAILS / ABOUT (#about)
-     ================================================ -->
-<section id="about" class="ps-section">
-  <div class="wrap-narrow">
-
-    <div class="section-head">
-      <span class="eyebrow">Details</span>
-      <h2>How it works</h2>
-    </div>
-
-    <!-- Row 1 -->
-    <div class="detail-row">
-      <div class="detail-img">
-        <img
-          src="{{ url_for('static', filename='assets/img/details-1.png') }}"
-          alt="Posture Sense AI Posture Correction Feature"
-        >
-      </div>
-      <div class="detail-text">
-        <span class="eyebrow no-rule">01</span>
-        <h3 style="margin-top:12px">Intelligent Posture Correction</h3>
-        <p style="margin-top:12px">
-          Posture Sense uses AI-driven motion tracking to analyze your movements
-          and provide instant posture corrections while you exercise.
-        </p>
-        <ul class="detail-list">
-          <li><strong>AI-Powered Accuracy</strong><span>Detects improper posture and suggests corrections in real time.</span></li>
-          <li><strong>Real-Time Feedback</strong><span>Get instant alerts and adjustments for better form every rep.</span></li>
-          <li><strong>Injury Prevention</strong><span>Reduce the risk of strains and improve workout efficiency long-term.</span></li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Row 2 (reversed) -->
-    <div class="detail-row reverse">
-      <div class="detail-img">
-        <img
-          src="{{ url_for('static', filename='assets/img/details-2.png') }}"
-          alt="Posture Sense Seamless AI Fitness Integration"
-        >
-      </div>
-      <div class="detail-text">
-        <span class="eyebrow no-rule">02</span>
-        <h3 style="margin-top:12px">Seamless Fitness Integration</h3>
-        <p style="margin-top:12px">
-          Posture Sense revolutionizes the way you work out by seamlessly integrating
-          AI-driven posture correction into your daily routine. As you exercise, the
-          smart mirror analyzes your movements in real-time, identifying improper posture
-          and providing instant corrections.
-        </p>
-        <p style="margin-top:14px">
-          With intelligent motion tracking, every squat, push-up, or yoga pose is
-          performed with precision and safety, reducing the risk of injuries and maximizing
-          workout efficiency.
-        </p>
-      </div>
-    </div>
-
-    <!-- Row 3 -->
-    <div class="detail-row">
-      <div class="detail-img">
-        <img
-          src="{{ url_for('static', filename='assets/img/details-3.png') }}"
-          alt="Posture Sense AI Technology for Better Movement"
-        >
-      </div>
-      <div class="detail-text">
-        <span class="eyebrow no-rule">03</span>
-        <h3 style="margin-top:12px">Cutting-Edge AI Technology</h3>
-        <p style="margin-top:12px">
-          Posture Sense analyzes your body movements and provides instant feedback for
-          an optimized fitness experience.
-        </p>
-        <ul class="detail-list">
-          <li><strong>Personalized AI Coaching</strong><span>Tailored feedback for your unique posture and movement patterns.</span></li>
-          <li><strong>Progress Tracking</strong><span>Monitor improvements over time with session-by-session data.</span></li>
-          <li><strong>Interactive Workouts</strong><span>Follow guided sessions for better, safer results.</span></li>
-        </ul>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<!-- ================================================
-     POSE LIBRARY PREVIEW
+     SUPPORTED POSES PREVIEW (FROM YOGA_POSES.JSON)
      ================================================ -->
 <section class="ps-section home-poses-section">
   <div class="wrap">
     <div class="section-head home-split-head">
       <div>
-        <span class="eyebrow">Pose library</span>
-        <h2>Poses we speak.</h2>
+        <span class="eyebrow">Configured Poses</span>
+        <h2>Poses recognized by PostureSense</h2>
       </div>
-      <a href="{{ url_for('yoga_poses') }}" class="btn btn-ghost">Browse poses &rarr;</a>
+      <a href="{{ url_for('yoga_poses') }}" class="btn btn-ghost">Explore all poses &rarr;</a>
     </div>
 
     <div class="home-pose-grid">
+      <!-- Warrior II -->
       <a href="{{ url_for('yoga_poses') }}" class="home-pose-card" style="--pose-hue:210">
         <div class="home-pose-art pose-warrior">
-          <span class="chip">Intermediate</span>
+          <span class="chip">Strength</span>
           <svg class="home-pose-skeleton" viewBox="0 0 120 140" aria-hidden="true">
             <circle cx="60" cy="22" r="7"></circle>
             <path d="M60 29 L60 62"></path>
@@ -380,12 +255,37 @@
         </div>
         <div class="home-pose-body">
           <span class="mono">01 / Virabhadrasana II</span>
-          <strong>Warrior II</strong>
+          <strong>Warrior II Pose</strong>
+          <p style="font-size:13px;color:var(--fg-2);margin-top:4px">Evaluates front knee bend (80–110°), rear knee lock (160–180°), and horizontal arm extension.</p>
         </div>
       </a>
+
+      <!-- T Pose -->
+      <a href="{{ url_for('yoga_poses') }}" class="home-pose-card" style="--pose-hue:70">
+        <div class="home-pose-art pose-t">
+          <span class="chip">Calibration</span>
+          <svg class="home-pose-skeleton pose-skeleton-t" viewBox="0 0 140 140" aria-hidden="true">
+            <circle cx="70" cy="22" r="7"></circle>
+            <path d="M70 29 L70 70"></path>
+            <path d="M28 46 L70 46 L112 46"></path>
+            <path d="M70 70 L56 122"></path>
+            <path d="M70 70 L84 122"></path>
+            <circle cx="70" cy="70" r="2.5"></circle>
+            <circle cx="28" cy="46" r="2.5"></circle>
+            <circle cx="112" cy="46" r="2.5"></circle>
+          </svg>
+        </div>
+        <div class="home-pose-body">
+          <span class="mono">02 / Calibration Pose</span>
+          <strong>T Pose</strong>
+          <p style="font-size:13px;color:var(--fg-2);margin-top:4px">Baseline posture alignment testing horizontal elbow extension (165–195°) and shoulder levelness.</p>
+        </div>
+      </a>
+
+      <!-- Tree Pose -->
       <a href="{{ url_for('yoga_poses') }}" class="home-pose-card" style="--pose-hue:140">
         <div class="home-pose-art pose-tree">
-          <span class="chip">Beginner</span>
+          <span class="chip">Balance</span>
           <svg class="home-pose-skeleton" viewBox="0 0 120 140" aria-hidden="true">
             <circle cx="60" cy="22" r="7"></circle>
             <path d="M60 29 L60 62"></path>
@@ -399,13 +299,16 @@
           </svg>
         </div>
         <div class="home-pose-body">
-          <span class="mono">02 / Vrikshasana</span>
-          <strong>Tree</strong>
+          <span class="mono">03 / Vrikshasana</span>
+          <strong>Tree Pose</strong>
+          <p style="font-size:13px;color:var(--fg-2);margin-top:4px">Measures single-leg standing balance (160–180° knee) and lifted knee outward rotation (30–90°).</p>
         </div>
       </a>
+
+      <!-- Cobra Pose -->
       <a href="{{ url_for('yoga_poses') }}" class="home-pose-card" style="--pose-hue:340">
         <div class="home-pose-art pose-cobra">
-          <span class="chip">Beginner</span>
+          <span class="chip">Flexibility</span>
           <svg class="home-pose-skeleton" viewBox="0 0 160 120" aria-hidden="true">
             <circle cx="106" cy="36" r="7"></circle>
             <path d="M101 43 C88 52 81 66 72 82"></path>
@@ -420,119 +323,323 @@
           </svg>
         </div>
         <div class="home-pose-body">
-          <span class="mono">03 / Bhujangasana</span>
-          <strong>Cobra</strong>
-        </div>
-      </a>
-      <a href="{{ url_for('yoga_poses') }}" class="home-pose-card" style="--pose-hue:70">
-        <div class="home-pose-art pose-t">
-          <span class="chip">Setup</span>
-          <svg class="home-pose-skeleton pose-skeleton-t" viewBox="0 0 140 140" aria-hidden="true">
-            <circle cx="70" cy="22" r="7"></circle>
-            <path d="M70 29 L70 70"></path>
-            <path d="M28 46 L70 46 L112 46"></path>
-            <path d="M70 70 L56 122"></path>
-            <path d="M70 70 L84 122"></path>
-            <circle cx="70" cy="70" r="2.5"></circle>
-            <circle cx="28" cy="46" r="2.5"></circle>
-            <circle cx="112" cy="46" r="2.5"></circle>
-          </svg>
-        </div>
-        <div class="home-pose-body">
-          <span class="mono">04 / Calibration</span>
-          <strong>T-Pose</strong>
+          <span class="mono">04 / Bhujangasana</span>
+          <strong>Cobra Pose</strong>
+          <p style="font-size:13px;color:var(--fg-2);margin-top:4px">Evaluates thoracic spine extension (10–45° arch) and grounded hip alignment (150–180°).</p>
         </div>
       </a>
     </div>
   </div>
 </section>
 
+
 <!-- ================================================
-     STATS
+     REAL-TIME FEEDBACK IN ACTION
+     ================================================ -->
+<section class="ps-section home-loop-section">
+  <div class="wrap">
+    <div class="section-head home-split-head">
+      <div>
+        <span class="eyebrow">Feedback Engine</span>
+        <h2>Real-time guidance as you practice</h2>
+      </div>
+      <p>
+        PostureSense provides dynamic visual feedback on screen during your practice session without interrupting your movement.
+      </p>
+    </div>
+
+    <div class="home-loop-grid">
+      <div class="home-loop-card accent-cyan">
+        <div class="home-loop-card-head">
+          <span class="mono">01</span>
+          <span class="chip cyan">Recognition</span>
+        </div>
+        <h3>Pose & Confidence Meter</h3>
+        <p>Instantly shows which pose is detected along with real-time classification confidence percentage.</p>
+        <div class="home-loop-bar"></div>
+      </div>
+
+      <div class="home-loop-card accent-magenta">
+        <div class="home-loop-card-head">
+          <span class="mono">02</span>
+          <span class="chip magenta">Live Cues</span>
+        </div>
+        <h3>Form Correction Badges</h3>
+        <p>Highlights specific form violations (e.g., "bend front knee further", "level shoulders") as rule checks fail.</p>
+        <div class="home-loop-bar"></div>
+      </div>
+
+      <div class="home-loop-card accent-lime">
+        <div class="home-loop-card-head">
+          <span class="mono">03</span>
+          <span class="chip lime">Timers</span>
+        </div>
+        <h3>Hold & Rep Tracking</h3>
+        <p>Tracks continuous hold duration for static poses and counts completed repetitions for dynamic exercises.</p>
+        <div class="home-loop-bar"></div>
+      </div>
+
+      <div class="home-loop-card accent-cyan">
+        <div class="home-loop-card-head">
+          <span class="mono">04</span>
+          <span class="chip cyan">Overlay</span>
+        </div>
+        <h3>Skeletal Landmark Canvas</h3>
+        <p>Renders high-DPI keypoint overlays colored by tracking confidence directly over your live video preview.</p>
+        <div class="home-loop-bar"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================
+     PROGRESS & ANALYTICS
      ================================================ -->
 <section class="ps-section home-stats-section">
   <div class="wrap">
-    <div class="home-stat-grid">
+    <div class="section-head center">
+      <span class="eyebrow no-rule">Longitudinal Intelligence</span>
+      <h2>What happens after your session</h2>
+      <p>Every completed session builds your personal posture intelligence dataset.</p>
+    </div>
+
+    <div style="margin-top:32px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
+      <span class="chip cyan">Practice Session</span> &rarr;
+      <span class="chip magenta">Session Summary</span> &rarr;
+      <span class="chip lime">Dashboard V2</span> &rarr;
+      <span class="chip mono">Progress Trends</span> &rarr;
+      <span class="chip cyan">Personal Records</span> &rarr;
+      <span class="chip magenta">Authenticated Reports</span>
+    </div>
+
+    <div class="home-stat-grid" style="margin-top:40px">
       <div class="home-stat-item">
-        <div class="home-stat-num">33</div>
-        <div class="home-stat-label">Skeletal keypoints</div>
-        <p>Full-body landmark tracking for posture-aware feedback.</p>
+        <div class="home-stat-num">Trend Slope</div>
+        <div class="home-stat-label">Progress Analytics</div>
+        <p>Calculates linear regression trends over 7-day, 30-day, or all-time practice periods.</p>
       </div>
       <div class="home-stat-item">
-        <div class="home-stat-num">&lt;100ms</div>
-        <div class="home-stat-label">Real-time loop</div>
-        <p>Fast pose processing for immediate exercise correction.</p>
+        <div class="home-stat-num">7 Records</div>
+        <div class="home-stat-label">Personal Records</div>
+        <p>Automatically tracks best score, longest hold time, top symmetry, stability, and ROM.</p>
       </div>
       <div class="home-stat-item">
-        <div class="home-stat-num">0</div>
-        <div class="home-stat-label">Wearables required</div>
-        <p>Runs with a standard webcam and a modern browser.</p>
+        <div class="home-stat-num">Rule-Based</div>
+        <div class="home-stat-label">Deterministic Insights</div>
+        <p>Surfaces action items based on form rule history without black-box AI hallucinations.</p>
       </div>
+    </div>
+
+    <div style="text-align:center;margin-top:36px">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary">View Dashboard V2 &rarr;</a>
     </div>
   </div>
 </section>
 
 
 <!-- ================================================
-     TEAM (#team)
+     REPORTS SUBSYSTEM & EXPORTS
      ================================================ -->
-<section id="team" class="ps-section">
+<section class="ps-section">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Reports Subsystem</span>
+      <h2>Comprehensive reporting & exports</h2>
+      <p>Export your movement data for personal tracking, coaching reviews, or health records.</p>
+    </div>
+
+    <div class="feature-grid" style="grid-template-columns:repeat(auto-fit, minmax(260px, 1fr))">
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <h3>Session Report</h3>
+        <p>Single-session breakdown featuring overall form score, joint angle summary, biomechanics radar, and failed rules.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <h3>Progress Report</h3>
+        <p>Longitudinal progress evaluation analyzing practice frequency, average score movement, and personal records.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <h3>Pose / Exercise Report</h3>
+        <p>Pose-specific history compiling all practice attempts, best form scores, and hold duration records for a single pose.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-bar"></div>
+        <h3>Comprehensive Report</h3>
+        <p>Portfolio executive overview summarizing overall progress, score trends, biomechanics trends, and session logs.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:32px;background:rgba(255,255,255,0.78);border:1px solid rgba(10,11,31,0.08);border-radius:16px;padding:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+      <div>
+        <h4 style="margin:0;font-size:16px;color:var(--fg-0)">Multi-Format Authenticated Exports</h4>
+        <p style="margin:4px 0 0 0;font-size:14px;color:var(--fg-2)">Download your reports on-demand in PDF, RFC-8259 JSON (schema v2.0.0), or RFC-4180 CSV formats.</p>
+      </div>
+      {% if current_user.is_authenticated %}
+      <a href="{{ url_for('dashboard.view_progress_report') }}" class="btn btn-ghost btn-sm">Explore Reports &rarr;</a>
+      {% else %}
+      <a href="{{ url_for('login') }}" class="btn btn-ghost btn-sm">Sign in to Export &rarr;</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================================
+     PRIVACY & SECURITY GUARANTEE
+     ================================================ -->
+<section id="about" class="ps-section">
   <div class="wrap-narrow">
 
     <div class="section-head">
-      <span class="eyebrow">People</span>
-      <h2>Meet the team</h2>
-      <p>Built at Vivekananda Global University, Jaipur.</p>
+      <span class="eyebrow">Privacy & Security</span>
+      <h2>100% On-Device Perception</h2>
     </div>
 
-    <div class="team-grid">
-
-      <div class="team-card">
-        <div class="team-avatar">
-          <span>VS</span>
-          <div class="team-avatar-ring"></div>
-        </div>
-        <div class="team-card-body">
-          <div class="team-card-name">Vedaang Sharma</div>
-          <div class="team-card-role">Lead Developer</div>
-          <div class="team-card-links">
-            <a href="https://linkedin.com/in/vedaangsharma2006" target="_blank" class="chip">LinkedIn</a>
-            <a href="https://github.com/gtathelegend" target="_blank" class="chip">GitHub</a>
-          </div>
-        </div>
+    <div class="detail-row">
+      <div class="detail-img">
+        <img
+          src="{{ url_for('static', filename='assets/img/details-1.png') }}"
+          alt="PostureSense On-Device Browser WASM Perception"
+        >
       </div>
-
-      <div class="team-card">
-        <div class="team-avatar" style="background:linear-gradient(135deg, var(--magenta), var(--amber))">
-          <span>TB</span>
-          <div class="team-avatar-ring"></div>
-        </div>
-        <div class="team-card-body">
-          <div class="team-card-name">Trisha Bohra</div>
-          <div class="team-card-role">Co-Developer</div>
-          <div class="team-card-links">
-            <span class="chip">VGU &middot; Jaipur</span>
-          </div>
-        </div>
+      <div class="detail-text">
+        <span class="eyebrow no-rule">01</span>
+        <h3 style="margin-top:12px">Local WebAssembly Execution</h3>
+        <p style="margin-top:12px">
+          PostureSense performs 100% of computer vision pose detection inside your web browser using MediaPipe WebAssembly. Your webcam feed never leaves your device.
+        </p>
+        <ul class="detail-list">
+          <li><strong>Zero Video Transmission</strong><span>No video frames or raw webcam images are ever uploaded to cloud servers.</span></li>
+          <li><strong>Zero Raw Landmark Persistence</strong><span>Raw 33-point keypoint streams are processed transiently in memory and discarded.</span></li>
+          <li><strong>Telemetry-Only Saving</strong><span>Only finalized session metrics (scores, duration, rep counts) are saved upon explicit user save.</span></li>
+        </ul>
       </div>
-
     </div>
+
+    <div class="detail-row reverse">
+      <div class="detail-img">
+        <img
+          src="{{ url_for('static', filename='assets/img/details-2.png') }}"
+          alt="PostureSense User Isolation and Security"
+        >
+      </div>
+      <div class="detail-text">
+        <span class="eyebrow no-rule">02</span>
+        <h3 style="margin-top:12px">Authenticated User Data Isolation</h3>
+        <p style="margin-top:12px">
+          All persisted session summaries, analytics, and report downloads are protected with strict user isolation guards (IDOR protection).
+        </p>
+        <p style="margin-top:14px">
+          Your practice history remains strictly private to your authenticated account, protected by encrypted session cookies and strict CORS policies.
+        </p>
+      </div>
+    </div>
+
   </div>
 </section>
 
+
 <!-- ================================================
-     CTA
+     TEAM SECTION
+     ================================================ -->
+<section id="team" class="ps-section creator-section">
+  <div class="wrap-narrow">
+
+    <div class="section-head text-center">
+      <span class="eyebrow">ENGINEERING TEAM</span>
+      <h2>Built with engineering, vision &amp; curiosity.</h2>
+      <p class="creator-lead">PostureSense was designed and developed as a browser-native computer vision platform, combining real-time perception, biomechanics, analytics, and production engineering.</p>
+      <p class="creator-sub">Developed at Vivekananda Global University, Jaipur.</p>
+    </div>
+
+    <div class="creator-card-wrapper">
+      <div class="creator-card">
+
+        <div class="creator-avatar-wrapper">
+          <div class="creator-avatar" aria-label="Vedaang Sharma initials avatar">
+            <span class="creator-avatar-initials">VS</span>
+            <div class="creator-avatar-ring" aria-hidden="true"></div>
+            <div class="creator-avatar-ring-dashed" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <div class="creator-body">
+          <div class="creator-header">
+            <h3 class="creator-name">Vedaang Sharma</h3>
+            <span class="creator-role">Lead Developer &amp; Architect</span>
+          </div>
+
+          <p class="creator-bio">
+            Designed and engineered PostureSense v2 across its browser-native perception pipeline, biomechanics analysis, rule-based pose recognition, scoring, analytics, dashboard, reporting, and production architecture.
+          </p>
+
+          <div class="creator-focus-block">
+            <div class="creator-focus-label">FOCUS</div>
+            <div class="creator-focus-tags">
+              <span class="creator-focus-chip">Browser Computer Vision</span>
+              <span class="creator-focus-chip">Biomechanics</span>
+              <span class="creator-focus-chip">Real-Time Systems</span>
+              <span class="creator-focus-chip">Analytics &amp; Product Architecture</span>
+            </div>
+          </div>
+
+          <div class="creator-footer">
+            <div class="creator-actions">
+              <a href="https://linkedin.com/in/vedaangsharma2006" target="_blank" rel="noopener noreferrer" class="creator-btn" aria-label="Vedaang Sharma on LinkedIn">
+                <svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
+                </svg>
+                <span>LinkedIn</span>
+              </a>
+
+              <a href="https://github.com/gtathelegend" target="_blank" rel="noopener noreferrer" class="creator-btn" aria-label="Vedaang Sharma on GitHub">
+                <svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/>
+                </svg>
+                <span>GitHub</span>
+              </a>
+
+              <a href="https://vedaangsharma.dev" target="_blank" rel="noopener noreferrer" class="creator-btn creator-btn-primary" aria-label="Vedaang Sharma Portfolio">
+                <span>Portfolio</span>
+                <svg class="btn-icon ext-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="7" y1="17" x2="17" y2="7"></line>
+                  <polyline points="7 7 17 7 17 17"></polyline>
+                </svg>
+              </a>
+            </div>
+
+            <div class="creator-meta">
+              <span class="meta-tag">POSTURESENSE V2</span>
+              <span class="meta-separator" aria-hidden="true">•</span>
+              <span class="meta-label">Browser-Native Computer Vision Platform</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ================================================
+     FINAL CLOSING CTA
      ================================================ -->
 <section class="ps-section home-cta-section">
   <div class="wrap-narrow">
     <div class="home-cta-card">
       <div class="hud-corners"></div>
-      <span class="eyebrow no-rule">Get access</span>
-      <h2>Stop guessing your form.<br><span class="grad-text">Start reading it.</span></h2>
-      <p>Try Posture Sense in your browser with camera-only motion tracking.</p>
+      <span class="eyebrow no-rule">Start Practice</span>
+      <h2>Stop guessing your form.<br><span class="grad-text">Start measuring it.</span></h2>
+      <p>Experience real-time computer vision pose analysis locally in your browser.</p>
       <div class="home-cta-actions">
-        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Create account</a>
-        <a href="{{ url_for('pose_detection') }}" class="btn btn-ghost btn-lg">Try demo first</a>
+        <a href="{{ url_for('pose_detection') }}" class="btn btn-primary btn-lg">Start Pose Detection &rarr;</a>
+        <a href="{{ url_for('yoga_poses') }}" class="btn btn-ghost btn-lg">Explore Supported Poses</a>
       </div>
     </div>
   </div>
@@ -540,7 +647,7 @@
 
 
 <!-- ================================================
-     CONTACT (#contact)
+     CONTACT SECTION
      ================================================ -->
 <section id="contact" class="ps-section">
   <div class="wrap-narrow">
@@ -548,7 +655,7 @@
     <div class="section-head">
       <span class="eyebrow">Contact</span>
       <h2>Get in touch</h2>
-      <p>Have questions? We&rsquo;d love to hear from you.</p>
+      <p>Have questions or feedback? We&rsquo;d love to hear from you.</p>
     </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -636,7 +743,7 @@
 
           <div id="messageResponse" style="margin-top:16px"></div>
 
-          <button type="submit" class="btn btn-primary" style="margin-top:24px;width:100%;justify-content:center">
+          <button type="submit" id="contact-submit-btn" class="btn btn-primary" style="margin-top:24px;width:100%;justify-content:center">
             Send Message
           </button>
         </form>
@@ -651,27 +758,52 @@
 
 {% block extra_scripts %}
 <script>
-  document.getElementById("contactForm").addEventListener("submit", function(event) {
+  document.getElementById("contactForm").addEventListener("submit", async function(event) {
     event.preventDefault();
     var form = this;
+    var submitBtn = document.getElementById("contact-submit-btn") || form.querySelector("button[type='submit']");
     var messageResponse = document.getElementById("messageResponse");
+
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Sending Message...";
     messageResponse.innerHTML = "<div class='ps-alert ps-alert-info'>Sending message&hellip;</div>";
-    var formData = new FormData(form);
-    fetch("/contact", { method: "POST", body: formData })
-      .then(function(response) {
-        if (response.ok) {
-          messageResponse.innerHTML = "<div class='ps-alert ps-alert-success'>Message sent successfully!</div>";
-          form.reset();
-          setTimeout(function() { messageResponse.innerHTML = ""; }, 5000);
-        } else {
-          throw new Error('Network response was not ok');
-        }
-      })
-      .catch(function(error) {
-        messageResponse.innerHTML = "<div class='ps-alert ps-alert-danger'>Failed to send message. Please try again.</div>";
-        console.error('Error:', error);
-        setTimeout(function() { messageResponse.innerHTML = ""; }, 5000);
+
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() { controller.abort(); }, 20000);
+
+    try {
+      var formData = new FormData(form);
+      var response = await fetch("/contact", {
+        method: "POST",
+        body: formData,
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
+      var data = {};
+      try {
+        data = await response.json();
+      } catch (e) {}
+
+      if (response.ok && (data.success || data.status === "success")) {
+        messageResponse.innerHTML = "<div class='ps-alert ps-alert-success'>" + (data.message || "Message sent successfully. We'll get back to you soon.") + "</div>";
+        form.reset();
+      } else {
+        var errorMsg = data.error || data.message || "We couldn't send your message. Please try again.";
+        messageResponse.innerHTML = "<div class='ps-alert ps-alert-danger'>" + errorMsg + "</div>";
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === "AbortError") {
+        messageResponse.innerHTML = "<div class='ps-alert ps-alert-warning'>The request timed out. Please try again.</div>";
+      } else {
+        messageResponse.innerHTML = "<div class='ps-alert ps-alert-danger'>Unable to send your message. Please try again.</div>";
+      }
+      console.error('Contact Form Submission Error:', error);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerText = "Send Message";
+    }
   });
 </script>
 {% endblock %}

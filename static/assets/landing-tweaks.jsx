@@ -385,7 +385,6 @@ function StatBlock() {
 function Team() {
   const team = [
     { name:'Vedaang Sharma', role:'Lead · Computer vision', init:'VS' },
-    { name:'Trisha Bohra',   role:'Product · Movement science', init:'TB' },
   ];
   return (
     <section className="team-section" id="team">

@@ -35,14 +35,41 @@ def stop_camera():
 @login_required
 def save_pose_session():
     data = request.get_json() or {}
+    
+    # Ignore any client-provided user_id and strictly enforce authenticated current_user.id
+    user_id = current_user.id
+
     pose_label = data.get('pose_label')
     duration = data.get('duration', 0.0)
-    accuracy = data.get('accuracy', 0.0)
+    accuracy = data.get('accuracy') if 'accuracy' in data else data.get('overall_score', 0.0)
+    reps = data.get('reps', 0)
+    symmetry_score = data.get('symmetry_score')
+    balance_score = data.get('balance_score')
+    stability_score = data.get('stability_score')
+    rom_score = data.get('rom_score')
+    hold_time = data.get('hold_time', 0.0)
+    tracking_quality = data.get('tracking_quality')
+    failed_rules = data.get('failed_rules', [])
 
-    session, error = SessionService.save_session(current_user.id, pose_label, duration, accuracy)
+    session, error = SessionService.save_session(
+        user_id=user_id,
+        pose_label=pose_label,
+        duration=duration,
+        accuracy=accuracy,
+        reps=reps,
+        symmetry_score=symmetry_score,
+        balance_score=balance_score,
+        stability_score=stability_score,
+        rom_score=rom_score,
+        hold_time=hold_time,
+        tracking_quality=tracking_quality,
+        failed_rules=failed_rules
+    )
     if session:
-        return jsonify({'status': 'success', 'message': 'Pose session saved'})
-    return jsonify({'status': 'error', 'message': error or 'Invalid pose data'})
+        return jsonify({'status': 'success', 'message': 'Pose session saved', 'session_id': session.id})
+    return jsonify({'status': 'error', 'message': error or 'Invalid pose data'}), 400
+
+
 
 
 @api_bp.route('/video_feed')
@@ -85,7 +112,8 @@ def version():
 @login_required
 def get_analytics_summary():
     from backend.app.repositories.analytics_repository import AnalyticsRepository
-    summary = AnalyticsRepository.get_user_analytics_summary(current_user.id)
+    timeframe = request.args.get('timeframe', 'all')
+    summary = AnalyticsRepository.get_user_analytics_summary(current_user.id, timeframe=timeframe)
     return jsonify(summary)
 
 
@@ -93,7 +121,8 @@ def get_analytics_summary():
 @login_required
 def get_analytics_progress():
     from backend.app.repositories.analytics_repository import AnalyticsRepository
-    progress = AnalyticsRepository.get_user_progress(current_user.id)
+    timeframe = request.args.get('timeframe', 'all')
+    progress = AnalyticsRepository.get_user_progress(current_user.id, timeframe=timeframe)
     return jsonify(progress)
 
 
@@ -101,7 +130,8 @@ def get_analytics_progress():
 @login_required
 def get_analytics_exercises():
     from backend.app.repositories.analytics_repository import AnalyticsRepository
-    exercises = AnalyticsRepository.get_exercise_history(current_user.id)
+    timeframe = request.args.get('timeframe', 'all')
+    exercises = AnalyticsRepository.get_exercise_history(current_user.id, timeframe=timeframe)
     return jsonify(exercises)
 
 
@@ -109,7 +139,8 @@ def get_analytics_exercises():
 @login_required
 def get_analytics_trends():
     from backend.app.repositories.analytics_repository import AnalyticsRepository
-    trends = AnalyticsRepository.get_user_trends(current_user.id)
+    timeframe = request.args.get('timeframe', 'all')
+    trends = AnalyticsRepository.get_user_trends(current_user.id, timeframe=timeframe)
     return jsonify(trends)
 
 
@@ -119,6 +150,7 @@ def get_analytics_records():
     from backend.app.repositories.analytics_repository import AnalyticsRepository
     records = AnalyticsRepository.get_personal_records(current_user.id)
     return jsonify({'user_id': str(current_user.id), 'records': records})
+
 
 
 # ── Reports & Export Endpoints (Scoped to current_user for strict user isolation) ──
@@ -143,7 +175,8 @@ def get_exercise_report(exercise_id):
 @login_required
 def get_progress_report():
     from backend.app.services.report_service import ReportService
-    rep = ReportService.generate_progress_report(current_user.id)
+    timeframe = request.args.get('timeframe', '30d')
+    rep = ReportService.generate_progress_report(current_user.id, timeframe=timeframe)
     return jsonify(rep)
 
 
@@ -179,7 +212,8 @@ def get_session_report_json(session_id):
 @login_required
 def get_progress_csv():
     from backend.app.services.report_service import ReportService
-    export_res = ReportService.export_progress_csv(current_user.id)
+    timeframe = request.args.get('timeframe', '30d')
+    export_res = ReportService.export_progress_csv(current_user.id, timeframe=timeframe)
     return Response(export_res['content'], mimetype='text/csv', headers={
         'Content-Disposition': f'attachment; filename="{export_res["filename"]}"'
     })

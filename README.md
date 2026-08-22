@@ -1,7 +1,7 @@
 # PostureSense v2 — AI-Powered Real-Time Posture & Movement Analysis Platform
 
 [![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https.python.org)
-[![Tests Passing](https://img.shields.io/badge/tests-154%20passing-brightgreen.svg)](docs/TESTING.md)
+[![Tests Passing](https://img.shields.io/badge/tests-166%20passing-brightgreen.svg)](docs/TESTING.md)
 [![License](https://img.shields.io/badge/license-MIT-purple.svg)](LICENSE)
 [![Architecture](https://img.shields.io/badge/architecture-11--Engine%20Event--Driven-orange.svg)](docs/ARCHITECTURE_OVERVIEW.md)
 [![Deployment](https://img.shields.io/badge/deployment-Render%20%7C%20Supabase-informational.svg)](docs/DEPLOYMENT.md)
@@ -123,7 +123,7 @@ Posture-Sense/
 │       ├── js/engine/        # Browser JS engine implementation suite
 │       └── img/              # Branding & gallery image assets
 ├── templates/                # Jinja2 HTML Templates
-├── tests/                    # Automated Test Suite (154 passing tests)
+├── tests/                    # Automated Test Suite (166 passing tests)
 ├── docs/                     # Architectural, Security & Demo Documentation
 ├── .github/workflows/        # CI/CD GitHub Actions
 ├── app.py                    # Root WSGI Application Entrypoint

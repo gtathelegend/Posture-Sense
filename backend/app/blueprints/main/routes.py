@@ -56,6 +56,11 @@ def about():
     return redirect('/#about')
 
 
+@main_bp.route('/team')
+def team():
+    return redirect('/#team')
+
+
 @main_bp.route('/yoga-poses')
 def yoga_poses():
     return render_template('yoga-poses.html')
@@ -63,7 +68,7 @@ def yoga_poses():
 
 @main_bp.route('/pricing')
 def join_now():
-    return redirect('/#pricing')
+    return redirect('/#features')
 
 
 @main_bp.route('/playground')

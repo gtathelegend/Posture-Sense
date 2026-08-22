@@ -44,8 +44,12 @@
 
     <div class="ps-navmenu" id="psNavMenu">
       <a href="{{ url_for('index') }}" {% if active_page == 'home' %}class="active"{% endif %}>home</a>
+      <a href="{{ url_for('index') }}#features">features</a>
       <a href="{{ url_for('pose_detection') }}" {% if active_page == 'demo' %}class="active"{% endif %}>live demo</a>
       <a href="{{ url_for('yoga_poses') }}" {% if active_page == 'poses' %}class="active"{% endif %}>poses</a>
+      <a href="{{ url_for('index') }}#about">about</a>
+      <a href="{{ url_for('index') }}#team">team</a>
+      <a href="{{ url_for('index') }}#contact">contact</a>
       {% if current_user.is_authenticated %}
       <a href="{{ url_for('dashboard') }}" {% if active_page == 'dashboard' %}class="active"{% endif %}>dashboard</a>
       <a href="{{ url_for('dashboard.view_progress_report') }}" {% if active_page == 'reports' %}class="active"{% endif %}>reports</a>
@@ -96,12 +100,14 @@
           <li><a href="{{ url_for('pose_detection') }}">Live demo</a></li>
           <li><a href="{{ url_for('yoga_poses') }}">Pose library</a></li>
           <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+          <li><a href="{{ url_for('playground') }}">Dev Playground</a></li>
         </ul>
       </div>
       <div>
         <h4>Company</h4>
         <ul>
           <li><a href="{{ url_for('index') }}#about">About</a></li>
+          <li><a href="{{ url_for('index') }}#team">Team</a></li>
           <li><a href="{{ url_for('index') }}#contact">Contact</a></li>
           <li><a href="{{ url_for('index') }}">Home</a></li>
         </ul>
@@ -168,6 +174,6 @@
     });
   })();
 </script>
-<script src="/static/assets/js/utils/debug_overlay.js" type="module"></script>
+<script src="{{ url_for('static', filename='assets/js/utils/debug_overlay.js') }}" type="module"></script>
 </body>
 </html>

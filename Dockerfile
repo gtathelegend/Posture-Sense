@@ -1,7 +1,8 @@
-# Use Python 3.9 (or whichever version your project needs)
-FROM python:3.9
+# Use Python 3.12 slim image for production deployment
+FROM python:3.12-slim
 
 # Set working directory inside container
+WORKDIR /app
 
 
 # Install OS dependencies for OpenCV

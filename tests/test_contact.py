@@ -193,6 +193,16 @@ def test_contact_service_unconfigured_when_missing_key(monkeypatch):
     assert ContactService.is_configured() is False
 
 
+def test_brevo_key_diagnostics_safe(brevo_env):
+    """Verify safe diagnostics metadata without revealing secret key content."""
+    diag = ContactService.get_key_diagnostics()
+    assert diag['present'] is True
+    assert diag['length'] > 0
+    assert diag['has_prefix'] is True
+    # Ensure raw secret string is not in diagnostic keys or dictionary string representation
+    assert 'xkeysib-test-secret-key-1234567890' not in str(diag.keys())
+
+
 def test_brevo_api_request_structure(brevo_env):
     """Verify exact endpoint, headers, sender, recipient, replyTo and body structure."""
     mock_response = MagicMock()

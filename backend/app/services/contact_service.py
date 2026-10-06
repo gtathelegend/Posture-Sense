@@ -29,14 +29,21 @@ class ContactService:
     @classmethod
     def get_config(cls):
         """Retrieve and validate Brevo API configuration parameters."""
-        api_key = os.getenv('BREVO_API_KEY')
-        sender_email = os.getenv('BREVO_SENDER_EMAIL')
-        sender_name = os.getenv('BREVO_SENDER_NAME', 'PostureSense')
-        recipient_email = os.getenv('CONTACT_RECIPIENT_EMAIL') or os.getenv('ADMIN_EMAIL')
+        raw_key = os.getenv('BREVO_API_KEY') or ''
+        api_key = raw_key.strip().strip("'").strip('"')
+
+        raw_sender = os.getenv('BREVO_SENDER_EMAIL') or ''
+        sender_email = raw_sender.strip().strip("'").strip('"')
+
+        raw_sender_name = os.getenv('BREVO_SENDER_NAME') or 'PostureSense'
+        sender_name = raw_sender_name.strip().strip("'").strip('"')
+
+        raw_recipient = os.getenv('CONTACT_RECIPIENT_EMAIL') or os.getenv('ADMIN_EMAIL') or ''
+        recipient_email = raw_recipient.strip().strip("'").strip('"')
 
         timeout_val = os.getenv('BREVO_TIMEOUT', '10')
         try:
-            timeout = float(timeout_val)
+            timeout = float(str(timeout_val).strip())
         except ValueError:
             timeout = 10.0
 
@@ -47,6 +54,17 @@ class ContactService:
             'recipient_email': recipient_email,
             'timeout': timeout,
             'api_url': BREVO_API_URL
+        }
+
+    @classmethod
+    def get_key_diagnostics(cls) -> dict:
+        """Return safe diagnostic metadata about BREVO_API_KEY without revealing the key."""
+        config = cls.get_config()
+        key = config['api_key']
+        return {
+            'present': bool(key),
+            'length': len(key),
+            'has_prefix': key.startswith('xkeysib-')
         }
 
     @classmethod
@@ -150,11 +168,19 @@ Message:
                 logger.info("contact.email_delivery_success provider=brevo status_code=%d", response.status_code)
                 return True
             else:
+                err_reason = ""
+                try:
+                    res_json = response.json()
+                    err_reason = res_json.get('message') or res_json.get('code') or ""
+                except Exception:
+                    err_reason = (response.text or "")[:150]
+
                 logger.error(
-                    "contact.email_delivery_failed provider=brevo status_code=%d",
-                    response.status_code
+                    "contact.email_delivery_failed provider=brevo status_code=%d reason=%s",
+                    response.status_code,
+                    err_reason
                 )
-                raise EmailDeliveryError(f"Brevo API returned status {response.status_code}")
+                raise EmailDeliveryError(f"Brevo API returned status {response.status_code}: {err_reason}")
 
         except requests.RequestException as e:
             logger.error("contact.email_delivery_failed provider=brevo error=%s", type(e).__name__)
@@ -223,8 +249,15 @@ Message:
                 logger.info("newsletter.email_delivery_success provider=brevo status_code=%d", response.status_code)
                 return True
             else:
-                logger.error("newsletter.email_delivery_failed provider=brevo status_code=%d", response.status_code)
-                raise EmailDeliveryError(f"Brevo API returned status {response.status_code}")
+                err_reason = ""
+                try:
+                    res_json = response.json()
+                    err_reason = res_json.get('message') or res_json.get('code') or ""
+                except Exception:
+                    err_reason = (response.text or "")[:150]
+
+                logger.error("newsletter.email_delivery_failed provider=brevo status_code=%d reason=%s", response.status_code, err_reason)
+                raise EmailDeliveryError(f"Brevo API returned status {response.status_code}: {err_reason}")
 
         except requests.RequestException as e:
             logger.error("newsletter.email_delivery_failed provider=brevo error=%s", type(e).__name__)

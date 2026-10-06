@@ -11,3 +11,4 @@ flask_cors
 python-dotenv
 werkzeug
 PyYAML
+requests>=2.28.0

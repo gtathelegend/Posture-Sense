@@ -24,10 +24,11 @@ class Config:
     SUPABASE_PUBLISHABLE_KEY = os.getenv('SUPABASE_PUBLISHABLE_KEY')
     SUPABASE_SECRET_KEY = os.getenv('SUPABASE_SECRET_KEY')
     
-    # SMTP / Email Configuration
-    EMAIL_USER = os.getenv('EMAIL_USER')
-    EMAIL_PASSWORD = os.getenv('EMAIL_PASSWORD')
-    ADMIN_EMAIL = os.getenv('ADMIN_EMAIL')
+    # Brevo Transactional Email Configuration
+    BREVO_API_KEY = os.getenv('BREVO_API_KEY')
+    BREVO_SENDER_EMAIL = os.getenv('BREVO_SENDER_EMAIL')
+    BREVO_SENDER_NAME = os.getenv('BREVO_SENDER_NAME', 'PostureSense')
+    CONTACT_RECIPIENT_EMAIL = os.getenv('CONTACT_RECIPIENT_EMAIL') or os.getenv('ADMIN_EMAIL')
 
     # CORS Configuration
     raw_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:5000,http://127.0.0.1:5000')

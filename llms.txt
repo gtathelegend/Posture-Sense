@@ -1,0 +1,46 @@
+# PostureSense AI
+
+> Browser-native, real-time computer vision platform for 33-landmark pose detection, biomechanical analysis, rule-based yoga pose classification, and longitudinal posture intelligence.
+
+## Overview
+PostureSense (v2.0) is a private, client-side computer vision application designed to provide instantaneous feedback on body posture, yoga poses, and movement biomechanics. By executing Google MediaPipe Tasks Vision WebAssembly directly inside the user's browser, PostureSense guarantees 100% data privacy—no video frames or raw webcam images are ever uploaded or transmitted across the network.
+
+- **Primary URL**: https://posture-sense.onrender.com
+- **Portfolio & Creator**: Vedaang Sharma (https://vedaangsharma.in)
+- **Repository**: https://github.com/gtathelegend/Posture-Sense
+- **Location**: Jaipur, Rajasthan, India
+- **Core Technology**: Python 3.12, Flask, MediaPipe WebAssembly, OpenCV, JavaScript ES6+, Supabase PostgreSQL
+
+## Core Capabilities
+- **Browser-Native WASM Perception**: 30–60 FPS skeletal keypoint detection with 33 full-body 3D landmarks via Google MediaPipe PoseLandmarker running off-main-thread in a dedicated WebWorker.
+- **Biomechanical Telemetry (8D Engine)**:
+  1. *Form Score (0–100%)*: Quantitative accuracy match against target joint angle constraints.
+  2. *Bilateral Symmetry*: Left vs. right limb extension, shoulder horizontal levelness, and hip alignment.
+  3. *Center of Mass Balance*: Mass distribution estimation over support base to detect lean and lateral sway.
+  4. *Form Stability*: Spatial keypoint variance and postural steadiness quantification over time.
+  5. *Range of Motion (ROM)*: Real-time joint articulation calculation (knees, hips, shoulders, spine, elbows).
+  6. *Tracking Quality Confidence*: Keypoint visibility monitoring to detect camera distance or lighting issues.
+  7. *Sustained Hold Time*: Form-gated timer measuring static pose duration.
+  8. *Repetition & Tempo Tracking*: Depth-thresholded state machine tracking dynamic exercise reps.
+- **Configured Pose Library**:
+  - **Warrior II (Virabhadrasana II)**: Evaluates front knee bend (80°–110°), rear knee lock (160°–180°), and horizontal bilateral arm extension (80°–105°).
+  - **T Pose (Calibration Baseline)**: Anatomical baseline evaluating bilateral arm extension (165°–195° elbow lock, 80°–110° shoulder angle) and vertical spine posture.
+  - **Tree Pose (Vrikshasana)**: Single-leg balance evaluating standing knee extension (160°–180°) and lifted leg outward rotation (30°–90°).
+  - **Cobra Pose (Bhujangasana)**: Prone backbend evaluating thoracic spine arch (10°–45°) and grounded hip contact (150°–180°).
+- **Privacy & Security Architecture**:
+  - Zero video upload policy: Video stream processed in memory locally in WebAssembly.
+  - Telemetry-only persistence: Only user-approved session aggregations are stored in authenticated PostgreSQL database with strict IDOR protections.
+- **Reporting & Data Portability**:
+  - Generates comprehensive Progress and Session reports with multi-format authenticated exports (PDF, RFC-8259 JSON schema v2.0.0, and RFC-4180 CSV).
+
+## Key URLs & Endpoints
+- **Home & Live Perception Overview**: https://posture-sense.onrender.com/
+- **Interactive Pose Library**: https://posture-sense.onrender.com/yoga-poses
+- **Live Pose Detection Demo**: https://posture-sense.onrender.com/pose_detection
+- **Developer Playground & CV Debugger**: https://posture-sense.onrender.com/playground
+- **User Dashboard & Progress Analytics**: https://posture-sense.onrender.com/dashboard
+- **Authenticated Reports & Exports**: https://posture-sense.onrender.com/reports/progress
+- **System Health & Telemetry**: https://posture-sense.onrender.com/api/v1/health
+
+## Extended Documentation
+- Full technical specification: https://posture-sense.onrender.com/llms-full.txt

@@ -2,7 +2,68 @@
 {% set active_page = 'poses' %}
 
 {% block title %}Supported Yoga Poses &mdash; PostureSense AI{% endblock %}
-{% block meta_desc %}Explore the 4 configured yoga and posture calibration poses recognized by PostureSense AI with real-time 33-landmark perception and rule-based form evaluation.{% endblock %}
+{% block meta_desc %}Explore the 4 configured yoga and posture calibration poses recognized by PostureSense AI with real-time 33-landmark perception, angle constraints, and rule-based form evaluation.{% endblock %}
+
+{% block schema_json %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "@id": "{{ request.url }}#breadcrumbs",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "{{ url_for('index', _external=True) }}"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Yoga Poses Library",
+          "item": "{{ request.url }}"
+        }
+      ]
+    },
+    {
+      "@type": "ItemList",
+      "@id": "{{ request.url }}#poselist",
+      "name": "PostureSense Recognized Pose Library",
+      "description": "Rule-based biomechanically evaluated posture and yoga poses.",
+      "numberOfItems": 4,
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Warrior II Pose (Virabhadrasana II)",
+          "description": "Evaluates front knee bend (80°–110°), rear knee lock (160°–180°), and horizontal bilateral arm extension (80°–105°)."
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "T Pose (Calibration Baseline)",
+          "description": "Establishes baseline anatomical posture alignment, evaluating horizontal elbow lock (165°–195°) and shoulder levelness (80°–110°)."
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Tree Pose (Vrikshasana)",
+          "description": "Evaluates single-leg balance with standing knee extension (160°–180°) and lifted knee outward rotation (30°–90°)."
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": "Cobra Pose (Bhujangasana)",
+          "description": "Evaluates thoracic spine extension arch (10°–45°) and grounded hip alignment (150°–180°)."
+        }
+      ]
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 

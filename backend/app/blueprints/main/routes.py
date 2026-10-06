@@ -41,6 +41,17 @@ def robots():
     return send_file(_get_root_file('robots.txt'), mimetype='text/plain')
 
 
+@main_bp.route('/llms.txt')
+@main_bp.route('/.well-known/llms.txt')
+def llms_txt():
+    return send_file(_get_root_file('llms.txt'), mimetype='text/plain; charset=utf-8')
+
+
+@main_bp.route('/llms-full.txt')
+def llms_full_txt():
+    return send_file(_get_root_file('llms-full.txt'), mimetype='text/plain; charset=utf-8')
+
+
 @main_bp.route('/pose_detection')
 @login_required
 def pose_detection():

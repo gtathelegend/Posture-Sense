@@ -2,10 +2,15 @@ import math
 import cv2
 import mediapipe as mp
 
-# Initializing mediapipe pose class.
-mp_pose = mp.solutions.pose
-pose = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
-mp_drawing = mp.solutions.drawing_utils
+# Initializing mediapipe pose class safely.
+try:
+    mp_pose = mp.solutions.pose
+    pose = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, model_complexity=1)
+    mp_drawing = mp.solutions.drawing_utils
+except Exception:
+    mp_pose = None
+    pose = None
+    mp_drawing = None
 
 # Global state variables for camera and posture status
 pose_status = "Scanning"

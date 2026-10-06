@@ -2,7 +2,100 @@
 {% set active_page = 'home' %}
 
 {% block title %}PostureSense AI &mdash; Real-Time Posture & Movement Intelligence{% endblock %}
-{% block meta_desc %}Browser-native AI posture analysis platform providing real-time 33-landmark pose detection, biomechanical evaluation, form correction, and longitudinal progress tracking.{% endblock %}
+{% block meta_desc %}Browser-native AI posture analysis platform providing real-time 33-landmark pose detection, biomechanical evaluation, form correction, and longitudinal progress tracking with 100% on-device privacy.{% endblock %}
+
+{% block schema_json %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "FAQPage",
+      "@id": "{{ request.url_root }}#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is PostureSense and how does it work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PostureSense is a browser-native computer vision platform that provides real-time posture analysis and yoga pose feedback. It runs Google MediaPipe Tasks Vision WebAssembly directly inside your browser to detect 33 full-body landmarks at 30–60 FPS, calculating joint angles and form accuracy on-device without sending video to external servers."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does PostureSense record, store, or stream my camera feed to servers?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. PostureSense has a strict 100% on-device privacy architecture. Video frames from your webcam are processed in-memory in your local browser WebWorker and instantly discarded. No raw video, photos, or raw landmark streams are ever uploaded or transmitted across the network."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does 33-point landmark tracking and real-time biomechanics calculation work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PostureSense uses MediaPipe's 3D skeletal topology with Exponential Moving Average (EMA) spatial smoothing. It computes exact vector angles across joints (such as knee flexion, elbow extension, shoulder tilt, and spinal arch) and compares them against biomechanical constraints defined in pose configuration rules."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which yoga poses and posture exercises are recognized by PostureSense?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PostureSense currently features configured rules for Warrior II (Virabhadrasana II), T Pose (calibration baseline), Tree Pose (Vrikshasana), and Cobra Pose (Bhujangasana), evaluating strength, balance, symmetry, and spinal flexibility."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What 8 biomechanical metrics are evaluated during workouts?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PostureSense evaluates 8 core dimensions: Overall Form Score (0–100%), Bilateral Symmetry, Center of Mass Balance, Form Stability, Range of Motion (ROM), Tracking Quality Confidence, Sustained Hold Time, and Repetition/Tempo counts."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is PostureSense free to use and do I need to install any software?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PostureSense is 100% free and open-access. You do not need to install any mobile apps, desktop software, or browser extensions. It runs directly inside any modern web browser that supports WebAssembly and HTML5 camera access."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "HowTo",
+      "@id": "{{ request.url_root }}#howto",
+      "name": "How to Correct Your Posture in Real Time Using PostureSense",
+      "description": "Step-by-step guide to analyzing your posture and exercise form using browser-native AI.",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "name": "Open the PostureSense Live Demo",
+          "text": "Navigate to the Pose Detection page in any modern web browser on your desktop, laptop, or mobile device.",
+          "url": "{{ url_for('pose_detection', _external=True) }}"
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Grant Local Camera Permission",
+          "text": "Allow browser access to your webcam. All video frames stay local on your device."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Select a Target Pose and Align Your Body",
+          "text": "Choose a pose (such as Warrior II, T Pose, Tree Pose, or Cobra Pose) and position your full body in the camera frame."
+        },
+        {
+          "@type": "HowToStep",
+          "name": "Follow Real-Time Biomechanical Cues",
+          "text": "Observe the on-screen skeletal overlay and real-time form correction badges to adjust your joint angles and maintain posture hold."
+        }
+      ]
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 
@@ -552,7 +645,7 @@
       <span class="eyebrow">ENGINEERING TEAM</span>
       <h2>Built with engineering, vision &amp; curiosity.</h2>
       <p class="creator-lead">PostureSense was designed and developed as a browser-native computer vision platform, combining real-time perception, biomechanics, analytics, and production engineering.</p>
-      <p class="creator-sub">Developed at Vivekananda Global University, Jaipur.</p>
+      <p class="creator-sub">Designed &amp; Engineered by Vedaang Sharma &middot; Jaipur, Rajasthan, India</p>
     </div>
 
     <div class="creator-card-wrapper">
@@ -602,8 +695,8 @@
                 <span>GitHub</span>
               </a>
 
-              <a href="https://vedaangsharma.dev" target="_blank" rel="noopener noreferrer" class="creator-btn creator-btn-primary" aria-label="Vedaang Sharma Portfolio">
-                <span>Portfolio</span>
+              <a href="https://vedaangsharma.in" target="_blank" rel="noopener noreferrer" class="creator-btn creator-btn-primary" aria-label="Vedaang Sharma Portfolio">
+                <span>Portfolio (vedaangsharma.in)</span>
                 <svg class="btn-icon ext-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <line x1="7" y1="17" x2="17" y2="7"></line>
                   <polyline points="7 7 17 7 17 17"></polyline>
@@ -623,6 +716,84 @@
       </div>
     </div>
 
+  </div>
+</section>
+
+
+<!-- ================================================
+     FAQ & KNOWLEDGE BASE (AEO & USER ASSISTANCE)
+     ================================================ -->
+<section id="faq" class="ps-section home-faq-section" aria-label="Frequently Asked Questions">
+  <div class="wrap-narrow">
+    <div class="section-head center">
+      <span class="eyebrow no-rule">Knowledge Base &amp; AEO</span>
+      <h2>Frequently Asked Questions</h2>
+      <p>Instant answers to common questions about on-device AI perception, privacy, and biomechanical tracking.</p>
+    </div>
+
+    <div class="faq-accordion" style="display:flex;flex-direction:column;gap:16px;margin-top:36px">
+
+      <details class="faq-item" style="background:rgba(255,255,255,0.85);border:1px solid rgba(10,11,31,0.08);border-radius:14px;padding:18px 24px;box-shadow:0 4px 16px -4px rgba(10,11,31,0.04);transition:all 0.2s ease" open>
+        <summary style="font-weight:600;font-size:16px;color:var(--fg-0);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">
+          <span>What is PostureSense and how does it work?</span>
+          <span class="faq-icon" style="color:var(--cyan);font-weight:bold;font-size:18px">&plus;</span>
+        </summary>
+        <p style="margin-top:12px;color:var(--fg-2);font-size:14px;line-height:1.6">
+          PostureSense is a browser-native AI movement intelligence platform. It runs Google MediaPipe Tasks Vision WebAssembly directly inside your client browser to detect 33 3D skeletal landmarks at 30–60 FPS. By calculating vector angles between anatomical joints in real time, it compares your movements to biomechanical constraints and delivers instant visual feedback without sending video data to external servers.
+        </p>
+      </details>
+
+      <details class="faq-item" style="background:rgba(255,255,255,0.85);border:1px solid rgba(10,11,31,0.08);border-radius:14px;padding:18px 24px;box-shadow:0 4px 16px -4px rgba(10,11,31,0.04);transition:all 0.2s ease">
+        <summary style="font-weight:600;font-size:16px;color:var(--fg-0);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">
+          <span>Does PostureSense record, store, or stream my webcam feed?</span>
+          <span class="faq-icon" style="color:var(--cyan);font-weight:bold;font-size:18px">&plus;</span>
+        </summary>
+        <p style="margin-top:12px;color:var(--fg-2);font-size:14px;line-height:1.6">
+          <strong>No.</strong> PostureSense employs a 100% on-device, client-side perception architecture. All video frames from your camera are processed strictly inside local WebWorker memory buffers and are immediately discarded. No video bytes, images, or raw coordinate streams are ever uploaded or transmitted across the internet.
+        </p>
+      </details>
+
+      <details class="faq-item" style="background:rgba(255,255,255,0.85);border:1px solid rgba(10,11,31,0.08);border-radius:14px;padding:18px 24px;box-shadow:0 4px 16px -4px rgba(10,11,31,0.04);transition:all 0.2s ease">
+        <summary style="font-weight:600;font-size:16px;color:var(--fg-0);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">
+          <span>How does 33-point landmark tracking and real-time biomechanics calculation work?</span>
+          <span class="faq-icon" style="color:var(--cyan);font-weight:bold;font-size:18px">&plus;</span>
+        </summary>
+        <p style="margin-top:12px;color:var(--fg-2);font-size:14px;line-height:1.6">
+          The pipeline uses MediaPipe 3D PoseLandmarker combined with an Exponential Moving Average (EMA) spatial filter to remove keypoint jitter. Joint articulation angles (such as knee flexion, hip grounding, elbow lock, and thoracic spine extension) are calculated using 3D vector dot products and compared against deterministic rule bounds defined in <code>yoga_poses.json</code>.
+        </p>
+      </details>
+
+      <details class="faq-item" style="background:rgba(255,255,255,0.85);border:1px solid rgba(10,11,31,0.08);border-radius:14px;padding:18px 24px;box-shadow:0 4px 16px -4px rgba(10,11,31,0.04);transition:all 0.2s ease">
+        <summary style="font-weight:600;font-size:16px;color:var(--fg-0);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">
+          <span>Which yoga poses and posture exercises are currently recognized?</span>
+          <span class="faq-icon" style="color:var(--cyan);font-weight:bold;font-size:18px">&plus;</span>
+        </summary>
+        <p style="margin-top:12px;color:var(--fg-2);font-size:14px;line-height:1.6">
+          PostureSense currently features configured rules for <strong>Warrior II (Virabhadrasana II)</strong>, <strong>T Pose (Calibration Baseline)</strong>, <strong>Tree Pose (Vrikshasana)</strong>, and <strong>Cobra Pose (Bhujangasana)</strong>. Each pose evaluates specific target joint angles, symmetry bounds, and stability thresholds.
+        </p>
+      </details>
+
+      <details class="faq-item" style="background:rgba(255,255,255,0.85);border:1px solid rgba(10,11,31,0.08);border-radius:14px;padding:18px 24px;box-shadow:0 4px 16px -4px rgba(10,11,31,0.04);transition:all 0.2s ease">
+        <summary style="font-weight:600;font-size:16px;color:var(--fg-0);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">
+          <span>What 8 biomechanical metrics are evaluated during practice?</span>
+          <span class="faq-icon" style="color:var(--cyan);font-weight:bold;font-size:18px">&plus;</span>
+        </summary>
+        <p style="margin-top:12px;color:var(--fg-2);font-size:14px;line-height:1.6">
+          Every session tracks 8 objective metrics: (1) Form Accuracy Score (0–100%), (2) Bilateral Symmetry, (3) Center of Mass Balance, (4) Form Stability, (5) Joint Range of Motion (ROM), (6) Camera Tracking Quality, (7) Sustained Hold Time, and (8) Repetition/Tempo counts.
+        </p>
+      </details>
+
+      <details class="faq-item" style="background:rgba(255,255,255,0.85);border:1px solid rgba(10,11,31,0.08);border-radius:14px;padding:18px 24px;box-shadow:0 4px 16px -4px rgba(10,11,31,0.04);transition:all 0.2s ease">
+        <summary style="font-weight:600;font-size:16px;color:var(--fg-0);cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">
+          <span>Is PostureSense free to use? Do I need special hardware?</span>
+          <span class="faq-icon" style="color:var(--cyan);font-weight:bold;font-size:18px">&plus;</span>
+        </summary>
+        <p style="margin-top:12px;color:var(--fg-2);font-size:14px;line-height:1.6">
+          PostureSense is 100% free and open-access. No special hardware, sensors, wearable devices, or app downloads are needed—just a standard webcam and any modern web browser (Google Chrome, Microsoft Edge, Mozilla Firefox, or Apple Safari).
+        </p>
+      </details>
+
+    </div>
   </div>
 </section>
 
@@ -676,8 +847,18 @@
         <div class="contact-info-item">
           <div class="contact-info-icon">📍</div>
           <div>
-            <div class="contact-info-label">Address</div>
-            <div class="contact-info-value">Vivekananda Global University<br>Jaipur, Rajasthan 303012</div>
+            <div class="contact-info-label">Location</div>
+            <div class="contact-info-value">Jaipur, Rajasthan, India</div>
+          </div>
+        </div>
+
+        <div class="contact-info-item">
+          <div class="contact-info-icon">🌐</div>
+          <div>
+            <div class="contact-info-label">Website &amp; Portfolio</div>
+            <div class="contact-info-value">
+              <a href="https://vedaangsharma.in" target="_blank" rel="noopener">vedaangsharma.in</a>
+            </div>
           </div>
         </div>
 

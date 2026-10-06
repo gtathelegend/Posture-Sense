@@ -6,11 +6,106 @@
 
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Posture Sense{% endblock %}</title>
-  <meta name="description" content="{% block meta_desc %}Posture Sense: AI-powered real-time posture detection and exercise correction.{% endblock %}">
+  <title>{% block title %}PostureSense AI &mdash; Real-Time Posture & Movement Intelligence{% endblock %}</title>
+  <meta name="description" content="{% block meta_desc %}Browser-native AI posture analysis platform providing real-time 33-landmark pose detection, biomechanical evaluation, form correction, and longitudinal progress tracking with 100% on-device privacy.{% endblock %}">
+  <meta name="keywords" content="{% block meta_keywords %}AI posture correction, real-time pose detection, MediaPipe WASM, computer vision fitness, yoga pose recognition, biomechanics analysis, ergonomics posture tracker, on-device AI health{% endblock %}">
+  <meta name="author" content="Vedaang Sharma">
+  <meta name="publisher" content="Vedaang Sharma">
+  <meta name="application-name" content="PostureSense">
+  <meta name="theme-color" content="#0a0b1f">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+  <!-- GEO / Geographic Metadata -->
+  <meta name="geo.region" content="IN-RJ">
+  <meta name="geo.placename" content="Jaipur">
+  <meta name="geo.position" content="26.8242;75.8648">
+  <meta name="ICBM" content="26.8242, 75.8648">
+
+  <!-- Canonical and LLM Discovery -->
+  {% block canonical %}<link rel="canonical" href="{{ request.base_url }}">{% endblock %}
+  <link rel="alternate" type="text/plain" href="{{ url_for('main.llms_txt') }}" title="LLMs.txt Manifest">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="PostureSense AI">
+  <meta property="og:title" content="{% block og_title %}PostureSense AI &mdash; Real-Time Posture & Movement Intelligence{% endblock %}">
+  <meta property="og:description" content="{% block og_desc %}Browser-native AI posture analysis platform providing real-time 33-landmark pose detection and biomechanical evaluation with 100% on-device privacy.{% endblock %}">
+  <meta property="og:url" content="{{ request.base_url }}">
+  <meta property="og:image" content="{{ url_for('static', filename='assets/img/hero-img.jpeg', _external=True) }}">
+  <meta property="og:image:alt" content="PostureSense Real-Time Pose Detection and Biomechanical Evaluation">
+  <meta property="og:locale" content="en_US">
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% block twitter_title %}PostureSense AI &mdash; Real-Time Posture & Movement Intelligence{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_desc %}Browser-native AI posture analysis platform providing real-time 33-landmark pose detection and biomechanical evaluation with 100% on-device privacy.{% endblock %}">
+  <meta name="twitter:image" content="{{ url_for('static', filename='assets/img/hero-img.jpeg', _external=True) }}">
+  <meta name="twitter:creator" content="@gtathelegend">
+
+  <!-- Structured Data (JSON-LD) for SEO, AEO, and GEO Entity Recognition -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "@id": "{{ request.url_root }}#webapp",
+        "name": "PostureSense AI",
+        "url": "{{ request.url_root }}",
+        "description": "Browser-native AI posture analysis platform providing real-time 33-landmark pose detection, biomechanical evaluation, form correction, and progress tracking.",
+        "applicationCategory": "HealthApplication",
+        "applicationSubCategory": "Computer Vision Biomechanics & Ergonomics",
+        "operatingSystem": "All modern web browsers (Chrome, Edge, Firefox, Safari)",
+        "browserRequirements": "Requires WebAssembly (WASM) and HTML5 MediaDevices camera access",
+        "permissions": "camera",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        },
+        "creator": {
+          "@type": "Person",
+          "@id": "https://vedaangsharma.in/#person",
+          "name": "Vedaang Sharma",
+          "jobTitle": "Lead Developer & Software Architect",
+          "url": "https://vedaangsharma.in",
+          "sameAs": [
+            "https://linkedin.com/in/vedaangsharma2006",
+            "https://github.com/gtathelegend",
+            "https://vedaangsharma.in"
+          ]
+        },
+        "publisher": {
+          "@type": "Person",
+          "@id": "https://vedaangsharma.in/#publisher",
+          "name": "Vedaang Sharma",
+          "url": "https://vedaangsharma.in"
+        },
+        "featureList": [
+          "100% On-Device WebAssembly Inference (Zero Video Upload)",
+          "33-Landmark 3D Skeletal Tracking via MediaPipe",
+          "8-Dimensional Biomechanical Telemetry (Score, Symmetry, Balance, Stability, ROM, Quality, Hold Time, Reps)",
+          "Rule-Based Yoga Pose Classification (Warrior II, T-Pose, Tree Pose, Cobra Pose)",
+          "Deterministic Real-Time Correction Cues",
+          "Authenticated Longitudinal Dashboard & Multi-Format PDF/JSON/CSV Reports"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "{{ request.url_root }}#website",
+        "url": "{{ request.url_root }}",
+        "name": "PostureSense AI",
+        "description": "Real-time AI posture analysis and movement intelligence running privately in your browser."
+      }
+    ]
+  }
+  </script>
+  {% block schema_json %}{% endblock %}
 
   <link rel="icon" href="{{ url_for('static', filename='assets/img/favicon.ico') }}">
-  <link rel="apple-touch-icon" href="{{ url_for('static', filename='assets/img/vgu.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='assets/img/hero-img.jpeg') }}">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -89,6 +184,7 @@
           Real-time computer vision for posture correction and exercise feedback.
         </p>
         <div style="margin-top:16px;display:flex;gap:10px">
+          <a href="https://vedaangsharma.in" target="_blank" class="chip mono" style="text-decoration:none">vedaangsharma.in</a>
           <a href="https://linkedin.com/in/vedaangsharma2006" target="_blank" class="chip mono" style="text-decoration:none">LinkedIn</a>
           <a href="https://github.com/gtathelegend" target="_blank" class="chip mono" style="text-decoration:none">GitHub</a>
         </div>
@@ -126,7 +222,7 @@
     </div>
     <div class="ps-footer-bottom">
       <span>&copy; 2026 POSTURE.SENSE &mdash; ALL RIGHTS RESERVED</span>
-      <span>VIVEKANANDA GLOBAL UNIVERSITY &middot; JAIPUR</span>
+      <span><a href="https://vedaangsharma.in" target="_blank" style="color:inherit;text-decoration:none">VEDAANG SHARMA &middot; VEDAANGSHARMA.IN</a></span>
     </div>
   </div>
 </footer>

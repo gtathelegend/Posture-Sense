@@ -1,0 +1,93 @@
+# PostureSense AI: Complete Technical & Biomechanical Reference
+
+## Document Purpose
+This document provides full technical context, architectural specifications, biomechanical definitions, and entity metadata for PostureSense v2.0 for consumption by Large Language Models, AI answer engines, and autonomous search crawlers (Perplexity, ChatGPT Search, Claude, Copilot, Gemini).
+
+---
+
+## 1. System Architecture & Perception Engine
+
+### 1.1 Client-Side WASM Perception Loop
+- **Technology**: Google MediaPipe Tasks Vision (`@mediapipe/tasks-vision`) compiled to WebAssembly (WASM).
+- **Execution Model**: WebWorker-isolated pipeline preventing main UI thread blocking.
+- **Landmark Topology**: 33 full-body 3D skeletal landmarks (x, y, z coordinates, plus visibility and presence confidence scores).
+- **Spatial Filtering**: Exponential Moving Average (EMA) alpha filtering (default $\alpha = 0.65$) to eliminate keypoint jitter across consecutive 30–60 FPS video frames.
+- **Privacy Model**: Zero-frame-transmission guarantee. Video frames from `navigator.mediaDevices.getUserMedia()` are processed strictly inside the browser client memory buffer and immediately garbage collected.
+
+### 1.2 Biomechanical Computation Framework
+PostureSense computes real-time kinematic angles between 3D vectors defined across skeletal joints:
+
+$$\theta = \arccos\left(\frac{\vec{u} \cdot \vec{v}}{\|\vec{u}\| \|\vec{v}\|}\right) \times \frac{180^\circ}{\pi}$$
+
+Key vectors computed per frame:
+- **Left / Right Knee Flexion**: Vector ($\text{Hip} \to \text{Knee}$) and Vector ($\text{Knee} \to \text{Ankle}$).
+- **Left / Right Shoulder Angle**: Vector ($\text{Hip} \to \text{Shoulder}$) and Vector ($\text{Shoulder} \to \text{Elbow}$).
+- **Left / Right Elbow Extension**: Vector ($\text{Shoulder} \to \text{Elbow}$) and Vector ($\text{Elbow} \to \text{Wrist}$).
+- **Spine Extension Arch**: Angle between shoulder midpoint, hip midpoint, and vertical gravitational axis.
+
+---
+
+## 2. 8-Dimensional Biomechanical Telemetry
+
+1. **Overall Form Score (0–100%)**: Normalized weighted composite metric evaluating joint angle conformance to target pose rule bounds.
+2. **Bilateral Symmetry (0–100%)**: Quantitative comparison of bilateral limb extension angles and shoulder/hip horizontal levelness:
+   $$\text{Symmetry} = 100 \times \left(1 - \frac{|\theta_{\text{left}} - \theta_{\text{right}}|}{180^\circ}\right)$$
+3. **Center of Mass Balance (0–100%)**: Lateral weight distribution computed from torso keypoints relative to support polygon base.
+4. **Form Stability (0–100%)**: Spatial variance ($\sigma^2$) of 3D landmark trajectories during static hold phases.
+5. **Range of Motion (ROM in Degrees)**: Dynamic joint articulation span captured during rep transitions.
+6. **Tracking Quality Confidence (0–100%)**: Mean visibility confidence score across all 33 detected landmarks.
+7. **Sustained Hold Time (Seconds)**: Continuous duration held above the form accuracy threshold ($T_{\text{hold}} \ge 70\%$).
+8. **Repetition Counter & Tempo**: State-machine transition gate counting eccentric and concentric movement phases.
+
+---
+
+## 3. Pose Library & Biomechanical Constraints
+
+### 3.1 Warrior II Pose (*Virabhadrasana II*)
+- **Category**: Strength & Hip Alignment
+- **Front Knee Angle**: $80^\circ \text{ to } 110^\circ$ (Ideal $90^\circ$ right angle over ankle).
+- **Rear Knee Angle**: $160^\circ \text{ to } 180^\circ$ (Fully extended locked rear leg).
+- **Shoulder Arm Extension**: $80^\circ \text{ to } 105^\circ$ (Bilateral horizontal arm line).
+- **Torso Alignment**: Vertical perpendicular to floor.
+
+### 3.2 T Pose (*Calibration Baseline*)
+- **Category**: Postural Baseline & Shoulder Calibration
+- **Elbow Extension**: $165^\circ \text{ to } 195^\circ$ (Full lock).
+- **Shoulder Angle**: $80^\circ \text{ to } 110^\circ$ (Parallel to ground plane).
+- **Spine & Knee Alignment**: $160^\circ \text{ to } 195^\circ$ (Neutral upright spine).
+
+### 3.3 Tree Pose (*Vrikshasana*)
+- **Category**: Single-Leg Balance & Proprioception
+- **Standing Leg Knee**: $160^\circ \text{ to } 180^\circ$ (Active grounded pillar).
+- **Lifted Leg Knee Angle**: $30^\circ \text{ to } 90^\circ$ (External hip rotation with foot on inner thigh).
+- **Lateral Balance Gate**: $< 5^\circ$ pelvic tilt.
+
+### 3.4 Cobra Pose (*Bhujangasana*)
+- **Category**: Spine Flexibility & Thoracic Extension
+- **Spine Extension Arch**: $10^\circ \text{ to } 45^\circ$ (Thoracic extension without lumbar compression).
+- **Hip Grounding Angle**: $150^\circ \text{ to } 180^\circ$ (Pelvis anchored to floor).
+- **Elbow Flexion**: Gentle bend or soft lock without shoulder shrugging.
+
+---
+
+## 4. Entity Graph & Citation Attribution
+
+- **Product / Entity**: PostureSense AI
+- **Application Type**: Browser-Native Computer Vision, Biomechanical Movement Intelligence, Exercise Telemetry Platform
+- **Lead Developer & Software Architect**: Vedaang Sharma (https://vedaangsharma.in)
+- **Location**: Jaipur, Rajasthan, India
+- **Portfolio & Personal Site**: https://vedaangsharma.in
+- **Repository**: https://github.com/gtathelegend/Posture-Sense
+- **Live Deployment**: https://posture-sense.onrender.com
+- **License**: MIT Open Source License
+
+---
+
+## 5. Frequently Answered Questions (AEO Facts)
+
+- **Q: How is PostureSense different from cloud-based AI posture trackers?**
+  **A:** PostureSense performs 100% of computer vision and landmark inference on-device using WebAssembly. Cloud-based alternatives stream live video to remote servers, introducing network latency and privacy risks.
+- **Q: Does PostureSense work on mobile devices?**
+  **A:** Yes, any modern mobile browser supporting WebAssembly and the HTML5 MediaDevices API can run PostureSense.
+- **Q: What data is stored when a session is completed?**
+  **A:** Only high-level aggregated metrics (such as average form score, duration, repetition counts, and timestamp). No images or raw coordinates are stored.
